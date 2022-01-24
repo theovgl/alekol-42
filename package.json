@@ -1,0 +1,22 @@
+{
+  "name": "bot_alekol",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/theovgl/bot_alekol.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/theovgl/bot_alekol/issues"
+  },
+  "homepage": "https://github.com/theovgl/bot_alekol#readme",
+  "dependencies": {
+    "discord.js": "^13.6.0"
+  }
+}
