@@ -16,6 +16,8 @@ async function uploadToDb(id, login) {
 				return ('e_login_42')
 			}
 		}
+	} else {
+		return ('done')
 	}
 }
 
@@ -28,15 +30,18 @@ module.exports = {
 				.setDescription('Your 42 login')
 				.setRequired(true)),
 	async execute(interaction) {
+		const wait = require('util').promisify(setTimeout)
 		const string = interaction.options.getString('42_login')
 		console.log(interaction.user.id)
 		const response = await uploadToDb(interaction.user.id, string)
+		await interaction.deferReply()
+		await wait(1000)
 		if (response === 'e_login_42') {
-			await interaction.reply('⛔ Sorry **' + string + '** is already in our database')
+			await interaction.editReply('⛔ Sorry **' + string + '** is already in our database')
 		} else if (response === 'e_discord_id') {
-			await interaction.reply('⛔ Sorry your discord ID (*' + interaction.user.id +'*) is already in our database')
+			await interaction.editReply('⛔ Sorry your discord ID (*' + interaction.user.id +'*) is already in our database')
 		} else if (response === 'done') {
-			await interaction.reply('✅ User Registration Successful !')
+			await interaction.editReply('✅ User Registration Successful !')
 		}
 	}
 }
