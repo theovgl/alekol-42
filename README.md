@@ -18,8 +18,10 @@ DISCORD_GUILD_ID=
 SUPABASE_URL=
 SUPABASE_ANON_KEY=
 
+42_UID=
+42_SECRET=
 ```
-Install node packages and run the program
+Install node packages and run the program:
 ```sh
 npm i
 npm run dev
