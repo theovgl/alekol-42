@@ -18,8 +18,8 @@ DISCORD_GUILD_ID=
 SUPABASE_URL=
 SUPABASE_ANON_KEY=
 
-42_UID=
-42_SECRET=
+UID_42=
+SECRET_42=
 ```
 Install node packages and run the program:
 ```sh

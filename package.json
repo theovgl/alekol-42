@@ -21,9 +21,11 @@
     "@discordjs/builders": "^0.12.0",
     "@discordjs/rest": "^0.2.0-canary.0",
     "@supabase/supabase-js": "^1.29.4",
+    "axios": "^0.25.0",
     "discord-api-types": "^0.26.1",
     "discord.js": "^13.6.0",
-    "dotenv": "^14.2.0"
+    "dotenv": "^14.2.0",
+    "simple-oauth2": "^4.3.0"
   },
   "type": "commonjs",
   "devDependencies": {

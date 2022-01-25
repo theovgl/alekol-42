@@ -1,8 +1,19 @@
 const dotenv = require('dotenv')
 const { Client, Collection, Intents } = require('discord.js')
 const fs = require('fs')
+// const
 
 dotenv.config()
+
+const config = {
+	client: {
+	  id: process.env.UID_42,
+	  secret: process.env.SECRET_42
+	},
+	auth: {
+	  tokenHost: 'https://api.intra.42.fr/'
+	}
+  };
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] })
 client.commands = new Collection()
