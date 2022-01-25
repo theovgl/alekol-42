@@ -18,7 +18,7 @@ const apiConfig = {
 		tokenPath: '/oauth/token',
 		authorizePath: '/oauth/authorize'
 	}
-};
+}
 
 const apiClient = new ClientCredentials(apiConfig);
 

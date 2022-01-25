@@ -33,7 +33,7 @@ module.exports = {
 		const wait = require('util').promisify(setTimeout)
 		const string = interaction.options.getString('42_login')
 		const response = await uploadToDb(interaction.user.id, string)
-		await interaction.deferReply()
+		await interaction.deferReply({ ephemeral: true })
 		await wait(1000)
 		if (response === 'e_login_42') {
 			await interaction.editReply('⛔ Sorry **' + string + '** is already in our database')
