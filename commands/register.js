@@ -32,7 +32,6 @@ module.exports = {
 	async execute(interaction) {
 		const wait = require('util').promisify(setTimeout)
 		const string = interaction.options.getString('42_login')
-		console.log(interaction.user.id)
 		const response = await uploadToDb(interaction.user.id, string)
 		await interaction.deferReply()
 		await wait(1000)

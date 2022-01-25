@@ -1,19 +1,8 @@
 const dotenv = require('dotenv')
 const { Client, Collection, Intents } = require('discord.js')
-const fs = require('fs')
-// const
+const fs = require('fs');
 
 dotenv.config()
-
-const config = {
-	client: {
-	  id: process.env.UID_42,
-	  secret: process.env.SECRET_42
-	},
-	auth: {
-	  tokenHost: 'https://api.intra.42.fr/'
-	}
-  };
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] })
 client.commands = new Collection()
@@ -22,7 +11,11 @@ const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('
 
 for (const file of commandFiles) {
 	const command = require(`./commands/${file}`)
-	client.commands.set(command.data.name, command)
+	if (command.data && command.data.name) {
+		client.commands.set(command.data.name, command)
+	} else {
+		console.error(`file ${file} does not have .data or .data.name property!`);
+	}
 }
 
 client.once('ready', () => {
