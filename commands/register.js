@@ -1,30 +1,10 @@
 const { SlashCommandBuilder } = require("@discordjs/builders")
 const { supabaseClient } = require('../utils/supabaseClient.js')
-const axios = require('axios')
-const apiClient = require('../utils/ft_client.js')
-
-async function checkLogin(login) {
-	let access_token
-
-	try {
-		const { token } = await apiClient.getToken({
-			scope: 'public'
-		})
-		access_token = apiClient.createToken(token)
-	} catch (error) {
-		console.error(error);
-	}
-	return(axios({
-		method: 'GET',
-		url: `https://api.intra.42.fr/v2/users/${login}`,
-		headers: {
-			'Authorization': `Bearer ${access_token.token.access_token}`
-		}
-	}))
-}
+const fetchUser = require('../src/database/fetch_user.js')
 
 async function uploadToDb(id, login) {
-	const response = await checkLogin(login)
+	const response = await fetchUser(login)
+
 	const ft_id = response.data.id
 
 	const { data, error } = await supabaseClient
@@ -34,10 +14,10 @@ async function uploadToDb(id, login) {
 		])
 	if (error) {
 		console.log(error)
-		if (error.code === '23505') {
-			if (error.details.includes('discord_id')) {
+		if (error.code == '23505') {
+			if (error.message.includes('discord_id')) {
 				return ('e_discord_id')
-			} else if (error.details.includes('login_42')) {
+			} else if (error.message.includes('login_42')) {
 				return ('e_login_42')
 			}
 		}
