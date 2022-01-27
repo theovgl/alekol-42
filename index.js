@@ -1,40 +1,38 @@
-const dotenv = require('dotenv')
-const { Client, Collection, Intents } = require('discord.js')
-const fs = require('fs');
+const WebSocket = require('ws');
+const dotenv = require('dotenv');
+dotenv.config();
+const client = require('./client.js');
 
-dotenv.config()
-
-const client = new Client({ intents: [Intents.FLAGS.GUILDS] })
-client.commands = new Collection()
-
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'))
-
-for (const file of commandFiles) {
-	const command = require(`./commands/${file}`)
-	if (command.data && command.data.name) {
-		client.commands.set(command.data.name, command)
-	} else {
-		console.error(`file ${file} does not have .data or .data.name property!`);
+const ws = new WebSocket('wss://profile.intra.42.fr/cable', ["actioncable-v1-json", "actioncable-unsupported"], {
+	"protocolVersion": 13,
+	"perMessageDeflate": true,
+	"headers": {
+		"Origin": "https://meta.intra.42.fr",
+		"Cookie": `user.id=${process.env.FT_USER_ID};`
 	}
-}
+});
 
-client.once('ready', () => {
-	console.log('Ready !')
-})
+ws.on('open', function open() {
+	console.log("WebSocket connection established!");
+	ws.send('{"command":"subscribe","identifier":"{\\"channel\\":\\"LocationChannel\\",\\"user_id\\":75939}"}');
+	ws.send('{"command":"subscribe","identifier":"{\\"channel\\":\\"NotificationChannel\\",\\"user_id\\":75939}"}');
+	ws.send('{"command":"subscribe","identifier":"{\\"channel\\":\\"FlashChannel\\",\\"user_id\\":75939}"}');
+});
 
-client.on('interactionCreate', async interaction => {
-	if (!interaction.isCommand()) return
+ws.on('close', function message(code, reason) {
+	console.log('Closing connection (code %d): REASON %s', code, reason);
+});
 
-	const command = client.commands.get(interaction.commandName)
+ws.on('message', function message(data) {
+	const message = JSON.parse(data);
+	if (message?.identifier?.channel != 'LocationChannel')
+		return;
+	console.log(message);
+	// message.message.location.user_id; -> comparer avec la base de donnée
+	// ajouter le rôle @alekol si dedans
+	// message.message.location.end_at == null si connection
+});
 
-	if (!command) return
-
-	try {
-		await command.execute(interaction)
-	} catch (error) {
-		console.log(error)
-		await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-	}
-})
-
-client.login(process.env.DISCORD_TOKEN)
+ws.on('error', function message(data) {
+	console.log(error);
+});
