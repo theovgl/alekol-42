@@ -1,4 +1,5 @@
-# 42 Alekol
+
+# 42 Alekol [![ESLint](https://github.com/theovgl/bot_alekol/actions/workflows/lint.yml/badge.svg)](https://github.com/theovgl/bot_alekol/actions/workflows/lint.yml)
 
 ## What I've used
 
