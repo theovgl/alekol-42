@@ -1,26 +1,12 @@
 const { SlashCommandBuilder } = require("@discordjs/builders")
 const axios = require('axios');
-const { MessageEmbed, MessageAttachment } = require("discord.js");
-const { ClientCredentials } = require('simple-oauth2');
+const { MessageEmbed } = require("discord.js");
 const dayjs = require('dayjs')
 const relativeTime = require('dayjs/plugin/relativeTime')
+const apiClient = require('../utils/apiClient.js')
 
 dayjs().format()
 dayjs.extend(relativeTime)
-
-const apiConfig = {
-	client: {
-		id: process.env.UID_42,
-		secret: process.env.SECRET_42
-	},
-	auth: {
-		tokenHost: 'https://api.intra.42.fr',
-		tokenPath: '/oauth/token',
-		authorizePath: '/oauth/authorize'
-	}
-}
-
-const apiClient = new ClientCredentials(apiConfig);
 
 async function fetchUser(client, login) {
 	let access_token
