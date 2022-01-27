@@ -1,11 +1,36 @@
 const { SlashCommandBuilder } = require("@discordjs/builders")
 const { supabaseClient } = require('../utils/supabaseClient.js')
+const axios = require('axios')
+const apiClient = require('../utils/ft_client.js')
+
+async function checkLogin(login) {
+	let access_token
+
+	try {
+		const { token } = await apiClient.getToken({
+			scope: 'public'
+		})
+		access_token = apiClient.createToken(token)
+	} catch (error) {
+		console.error(error);
+	}
+	return(axios({
+		method: 'GET',
+		url: `https://api.intra.42.fr/v2/users/${login}`,
+		headers: {
+			'Authorization': `Bearer ${access_token.token.access_token}`
+		}
+	}))
+}
 
 async function uploadToDb(id, login) {
+	const response = await checkLogin(login)
+	const ft_id = response.data.id
+
 	const { data, error } = await supabaseClient
 		.from("users")
 		.insert([
-			{ login_42: login, discord_id: id }
+			{ ft_login: login, discord_id: id, ft_id: ft_id }
 		])
 	if (error) {
 		console.log(error)
@@ -39,7 +64,9 @@ module.exports = {
 			await interaction.editReply('⛔ Sorry **' + string + '** is already in our database')
 		} else if (response === 'e_discord_id') {
 			await interaction.editReply('⛔ Sorry your discord ID (*' + interaction.user.id +'*) is already in our database')
-		} else if (response === 'done') {
+		} else if (response === 'e_bad_login') {
+			await interaction.editReply('⛔ Sorry **' + string + '** seems to be absent from 42 api')
+		}else if (response === 'done') {
 			await interaction.editReply('✅ User Registration Successful !')
 		}
 	}
