@@ -3,7 +3,7 @@ const axios = require('axios');
 const { MessageEmbed } = require("discord.js");
 const dayjs = require('dayjs')
 const relativeTime = require('dayjs/plugin/relativeTime')
-const fetchUser = require('../src/database/fetch_user.js')
+const fetchUser = require('../src/api/fetchUser.js')
 
 dayjs().format()
 dayjs.extend(relativeTime)

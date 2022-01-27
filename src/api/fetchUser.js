@@ -1,7 +1,6 @@
 const axios = require('axios');
 const apiClient = require('../../utils/ft_client.js');
 
-
 async function fetchUser(login) {
 	let access_token
 

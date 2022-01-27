@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require("@discordjs/builders")
 const { supabaseClient } = require('../utils/supabaseClient.js')
-const fetchUser = require('../src/database/fetch_user.js')
+const fetchUser = require('../src/api/fetchUser.js')
 
 async function uploadToDb(id, login) {
 	const response = await fetchUser(login)
