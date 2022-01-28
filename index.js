@@ -1,40 +1,59 @@
-const dotenv = require('dotenv')
-const { Client, Collection, Intents } = require('discord.js')
-const fs = require('fs');
+const WebSocket = require('ws');
+const dotenv = require('dotenv');
+dotenv.config();
+const client = require('./client.js');
+const compareOnLog = require('./src/compareOnLog.js');
+const updateRole = require('./src/updateRole.js');
 
-dotenv.config()
+const ws = new WebSocket('wss://profile.intra.42.fr/cable', ['actioncable-v1-json', 'actioncable-unsupported'], {
+	'protocolVersion': 13,
+	'perMessageDeflate': true,
+	'headers': {
+		'Origin': 'https://meta.intra.42.fr',
+		'Cookie': `user.id=${process.env.FT_USER_ID};`,
+	},
+});
 
-const client = new Client({ intents: [Intents.FLAGS.GUILDS] })
-client.commands = new Collection()
+ws.on('open', function open() {
+	console.log('WebSocket connection established!');
+	ws.send('{"command":"subscribe","identifier":"{\\"channel\\":\\"LocationChannel\\",\\"user_id\\":75939}"}');
+	ws.send('{"command":"subscribe","identifier":"{\\"channel\\":\\"NotificationChannel\\",\\"user_id\\":75939}"}');
+	ws.send('{"command":"subscribe","identifier":"{\\"channel\\":\\"FlashChannel\\",\\"user_id\\":75939}"}');
+});
 
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'))
+ws.on('close', (code, reason) => {
+	console.log('Closing connection (code %d): REASON %s', code, reason);
+});
 
-for (const file of commandFiles) {
-	const command = require(`./commands/${file}`)
-	if (command.data && command.data.name) {
-		client.commands.set(command.data.name, command)
-	} else {
-		console.error(`file ${file} does not have .data or .data.name property!`);
+ws.on('message', async (data) => {
+	const message = JSON.parse(data);
+
+	if (!message?.identifier
+		|| !message?.message
+		|| JSON.parse(message.identifier).channel != 'LocationChannel') {return;}
+
+	let response;
+	try {
+		response = await compareOnLog(message.message.location.user_id);
 	}
-}
-
-client.once('ready', () => {
-	console.log('Ready !')
-})
-
-client.on('interactionCreate', async interaction => {
-	if (!interaction.isCommand()) return
-
-	const command = client.commands.get(interaction.commandName)
-
-	if (!command) return
+	catch (error) {
+		console.error(`${error}\nCould not fetch user ${message.message.location.user_id}`);
+		return;
+	}
+	if (!response) {
+		console.error(`${message.message.location.user_id} is not registered`);
+		return;
+	}
 
 	try {
-		await command.execute(interaction)
-	} catch (error) {
-		console.log(error)
-		await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+		await updateRole(client, response.discord_id, response.guild_id, (message.message.location.end_at == null));
 	}
-})
+	catch (error) {
+		console.error(error);
+		return;
+	}
+});
 
-client.login(process.env.DISCORD_TOKEN)
+ws.on('error', (error) => {
+	console.error(error);
+});
