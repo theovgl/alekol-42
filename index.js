@@ -25,7 +25,6 @@ ws.on('close', function message(code, reason) {
 	console.log('Closing connection (code %d): REASON %s', code, reason);
 });
 
-//attention parce que ici j'utilise plus le web socket mais le mock
 ws.on('message', async function message(data) {
 	const message = JSON.parse(data);
 
@@ -52,9 +51,6 @@ ws.on('message', async function message(data) {
 		console.error(error);
 		return;
 	}
-	// message.message.location.user_id; -> comparer avec la base de donnée
-	// ajouter le rôle @alekol si dedans
-	// message.message.location.end_at == null si connection
 });
 
 ws.on('error', function message(data) {
