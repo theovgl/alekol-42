@@ -58,6 +58,7 @@ async function updateRole(discord_id, user_guilds, at_school) {
 	} catch (error) {
 		throw (`Could not find the role (${ROLE}) in the guild (${user_guilds})`);
 	}
+	if (!newRole) throw (`Could not find the role (${ROLE}) in the guild (${user_guilds})`);
 	assignRole(MemberRoles, newRole)
 }
 
