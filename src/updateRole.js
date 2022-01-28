@@ -1,8 +1,10 @@
 const client = require("../client");
 
+const ROLE = 'alekol-user'
+
 async function createRole(guild) {
-	return (await guild.roles.create({
-		name: 'alekol',
+	return (guild.roles.create({
+		name: ROLE,
 		color: 'YELLOW',
 	}))
 }
@@ -48,12 +50,14 @@ async function updateRole(discord_id, user_guilds, at_school) {
 	// la je check si le role existe
 	// si c'est pas le cas je le cree (c'est fonctionnel)
 	// sinon je recup l'id de ce role
-	if (!Roles.includes('alekol')) {
-		newRole = await createRole(Guild)
-	} else {
-		newRole = Guild.roles.cache.find((r) => r.name === 'alekol').id
+
+	// If we create the role, it can be too fast to check if
+	// it already exists so the role will be created too many times
+	try {
+		newRole = Guild.roles.cache.find((r) => r.name === ROLE);
+	} catch (error) {
+		throw (`Could not find the role (${ROLE}) in the guild (${user_guilds})`);
 	}
-	console.log(newRole)
 	assignRole(MemberRoles, newRole)
 }
 
