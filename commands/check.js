@@ -1,12 +1,11 @@
-const { SlashCommandBuilder } = require("@discordjs/builders")
-const axios = require('axios');
-const { MessageEmbed } = require("discord.js");
-const dayjs = require('dayjs')
-const relativeTime = require('dayjs/plugin/relativeTime')
-const fetchUser = require('../src/api/fetchUser.js')
+const { SlashCommandBuilder } = require('@discordjs/builders');
+const { MessageEmbed } = require('discord.js');
+const dayjs = require('dayjs');
+const relativeTime = require('dayjs/plugin/relativeTime');
+const fetchUser = require('../src/api/fetchUser.js');
 
-dayjs().format()
-dayjs.extend(relativeTime)
+dayjs().format();
+dayjs.extend(relativeTime);
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -17,8 +16,8 @@ module.exports = {
 				.setDescription('Enter the login of the user you want to spy on')
 				.setRequired(true)),
 	async execute(interaction) {
-		const login = interaction.options.getString('42_login')
-		const response = await fetchUser(login)
+		const login = interaction.options.getString('42_login');
+		const response = await fetchUser(login);
 		const embed = new MessageEmbed()
 			.setColor('#1abc9c')
 			.setTitle(`User: ${response.data.login}`)
@@ -26,14 +25,14 @@ module.exports = {
 			.setURL(`https://profile.intra.42.fr/users/${response.data.login}`)
 			.setThumbnail(`${response.data.image_url}`)
 			.addFields(
-				{ name: 'Is at school ?', value: response.data.location ? `Yes ! **${response.data.location}**` : `No 😢` },
+				{ name: 'Is at school ?', value: response.data.location ? `Yes ! **${response.data.location}**` : 'No 😢' },
 				{ name: '\u200B', value: '\u200B' },
 				{ name: 'Correction point(s)', value: `${response.data.correction_point}`, inline: true },
 				{ name: '\u200B', value: '\u200B', inline: true },
 				{ name: 'Black hole', value: `${dayjs(response.data.cursus_users[1].blackholed_at).fromNow()}`, inline: true },
 			)
-			.setTimestamp()
+			.setTimestamp();
 
-		await interaction.reply({ embeds: [embed] })
-	}
-}
+		await interaction.reply({ embeds: [embed] });
+	},
+};

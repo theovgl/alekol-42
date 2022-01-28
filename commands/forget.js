@@ -1,15 +1,16 @@
-const { SlashCommandBuilder } = require("@discordjs/builders")
-const { supabaseClient } = require('../utils/supabaseClient.js')
+const { SlashCommandBuilder } = require('@discordjs/builders');
+const { supabaseClient } = require('../utils/supabaseClient.js');
 
 async function deleteFromDb(id) {
-	const { data, error } = await supabaseClient
-		.from("users")
+	const { error } = await supabaseClient
+		.from('users')
 		.delete()
-		.match({ discord_id: id })
+		.match({ discord_id: id });
 	if (error) {
-		console.log(error)
-		return ('error')
-	} else return ('done')
+		console.log(error);
+		return ('error');
+	}
+	else {return ('done');}
 }
 
 module.exports = {
@@ -21,11 +22,12 @@ module.exports = {
 				.setDescription('We\'ll miss you')
 				.setRequired(true)),
 	async execute(interaction) {
-		const response = await deleteFromDb(interaction.user.id)
+		const response = await deleteFromDb(interaction.user.id);
 		if (response === 'done') {
-			await interaction.reply("Done ! 💔")
-		} else {
-			await interaction.reply("❌ Oups, something went wrong !")
+			await interaction.reply('Done ! 💔');
 		}
-	}
-}
+		else {
+			await interaction.reply('❌ Oups, something went wrong !');
+		}
+	},
+};
