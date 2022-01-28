@@ -3,7 +3,6 @@ const dotenv = require('dotenv');
 dotenv.config();
 const client = require('./client.js');
 const compareOnLog = require('./src/compareOnLog.js')
-const mock = require('./mock.js');
 const updateRole = require('./src/updateRole.js');
 
 const ws = new WebSocket('wss://profile.intra.42.fr/cable', ["actioncable-v1-json", "actioncable-unsupported"], {
@@ -28,10 +27,11 @@ ws.on('close', function message(code, reason) {
 
 //attention parce que ici j'utilise plus le web socket mais le mock
 ws.on('message', async function message(data) {
-	// const message = JSON.parse(data);
-	const message = mock;
+	const message = JSON.parse(data);
 
-	if (message?.identifier?.channel != 'LocationChannel')
+	if (!message?.identifier
+		|| !message?.message
+		|| JSON.parse(message.identifier).channel != 'LocationChannel')
 		return;
 
 	let response;
