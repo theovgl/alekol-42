@@ -1,4 +1,3 @@
-
 # 42 Alekol [![ESLint](https://github.com/theovgl/bot_alekol/actions/workflows/lint.yml/badge.svg)](https://github.com/theovgl/bot_alekol/actions/workflows/lint.yml)
 
 ## What I've used
@@ -10,7 +9,8 @@
 
 ## Installation
 
-Create a `.env` files with the following variables and your credentials:
+Rename the `.env.template` file and fill in the fields with your credentials:
+
 ```
 DISCORD_TOKEN=
 DISCORD_CLIENT_ID=
@@ -21,9 +21,13 @@ SUPABASE_ANON_KEY=
 
 UID_42=
 SECRET_42=
+
+FT_USER_ID=
 ```
+
 Install node packages and run the program:
+
 ```sh
 npm i
-npm run dev
+npm start
 ```
