@@ -35,7 +35,12 @@ async function updateRole(discord_id, user_guilds, at_school) {
 	const Roles = Guild.roles.cache.map(roles => roles.name)
 
 	// On recup le membre a qui on veut ajouter le role
-	const Member = await Guild.members.fetch(discord_id)
+	let Member;
+	try {
+		Member = await Guild.members.fetch(discord_id);
+	} catch (error) {
+		throw (`The user (${discord_id}) has not been found in the guild (${user_guilds})`);
+	}
 
 	// Et pour finir on recup son role manager
 	const MemberRoles = Member.roles
