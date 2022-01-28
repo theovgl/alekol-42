@@ -47,11 +47,7 @@ ws.on('message', async function message(data) {
 	}
 
 	try {
-		if (message.message.location.end_at == null) {
-			await updateRole(response.discord_id, response.guild_id, true)
-		} else {
-			await updateRole(response.discord_id, response.guild_id, false)
-		}
+		await updateRole(response.discord_id, response.guild_id, (message.message.location.end_at == null));
 	} catch (error) {
 		console.error(error);
 		return;
