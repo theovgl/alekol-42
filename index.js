@@ -3,7 +3,6 @@ const dotenv = require('dotenv');
 dotenv.config();
 const client = require('./client.js');
 const compareOnLog = require('./src/compareOnLog.js')
-const createRole = require('./src/createRole.js')
 const mock = require('./mock.js');
 const updateRole = require('./src/updateRole.js');
 
@@ -29,19 +28,28 @@ ws.on('close', function message(code, reason) {
 
 //attention parce que ici j'utilise plus le web socket mais le mock
 ws.on('message', async function message(data) {
+	// const message = JSON.parse(data);
 	const message = mock;
 
 	if (message?.identifier?.channel != 'LocationChannel')
 		return;
-	const response = await compareOnLog(message.message.location.user_id)
-	if (response) {
-		if (message.message.location.end_at == null) {
-			await updateRole(response.discord_id, response.guild_id, true)
-		} else {
-			await updateRole(response.discord_id, response.guild_id, false)
-		}
+
+	let response;
+	try {
+		response = await compareOnLog(message.message.location.user_id)
+	} catch (error) {
+		console.error(`${error}\nCould not fetch user ${message.message.location.user_id}`);
+		return;
+	}
+	if (!response) {
+		console.error(`${message.message.location.user_id} is not registered`);
+		return;
+	}
+
+	if (message.message.location.end_at == null) {
+		await updateRole(response.discord_id, response.guild_id, true)
 	} else {
-		return
+		await updateRole(response.discord_id, response.guild_id, false)
 	}
 	// message.message.location.user_id; -> comparer avec la base de donnée
 	// ajouter le rôle @alekol si dedans
