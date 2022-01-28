@@ -46,10 +46,15 @@ ws.on('message', async function message(data) {
 		return;
 	}
 
-	if (message.message.location.end_at == null) {
-		await updateRole(response.discord_id, response.guild_id, true)
-	} else {
-		await updateRole(response.discord_id, response.guild_id, false)
+	try {
+		if (message.message.location.end_at == null) {
+			await updateRole(response.discord_id, response.guild_id, true)
+		} else {
+			await updateRole(response.discord_id, response.guild_id, false)
+		}
+	} catch (error) {
+		console.error(error);
+		return;
 	}
 	// message.message.location.user_id; -> comparer avec la base de donnée
 	// ajouter le rôle @alekol si dedans

@@ -29,6 +29,7 @@ async function updateRole(discord_id, user_guilds, at_school) {
 
 	// On recupere la guild
 	const Guild = client.guilds.cache.get(user_guilds)
+	if (Guild === undefined) throw (`The guild (${user_guilds}) associated with the user (${discord_id}) has not been found`);
 
 	// On recup la liste des roles dans le serveur/guild
 	const Roles = Guild.roles.cache.map(roles => roles.name)
