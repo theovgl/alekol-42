@@ -40,7 +40,8 @@ async function updateRole(client, discord_id, user_guilds, is_at_school) {
 	try {
 		if (is_at_school) assignRole(memberRoles, newRole);
 		else if (!is_at_school) removeRole(memberRoles, newRole);
-	} catch (error) {
+	}
+	catch (error) {
 		throw (`Could not change role of user (${discord_id})`);
 	}
 }
