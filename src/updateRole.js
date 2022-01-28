@@ -1,7 +1,7 @@
 const client = require("../client");
 
 async function createRole(guild) {
-	return(await guild.roles.create({
+	return (await guild.roles.create({
 		name: 'alekol',
 		color: 'YELLOW',
 	}))
