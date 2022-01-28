@@ -17,13 +17,11 @@ async function uploadToDb(id, login) {
 		if (error.code == '23505') {
 			if (error.message.includes('discord_id')) {
 				return ('e_discord_id');
-			}
-			else if (error.message.includes('login_42')) {
+			} else if (error.message.includes('login_42')) {
 				return ('e_login_42');
 			}
 		}
-	}
-	else {
+	} else {
 		return ('done');
 	}
 }
@@ -44,14 +42,11 @@ module.exports = {
 		await wait(1000);
 		if (response === 'e_login_42') {
 			await interaction.editReply('⛔ Sorry **' + string + '** is already in our database');
-		}
-		else if (response === 'e_discord_id') {
+		} else if (response === 'e_discord_id') {
 			await interaction.editReply('⛔ Sorry your discord ID (*' + interaction.user.id + '*) is already in our database');
-		}
-		else if (response === 'e_bad_login') {
+		} else if (response === 'e_bad_login') {
 			await interaction.editReply('⛔ Sorry **' + string + '** seems to be absent from 42 api');
-		}
-		else if (response === 'done') {
+		} else if (response === 'done') {
 			await interaction.editReply('✅ User Registration Successful !');
 		}
 	},

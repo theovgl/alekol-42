@@ -9,8 +9,7 @@ async function deleteFromDb(id) {
 	if (error) {
 		console.log(error);
 		return ('error');
-	}
-	else {return ('done');}
+	} else {return ('done');}
 }
 
 module.exports = {
@@ -25,8 +24,7 @@ module.exports = {
 		const response = await deleteFromDb(interaction.user.id);
 		if (response === 'done') {
 			await interaction.reply('Done ! 💔');
-		}
-		else {
+		} else {
 			await interaction.reply('❌ Oups, something went wrong !');
 		}
 	},
