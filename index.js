@@ -2,6 +2,10 @@ const WebSocket = require('ws');
 const dotenv = require('dotenv');
 dotenv.config();
 const client = require('./client.js');
+const compareOnLog = require('./src/compareOnLog.js')
+const createRole = require('./src/createRole.js')
+const mock = require('./mock.js');
+const updateRole = require('./src/updateRole.js');
 
 const ws = new WebSocket('wss://profile.intra.42.fr/cable', ["actioncable-v1-json", "actioncable-unsupported"], {
 	"protocolVersion": 13,
@@ -23,11 +27,22 @@ ws.on('close', function message(code, reason) {
 	console.log('Closing connection (code %d): REASON %s', code, reason);
 });
 
-ws.on('message', function message(data) {
-	const message = JSON.parse(data);
+//attention parce que ici j'utilise plus le web socket mais le mock
+ws.on('message', async function message(data) {
+	const message = mock;
+
 	if (message?.identifier?.channel != 'LocationChannel')
 		return;
-	console.log(message);
+	const response = await compareOnLog(message.message.location.user_id)
+	if (response) {
+		if (message.message.location.end_at == null) {
+			await updateRole(response.discord_id, response.guild_id, true)
+		} else {
+			await updateRole(response.discord_id, response.guild_id, false)
+		}
+	} else {
+		return
+	}
 	// message.message.location.user_id; -> comparer avec la base de donnée
 	// ajouter le rôle @alekol si dedans
 	// message.message.location.end_at == null si connection
