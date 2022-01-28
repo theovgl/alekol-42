@@ -35,8 +35,7 @@ ws.on('message', async (data) => {
 	let response;
 	try {
 		response = await compareOnLog(message.message.location.user_id);
-	}
-	catch (error) {
+	} catch (error) {
 		console.error(`${error}\nCould not fetch user ${message.message.location.user_id}`);
 		return;
 	}
@@ -47,8 +46,7 @@ ws.on('message', async (data) => {
 
 	try {
 		await updateRole(client, response.discord_id, response.guild_id, (message.message.location.end_at == null));
-	}
-	catch (error) {
+	} catch (error) {
 		console.error(error);
 		return;
 	}

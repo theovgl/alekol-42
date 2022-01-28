@@ -21,8 +21,7 @@ async function updateRole(client, discord_id, user_guilds, is_at_school) {
 	let member;
 	try {
 		member = await guild.members.fetch(discord_id);
-	}
-	catch (error) {
+	} catch (error) {
 		throw (`The user (${discord_id}) has not been found in the guild (${user_guilds})`);
 	}
 
@@ -31,8 +30,7 @@ async function updateRole(client, discord_id, user_guilds, is_at_school) {
 	const memberRoles = member.roles;
 	try {
 		newRole = guild.roles.cache.find((r) => r.name === ROLE);
-	}
-	catch (error) {
+	} catch (error) {
 		throw (`Could not find the role (${ROLE}) in the guild (${user_guilds})`);
 	}
 	if (!newRole) throw (`Could not find the role (${ROLE}) in the guild (${user_guilds})`);
@@ -40,8 +38,7 @@ async function updateRole(client, discord_id, user_guilds, is_at_school) {
 	try {
 		if (is_at_school) assignRole(memberRoles, newRole);
 		else if (!is_at_school) removeRole(memberRoles, newRole);
-	}
-	catch (error) {
+	} catch (error) {
 		throw (`Could not change role of user (${discord_id})`);
 	}
 }

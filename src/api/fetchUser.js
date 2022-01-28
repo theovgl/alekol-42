@@ -9,8 +9,7 @@ async function fetchUser(login) {
 			scope: 'public',
 		});
 		access_token = apiClient.createToken(token);
-	}
-	catch (error) {
+	} catch (error) {
 		console.error(error);
 	}
 	return (axios({

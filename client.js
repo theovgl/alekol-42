@@ -10,8 +10,7 @@ for (const file of commandFiles) {
 	const command = require(`./commands/${file}`);
 	if (command.data && command.data.name) {
 		client.commands.set(command.data.name, command);
-	}
-	else {
+	} else {
 		console.error(`file ${file} does not have .data or .data.name property!`);
 	}
 }
@@ -29,8 +28,7 @@ client.on('interactionCreate', async interaction => {
 
 	try {
 		await command.execute(interaction);
-	}
-	catch (error) {
+	} catch (error) {
 		console.log(error);
 		await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
 	}
