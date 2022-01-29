@@ -2,8 +2,12 @@ const WebSocket = require('ws');
 const dotenv = require('dotenv');
 dotenv.config();
 const client = require('./client.js');
-const compareOnLog = require('./src/compareOnLog.js');
 const updateRole = require('./src/updateRole.js');
+const fetchUser = require('./src/database/fetchUser.js');
+const createUserInTree = require('./src/createUserInTree.js');
+
+const AVLTree = require('avl');
+const users = new AVLTree();
 
 const ws = new WebSocket('wss://profile.intra.42.fr/cable', ['actioncable-v1-json', 'actioncable-unsupported'], {
 	'protocolVersion': 13,
@@ -31,22 +35,26 @@ ws.on('message', async (data) => {
 	if (!message?.identifier
 		|| !message?.message
 		|| JSON.parse(message.identifier).channel != 'LocationChannel') {return;}
+	const ft_login = message.message.location.login;
 
-	let response;
+	let user_in_guilds;
 	try {
-		response = await compareOnLog(message.message.location.user_id);
+		user_in_guilds = await fetchUser({ ft_login });
 	}
 	catch (error) {
-		console.error(`${error}\nCould not fetch user ${message.message.location.user_id}`);
+		console.error(`Could not fetch user (${ft_login})\n${error}`);
 		return;
 	}
-	if (!response) {
-		console.error(`${message.message.location.user_id} is not registered`);
+	if (user_in_guilds.length == 0) {
+		console.error(`User (${ft_login}) is not registered in the database`);
 		return;
 	}
 
+	const user = users.find(ft_login)?.data
+		?? createUserInTree(users, user_in_guilds[0].ft_id, ft_login, user_in_guilds);
 	try {
-		await updateRole(client, response.discord_id, response.guild_id, (message.message.location.end_at == null));
+		await updateRole(client, user, (message.message.location.end_at == null));
+		console.log(`${user.ft_login} has been updated!`);
 	}
 	catch (error) {
 		console.error(error);
