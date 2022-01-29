@@ -29,8 +29,7 @@ ws.on('close', (code, reason) => {
 });
 
 ws.on('message', async (data) => {
-	//const message = JSON.parse(data);
-	const message = require('./mock.js');
+	const message = JSON.parse(data);
 
 	// To delete
 	const wait = require('util').promisify(setTimeout);
