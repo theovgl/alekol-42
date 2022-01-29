@@ -1,5 +1,4 @@
-const fetchUser = require('../src/database/fetchUser.js');
-const createUserInTree = require('../src/createUserInTree.js');
+const getUserByFtLogin = require('../src/getUserByFtLogin.js');
 
 function onOpen(ws) {
 	return (() => {
@@ -27,21 +26,14 @@ function onMessage(client, users) {
 			|| JSON.parse(message.identifier).channel != 'LocationChannel') {return;}
 		const ft_login = message.message.location.login;
 
-		let user_in_guilds;
+		let user;
 		try {
-			user_in_guilds = await fetchUser({ ft_login });
+			user = await getUserByFtLogin(users, ft_login);
 		}
 		catch (error) {
-			console.error(`Could not fetch user (${ft_login})\n${error}`);
+			console.error(error);
 			return;
 		}
-		if (user_in_guilds.length == 0) {
-			console.error(`User (${ft_login}) is not registered in the database`);
-			return;
-		}
-
-		const user = users.find(ft_login)?.data
-			?? createUserInTree(users, user_in_guilds);
 		await user.updateRole(client, (message.message.location.end_at == null));
 		console.log(`${user.ft_login} has been updated!`);
 	});
