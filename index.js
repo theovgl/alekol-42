@@ -54,7 +54,7 @@ ws.on('message', async (data) => {
 	}
 
 	const user = users.find(ft_login)?.data
-		?? createUserInTree(users, user_in_guilds[0].ft_id, ft_login, user_in_guilds);
+		?? createUserInTree(users, user_in_guilds);
 	await user.updateRole(client, (message.message.location.end_at == null));
 	console.log(`${user.ft_login} has been updated!`);
 });

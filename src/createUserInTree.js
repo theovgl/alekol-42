@@ -1,7 +1,9 @@
 const User = require('./User.js');
 
-module.exports = function createUserInTree(users, ft_id, ft_login, user_in_guilds) {
-	const user = new User(ft_id, ft_login, user_in_guilds);
-	users.insert(ft_login, user);
+module.exports = function createUserInTree(users, user_in_guilds) {
+	const user = new User(user_in_guilds[0].ft_id,
+							user_in_guilds[0].ft_login,
+							user_in_guilds);
+	users.insert(user_in_guilds[0].ft_login, user);
 	return (user);
 };
