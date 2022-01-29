@@ -12,11 +12,11 @@ module.exports = {
 		.setName('check')
 		.setDescription('Display some informations about an user')
 		.addStringOption(option =>
-			option.setName('42_login')
+			option.setName('login')
 				.setDescription('Enter the login of the user you want to spy on')
 				.setRequired(true)),
 	async execute(interaction) {
-		const login = interaction.options.getString('42_login');
+		const login = interaction.options.getString('login');
 		const response = await fetchUser(login);
 		const embed = new MessageEmbed()
 			.setColor('#1abc9c')

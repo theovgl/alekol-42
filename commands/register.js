@@ -33,12 +33,12 @@ module.exports = {
 		.setName('register')
 		.setDescription('Register to the database')
 		.addStringOption(option =>
-			option.setName('42_login')
+			option.setName('login')
 				.setDescription('Your 42 login')
 				.setRequired(true)),
 	async execute(interaction) {
 		const wait = require('util').promisify(setTimeout);
-		const string = interaction.options.getString('42_login');
+		const string = interaction.options.getString('login');
 		const response = await uploadToDb(interaction.user.id, string);
 		await interaction.deferReply({ ephemeral: true });
 		await wait(1000);
