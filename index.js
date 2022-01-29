@@ -2,7 +2,6 @@ const WebSocket = require('ws');
 const dotenv = require('dotenv');
 dotenv.config();
 const client = require('./client.js');
-const updateRole = require('./src/updateRole.js');
 const fetchUser = require('./src/database/fetchUser.js');
 const createUserInTree = require('./src/createUserInTree.js');
 
@@ -53,7 +52,7 @@ ws.on('message', async (data) => {
 	const user = users.find(ft_login)?.data
 		?? createUserInTree(users, user_in_guilds[0].ft_id, ft_login, user_in_guilds);
 	try {
-		await updateRole(client, user, (message.message.location.end_at == null));
+		await user.updateRole(client, (message.message.location.end_at == null));
 		console.log(`${user.ft_login} has been updated!`);
 	}
 	catch (error) {
