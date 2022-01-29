@@ -29,7 +29,12 @@ ws.on('close', (code, reason) => {
 });
 
 ws.on('message', async (data) => {
-	const message = JSON.parse(data);
+	//const message = JSON.parse(data);
+	const message = require('./mock.js');
+
+	// To delete
+	const wait = require('util').promisify(setTimeout);
+	await wait(500);
 
 	if (!message?.identifier
 		|| !message?.message
@@ -51,14 +56,8 @@ ws.on('message', async (data) => {
 
 	const user = users.find(ft_login)?.data
 		?? createUserInTree(users, user_in_guilds[0].ft_id, ft_login, user_in_guilds);
-	try {
-		await user.updateRole(client, (message.message.location.end_at == null));
-		console.log(`${user.ft_login} has been updated!`);
-	}
-	catch (error) {
-		console.error(error);
-		return;
-	}
+	await user.updateRole(client, (message.message.location.end_at == null));
+	console.log(`${user.ft_login} has been updated!`);
 });
 
 ws.on('error', (error) => {

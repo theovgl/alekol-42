@@ -21,41 +21,42 @@ module.exports = class User {
 	}
 
 	async updateRole(client, is_at_school) {
-		let newRole;
-
-		// To delete
-		const wait = require('util').promisify(setTimeout);
-		await wait(500);
-
 		for (const user_guild of this.guilds) {
 			const guild = client.guilds.cache.get(user_guild.id);
-			if (guild === undefined) throw (`The guild (${user_guild.id}) associated with the user (${user_guild.discord_id}) has not been found`);
+			if (guild === undefined) continue;
 
 			let member;
 			try {
 				member = await guild.members.fetch(user_guild.discord_id);
 			}
 			catch (error) {
-				throw (`The user (${user_guild.discord_id}) has not been found in the guild (${user_guild.id})`);
+				console.error(error);
+				continue;
 			}
 
 			// If we create the role, it can be too fast to check if
 			// it already exists so the role will be created too many times
 			const memberRoles = member.roles;
+			let newRole;
 			try {
 				newRole = guild.roles.cache.find((r) => r.name === ROLE);
 			}
 			catch (error) {
-				throw (`Could not find the role (${ROLE}) in the guild (${user_guild.id})`);
+				console.error(error);
+				continue;
 			}
-			if (!newRole) throw (`Could not find the role (${ROLE}) in the guild (${user_guild.id})`);
+			if (!newRole) {
+				console.error(`Could not find the role (${ROLE}) in the guild (${user_guild.id})`);
+				continue;
+			}
 
 			try {
 				if (is_at_school) assignRole(memberRoles, newRole);
 				else if (!is_at_school) removeRole(memberRoles, newRole);
 			}
 			catch (error) {
-				throw (`Could not change role of user (${user_guild.discord_id})`);
+				console.error(error);
+				continue;
 			}
 		}
 	}
