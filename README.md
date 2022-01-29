@@ -23,6 +23,7 @@ UID_42=
 SECRET_42=
 
 FT_USER_ID=
+FT_SESSION=
 ```
 
 Install node packages and run the program:
