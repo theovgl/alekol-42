@@ -1,7 +1,9 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { supabaseClient } = require('../utils/supabaseClient.js');
 const ft_api = require('../src/ft_api/fetchUserByLogin.js');
-const user = require('../src/users.js');
+const users = require('../src/users.js');
+const createUserInTree = require('../src/createUserInTree.js');
+const client = require('../client.js');
 
 // use Promise.all() here
 async function entryExists(discord_id, ft_login, guild_id) {
@@ -24,10 +26,7 @@ async function entryExists(discord_id, ft_login, guild_id) {
 	return false;
 }
 
-async function uploadToDb(discord_id, ft_login, guild_id) {
-	const response = await ft_api.fetchUserByLogin(ft_login);
-	const ft_id = response.data.id;
-
+async function uploadToDb(discord_id, ft_id, ft_login, guild_id) {
 	const { error } = await supabaseClient
 		.from('users')
 		.insert([
@@ -58,8 +57,16 @@ module.exports = {
 			await interaction.editReply('😵 An unknown error occurred... Please try again later!');
 			return;
 		}
+		const response = await ft_api.fetchUserByLogin(ft_login);
+		if (response.data.length == 0) {
+			console.error('No such user at 42');
+				await interaction.editReply('⛔ This user does not exist...');
+			return;
+		}
+		const ft_id = response.data.id;
+	
 		try {
-			await uploadToDb(interaction.user.id, ft_login, interaction.guild.id);
+			await uploadToDb(interaction.user.id, ft_id, ft_login, interaction.guild.id);
 		} catch (error) {
 			console.error(error);
 			await interaction.editReply('😵 An unknown error occurred... Please try again later!');
@@ -74,9 +81,11 @@ module.exports = {
 			console.error(error);
 			return;
 		}
-		await user.updateRole(client, !message.message.location.end_at);
-		user.host = message.message.location.end_at;
-		user.begin_at = message.message.location.begin_at;
+		if (!!response.data.location) {
+			await user.updateRole(client, !response.data.location.end_at);
+			user.host = response.data.location.end_at;
+			user.begin_at = response.data.location.begin_at;
+		}
 		// To delete
 		const wait = require('util').promisify(setTimeout);
 		await wait(1000);

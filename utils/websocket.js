@@ -1,3 +1,5 @@
+const createUserInTree = require('../src/createUserInTree.js');
+
 function onOpen(ws) {
 	return (() => {
 		console.log('WebSocket connection established!');
@@ -27,15 +29,20 @@ function onMessage(client, users) {
 		let user;
 		try {
 			user = users.find(ft_login)?.data
-				?? createUserInTree(users, ft_login);
+				?? await createUserInTree(users, ft_login);
 		}
 		catch (error) {
 			console.error(error);
 			return;
 		}
 		await user.updateRole(client, !message.message.location.end_at);
-		user.host = message.message.location.end_at;
-		user.begin_at = message.message.location.begin_at;
+		if (!!message.message.location.end_at) {
+			user.host = message.message.location.end_at;
+			user.begin_at = message.message.location.begin_at;
+		} else {
+			user.host = null;
+			user.begin_at = null;
+		}
 		console.log(`${user.ft_login} has been updated!`);
 	});
 }
