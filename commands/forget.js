@@ -31,6 +31,6 @@ module.exports = {
 			await interaction.editReply('😵 An unknown error occurred... Please try again later!');
 			return;
 		}
-		await interaction.editReply('Done ! 💔');
+		await interaction.editReply('Done! 💔');
 	},
 };
