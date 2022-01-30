@@ -44,6 +44,8 @@ function getUsersMap() {
 				continue;
 			}
 			user.updateRole(client, true);
+			user.host = location.end_at;
+			user.begin_at = location.begin_at;
 		}
 		catch (error) {
 			console.error(error);
