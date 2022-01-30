@@ -1,16 +1,12 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { supabaseClient } = require('../utils/supabaseClient.js');
 
-async function deleteFromDb(id) {
+async function deleteFromDb(discord_id, guild_id) {
 	const { error } = await supabaseClient
 		.from('users')
 		.delete()
-		.match({ discord_id: id });
-	if (error) {
-		console.log(error);
-		return ('error');
-	}
-	else {return ('done');}
+		.match({ discord_id, guild_id });
+	if (error) throw (error);
 }
 
 module.exports = {
@@ -19,15 +15,22 @@ module.exports = {
 		.setDescription('Delete all your informations from our database')
 		.addBooleanOption(option =>
 			option.setName('sure')
-				.setDescription('We\'ll miss you')
+				.setDescription('Are you sure you want to leave?')
 				.setRequired(true)),
 	async execute(interaction) {
-		const response = await deleteFromDb(interaction.user.id);
-		if (response === 'done') {
-			await interaction.reply('Done ! 💔');
+		await interaction.deferReply({ ephemeral: true });
+		const sure = interaction.options.getBoolean('sure');
+		if (!sure) {
+			await interaction.editReply('🥰 We would miss you so much! Thanksfully you are staying!');
+			return;
 		}
-		else {
-			await interaction.reply('❌ Oups, something went wrong !');
+		try {
+			await deleteFromDb(interaction.user.id, interaction.guild.id);
+		} catch (error) {
+			console.error(error);
+			await interaction.editReply('😵 An unknown error occurred... Please try again later!');
+			return;
 		}
+		await interaction.editReply('Done ! 💔');
 	},
 };
