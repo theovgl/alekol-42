@@ -1,9 +1,8 @@
 const axios = require('axios');
 const apiClient = require('../../utils/ft_client.js');
 
-async function fetchUser(login) {
+async function fetchUserByLogin(login) {
 	let access_token;
-
 	try {
 		const { token } = await apiClient.getToken({
 			scope: 'public',
@@ -22,4 +21,4 @@ async function fetchUser(login) {
 	}));
 }
 
-module.exports = fetchUser;
+module.exports = { fetchUserByLogin };

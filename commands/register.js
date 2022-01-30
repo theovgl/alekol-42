@@ -1,31 +1,38 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { supabaseClient } = require('../utils/supabaseClient.js');
-const fetchUser = require('../src/api/fetchUser.js');
+const ft_api = require('../src/ft_api/fetchUserByLogin.js');
 
-async function uploadToDb(id, login) {
-	const response = await fetchUser(login);
+// use Promise.all() here
+async function entryExists(discord_id, ft_login, guild_id) {
+	{
+		const query = supabaseClient
+			.from('users')
+			.select('ft_id');
+		const { data, error } = await query.match({ discord_id, guild_id });
+		if (error) throw (error);
+		if (data.length > 0) return true;
+	}
+	{
+		const query = supabaseClient
+			.from('users')
+			.select('ft_id');
+		const { data, error } = await query.match({ ft_login, guild_id });
+		if (error) throw (error);
+		if (data.length > 0) return true;
+	}
+	return false;
+}
 
+async function uploadToDb(discord_id, ft_login, guild_id) {
+	const response = await ft_api.fetchUserByLogin(ft_login);
 	const ft_id = response.data.id;
 
 	const { error } = await supabaseClient
 		.from('users')
 		.insert([
-			{ ft_login: login, discord_id: id, ft_id: ft_id },
+			{ discord_id, ft_login, ft_id, guild_id },
 		]);
-	if (error) {
-		console.log(error);
-		if (error.code == '23505') {
-			if (error.message.includes('discord_id')) {
-				return ('e_discord_id');
-			}
-			else if (error.message.includes('login_42')) {
-				return ('e_login_42');
-			}
-		}
-	}
-	else {
-		return ('done');
-	}
+	if (error) throw (error);
 }
 
 module.exports = {
@@ -37,22 +44,29 @@ module.exports = {
 				.setDescription('Your 42 login')
 				.setRequired(true)),
 	async execute(interaction) {
-		const wait = require('util').promisify(setTimeout);
-		const string = interaction.options.getString('login');
-		const response = await uploadToDb(interaction.user.id, string);
 		await interaction.deferReply({ ephemeral: true });
+		const ft_login = interaction.options.getString('login');
+		try {
+			if (await entryExists(interaction.user.id, ft_login, interaction.guild.id)) {
+				console.error('This entry already exists');
+				await interaction.editReply('⛔ You seem to be already registered...');
+				return;
+			}
+		} catch (error) {
+			console.error(error);
+			await interaction.editReply('😵 An unknown error occurred... Please try again later!');
+			return;
+		}
+		try {
+			await uploadToDb(interaction.user.id, ft_login, interaction.guild.id);
+		} catch (error) {
+			console.error(error);
+			await interaction.editReply('😵 An unknown error occurred... Please try again later!');
+			return;
+		}
+		// To delete
+		const wait = require('util').promisify(setTimeout);
 		await wait(1000);
-		if (response === 'e_login_42') {
-			await interaction.editReply('⛔ Sorry **' + string + '** is already in our database');
-		}
-		else if (response === 'e_discord_id') {
-			await interaction.editReply('⛔ Sorry your discord ID (*' + interaction.user.id + '*) is already in our database');
-		}
-		else if (response === 'e_bad_login') {
-			await interaction.editReply('⛔ Sorry **' + string + '** seems to be absent from 42 api');
-		}
-		else if (response === 'done') {
-			await interaction.editReply('✅ User Registration Successful !');
-		}
+		await interaction.editReply('✅ You have been successfully registered!');
 	},
 };
