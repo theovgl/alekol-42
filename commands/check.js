@@ -29,7 +29,7 @@ module.exports = {
 			return;
 		}
 		const user = users.find(ft_login)?.data
-			?? createUserInTree(users, ft_login);
+			?? await createUserInTree(users, ft_login);
 		let embed = new MessageEmbed()
 			.setColor('#1abc9c')
 			.setTitle(ft_login)
