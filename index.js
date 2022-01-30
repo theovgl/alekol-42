@@ -1,12 +1,9 @@
-const AVLTree = require('avl');
 const WebSocket = require('ws');
 const dotenv = require('dotenv');
 dotenv.config();
 const client = require('./client.js');
 const { onOpen, onClose, onMessage, onError } = require('./utils/websocket.js');
-const getUserByFtLogin = require('./src/getUserByFtLogin.js');
-
-const users = new AVLTree();
+const users = require('./src/users.js');
 
 const axios = require('axios');
 

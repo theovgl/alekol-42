@@ -18,6 +18,8 @@ module.exports = class User {
 				discord_id: guild.discord_id,
 			});
 		});
+		this.host = null;
+		this.begin_at = null;
 	}
 
 	async updateRole(client, is_at_school) {

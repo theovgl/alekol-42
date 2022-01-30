@@ -3,6 +3,8 @@ const { MessageEmbed } = require('discord.js');
 const dayjs = require('dayjs');
 const relativeTime = require('dayjs/plugin/relativeTime');
 const ft_api = require('../src/ft_api/fetchUserByLogin.js');
+const createUserInTree = require('../src/createUserInTree.js');
+const users = require('../src/users.js');
 
 dayjs().format();
 dayjs.extend(relativeTime);
@@ -26,21 +28,16 @@ module.exports = {
 			await interaction.editReply('😵 An unknown error occurred... Please try again later!');
 			return;
 		}
-		const embed = new MessageEmbed()
+		const user = users.find(ft_login)?.data
+			?? createUserInTree(users, ft_login);
+		let embed = new MessageEmbed()
 			.setColor('#1abc9c')
-			.setTitle(`User: ${response.data.login}`)
-			.setDescription(`${response.data.displayname}`)
-			.setURL(`https://profile.intra.42.fr/users/${response.data.login}`)
-			.setThumbnail(`${response.data.image_url}`)
-			.addFields(
-				{ name: 'Is at school ?', value: response.data.location ? `Yes ! **${response.data.location}**` : 'No 😢' },
-				{ name: '\u200B', value: '\u200B' },
-				{ name: 'Correction point(s)', value: `${response.data.correction_point}`, inline: true },
-				{ name: '\u200B', value: '\u200B', inline: true },
-				{ name: 'Black hole', value: `${dayjs(response.data.cursus_users[1].blackholed_at).fromNow()}`, inline: true },
-			)
+			.setTitle(ft_login)
+			.setDescription(`Is ${!!user.host ? "" : "not "}at school`)
+			.setURL(`https://profile.intra.42.fr/users/${ft_login}`)
 			.setTimestamp();
-
+		if (!!user.host) embed.addField('Host', user.host, true);
+		if (!!user.begin_at) embed.addField('Since', dayjs(user.begin_at).fromNow(), true);
 		await interaction.editReply({ embeds: [embed] });
 	},
 };

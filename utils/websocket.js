@@ -1,5 +1,3 @@
-const getUserByFtLogin = require('../src/getUserByFtLogin.js');
-
 function onOpen(ws) {
 	return (() => {
 		console.log('WebSocket connection established!');
@@ -28,13 +26,16 @@ function onMessage(client, users) {
 
 		let user;
 		try {
-			user = await getUserByFtLogin(users, ft_login);
+			user = users.find(ft_login)?.data
+				?? createUserInTree(users, ft_login);
 		}
 		catch (error) {
 			console.error(error);
 			return;
 		}
-		await user.updateRole(client, (message.message.location.end_at == null));
+		await user.updateRole(client, !message.message.location.end_at);
+		user.host = message.message.location.end_at;
+		user.begin_at = message.message.location.begin_at;
 		console.log(`${user.ft_login} has been updated!`);
 	});
 }
