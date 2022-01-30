@@ -2,7 +2,7 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed } = require('discord.js');
 const dayjs = require('dayjs');
 const relativeTime = require('dayjs/plugin/relativeTime');
-const fetchUser = require('../src/api/fetchUser.js');
+const ft_api = require('../src/ft_api/fetchUserByLogin.js');
 
 dayjs().format();
 dayjs.extend(relativeTime);
@@ -16,8 +16,16 @@ module.exports = {
 				.setDescription('Enter the login of the user you want to spy on')
 				.setRequired(true)),
 	async execute(interaction) {
-		const login = interaction.options.getString('login');
-		const response = await fetchUser(login);
+		await interaction.deferReply({ ephemeral: true });
+		const ft_login = interaction.options.getString('login');
+		let response;
+		try {
+			response = await ft_api.fetchUserByLogin(ft_login);
+		} catch (error) {
+			console.error(error);
+			await interaction.editReply('😵 An unknown error occurred... Please try again later!');
+			return;
+		}
 		const embed = new MessageEmbed()
 			.setColor('#1abc9c')
 			.setTitle(`User: ${response.data.login}`)
@@ -33,6 +41,6 @@ module.exports = {
 			)
 			.setTimestamp();
 
-		await interaction.reply({ embeds: [embed] });
+		await interaction.editReply({ embeds: [embed] });
 	},
 };
