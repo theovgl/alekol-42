@@ -31,8 +31,7 @@ function onMessage(client, users) {
 		try {
 			user = users.find(ft_login)?.data
 				?? await createUserInTree(users, ft_login);
-		}
-		catch (error) {
+		} catch (error) {
 			console.error(error);
 			return;
 		}

@@ -26,8 +26,7 @@ module.exports = {
 		}
 		try {
 			await deleteFromDb(interaction.user.id, interaction.guild.id);
-		}
-		catch (error) {
+		} catch (error) {
 			console.error(error);
 			await interaction.editReply('😵 An unknown error occurred... Please try again later!');
 			return;

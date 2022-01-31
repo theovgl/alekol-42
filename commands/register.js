@@ -52,8 +52,7 @@ module.exports = {
 				await interaction.editReply('⛔ You seem to be already registered...');
 				return;
 			}
-		}
-		catch (error) {
+		} catch (error) {
 			console.error(error);
 			await interaction.editReply('😵 An unknown error occurred... Please try again later!');
 			return;
@@ -61,8 +60,7 @@ module.exports = {
 		let response;
 		try {
 			response = await ft_api.fetchUserLocationByLogin(ft_login);
-		}
-		catch (error) {
+		} catch (error) {
 			console.error(error);
 			await interaction.editReply('😵 An unknown error occurred... Please try again later!');
 			return;
@@ -76,8 +74,7 @@ module.exports = {
 
 		try {
 			await uploadToDb(interaction.user.id, ft_id, ft_login, interaction.guild.id);
-		}
-		catch (error) {
+		} catch (error) {
 			console.error(error);
 			await interaction.editReply('😵 An unknown error occurred... Please try again later!');
 			return;
@@ -86,8 +83,7 @@ module.exports = {
 		try {
 			user = users.find(ft_login)?.data
 				?? await createUserInTree(users, ft_login);
-		}
-		catch (error) {
+		} catch (error) {
 			console.error(error);
 			await interaction.editReply('😵 An unknown error occurred... Please try again later!');
 			return;
@@ -102,18 +98,6 @@ module.exports = {
 		// To delete
 		const wait = require('util').promisify(setTimeout);
 		await wait(1000);
-<<<<<<< HEAD
-		if (response === 'e_login_42') {
-			await interaction.editReply('⛔ Sorry **' + string + '** is already in our database');
-		} else if (response === 'e_discord_id') {
-			await interaction.editReply('⛔ Sorry your discord ID (*' + interaction.user.id + '*) is already in our database');
-		} else if (response === 'e_bad_login') {
-			await interaction.editReply('⛔ Sorry **' + string + '** seems to be absent from 42 api');
-		} else if (response === 'done') {
-			await interaction.editReply('✅ User Registration Successful !');
-		}
-=======
 		await interaction.editReply('✅ You have been successfully registered!');
->>>>>>> deploy-commands
 	},
 };

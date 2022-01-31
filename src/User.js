@@ -30,8 +30,7 @@ module.exports = class User {
 			let member;
 			try {
 				member = await guild.members.fetch(user_guild.discord_id);
-			}
-			catch (error) {
+			} catch (error) {
 				console.error(error);
 				continue;
 			}
@@ -42,8 +41,7 @@ module.exports = class User {
 			let newRole;
 			try {
 				newRole = guild.roles.cache.find((r) => r.name === ROLE);
-			}
-			catch (error) {
+			} catch (error) {
 				console.error(error);
 				continue;
 			}
@@ -55,8 +53,7 @@ module.exports = class User {
 			try {
 				if (location) assignRole(memberRoles, newRole);
 				else removeRole(memberRoles, newRole);
-			}
-			catch (error) {
+			} catch (error) {
 				console.error(error);
 				continue;
 			}

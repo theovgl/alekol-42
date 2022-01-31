@@ -1,6 +1,6 @@
-const AVLTree = require('avl');
 const WebSocket = require('ws');
 const dotenv = require('dotenv');
+dotenv.config();
 const client = require('./client.js');
 const { onOpen, onClose, onMessage, onError } = require('./utils/websocket.js');
 const users = require('./src/users.js');
@@ -28,8 +28,7 @@ function getUsersMap() {
 	let users_map;
 	try {
 		users_map = await getUsersMap();
-	}
-	catch (error) {
+	} catch (error) {
 		console.error(error);
 	}
 	for (const location of users_map) {
@@ -38,14 +37,12 @@ function getUsersMap() {
 			try {
 				user = users.find(location.login)?.data
 					?? await createUserInTree(users, location.login);
-			}
-			catch (error) {
+			} catch (error) {
 				console.error(error);
 				continue;
 			}
 			user.updateRole(client, { host: location.host, begin_at: location.begin_at });
-		}
-		catch (error) {
+		} catch (error) {
 			console.error(error);
 		}
 	}
