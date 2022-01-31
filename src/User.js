@@ -18,9 +18,11 @@ module.exports = class User {
 				discord_id: guild.discord_id,
 			});
 		});
+		this.host = null;
+		this.begin_at = null;
 	}
 
-	async updateRole(client, is_at_school) {
+	async updateRole(client, location) {
 		for (const user_guild of this.guilds) {
 			const guild = client.guilds.cache.get(user_guild.id);
 			if (guild === undefined) continue;
@@ -28,7 +30,8 @@ module.exports = class User {
 			let member;
 			try {
 				member = await guild.members.fetch(user_guild.discord_id);
-			} catch (error) {
+			}
+			catch (error) {
 				console.error(error);
 				continue;
 			}
@@ -39,7 +42,8 @@ module.exports = class User {
 			let newRole;
 			try {
 				newRole = guild.roles.cache.find((r) => r.name === ROLE);
-			} catch (error) {
+			}
+			catch (error) {
 				console.error(error);
 				continue;
 			}
@@ -49,12 +53,15 @@ module.exports = class User {
 			}
 
 			try {
-				if (is_at_school) assignRole(memberRoles, newRole);
-				else if (!is_at_school) removeRole(memberRoles, newRole);
-			} catch (error) {
+				if (location) assignRole(memberRoles, newRole);
+				else removeRole(memberRoles, newRole);
+			}
+			catch (error) {
 				console.error(error);
 				continue;
 			}
+			this.host = location.host;
+			this.begin_at = location.begin_at;
 		}
 	}
 };

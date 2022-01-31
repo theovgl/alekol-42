@@ -1,4 +1,4 @@
-const getUserByFtLogin = require('../src/getUserByFtLogin.js');
+const createUserInTree = require('../src/createUserInTree.js');
 
 function onOpen(ws) {
 	return (() => {
@@ -24,16 +24,19 @@ function onMessage(client, users) {
 		if (!message?.identifier
 			|| !message?.message
 			|| JSON.parse(message.identifier).channel != 'LocationChannel') {return;}
-		const ft_login = message.message.location.login;
+		const location = message.message.location;
+		const ft_login = location.login;
 
 		let user;
 		try {
-			user = await getUserByFtLogin(users, ft_login);
-		} catch (error) {
+			user = users.find(ft_login)?.data
+				?? await createUserInTree(users, ft_login);
+		}
+		catch (error) {
 			console.error(error);
 			return;
 		}
-		await user.updateRole(client, (message.message.location.end_at == null));
+		await user.updateRole(client, { host: location.host, begin_at: location.begin_at });
 		console.log(`${user.ft_login} has been updated!`);
 	});
 }

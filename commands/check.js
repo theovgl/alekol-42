@@ -2,7 +2,8 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed } = require('discord.js');
 const dayjs = require('dayjs');
 const relativeTime = require('dayjs/plugin/relativeTime');
-const fetchUser = require('../src/api/fetchUser.js');
+const createUserInTree = require('../src/createUserInTree.js');
+const users = require('../src/users.js');
 
 dayjs().format();
 dayjs.extend(relativeTime);
@@ -12,27 +13,30 @@ module.exports = {
 		.setName('check')
 		.setDescription('Display some informations about an user')
 		.addStringOption(option =>
-			option.setName('42_login')
+			option.setName('login')
 				.setDescription('Enter the login of the user you want to spy on')
 				.setRequired(true)),
 	async execute(interaction) {
-		const login = interaction.options.getString('42_login');
-		const response = await fetchUser(login);
+		await interaction.deferReply({ ephemeral: true });
+		const ft_login = interaction.options.getString('login');
+		let user;
+		try {
+			user = users.find(ft_login)?.data
+				?? await createUserInTree(users, ft_login);
+		}
+		catch (error) {
+			console.error(error);
+			await interaction.editReply(`😵 ${error}`);
+			return;
+		}
 		const embed = new MessageEmbed()
 			.setColor('#1abc9c')
-			.setTitle(`User: ${response.data.login}`)
-			.setDescription(`${response.data.displayname}`)
-			.setURL(`https://profile.intra.42.fr/users/${response.data.login}`)
-			.setThumbnail(`${response.data.image_url}`)
-			.addFields(
-				{ name: 'Is at school ?', value: response.data.location ? `Yes ! **${response.data.location}**` : 'No 😢' },
-				{ name: '\u200B', value: '\u200B' },
-				{ name: 'Correction point(s)', value: `${response.data.correction_point}`, inline: true },
-				{ name: '\u200B', value: '\u200B', inline: true },
-				{ name: 'Black hole', value: `${dayjs(response.data.cursus_users[1].blackholed_at).fromNow()}`, inline: true },
-			)
+			.setTitle(ft_login)
+			.setDescription(`Is ${user.host ? '' : 'not '}at school`)
+			.setURL(`https://profile.intra.42.fr/users/${ft_login}`)
 			.setTimestamp();
-
-		await interaction.reply({ embeds: [embed] });
+		if (user.host) embed.addField('Host', user.host, true);
+		if (user.begin_at) embed.addField('Since', dayjs(user.begin_at).fromNow(), true);
+		await interaction.editReply({ embeds: [embed] });
 	},
 };

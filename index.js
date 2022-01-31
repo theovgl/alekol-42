@@ -3,11 +3,8 @@ const WebSocket = require('ws');
 const dotenv = require('dotenv');
 const client = require('./client.js');
 const { onOpen, onClose, onMessage, onError } = require('./utils/websocket.js');
-const getUserByFtLogin = require('./src/getUserByFtLogin.js');
-
-dotenv.config();
-
-const users = new AVLTree();
+const users = require('./src/users.js');
+const createUserInTree = require('./src/createUserInTree.js');
 
 const axios = require('axios');
 
@@ -31,14 +28,24 @@ function getUsersMap() {
 	let users_map;
 	try {
 		users_map = await getUsersMap();
-	} catch (error) {
+	}
+	catch (error) {
 		console.error(error);
 	}
 	for (const location of users_map) {
 		try {
-			const user = await getUserByFtLogin(users, location.login);
-			user.updateRole(client, true);
-		} catch (error) {
+			let user;
+			try {
+				user = users.find(location.login)?.data
+					?? await createUserInTree(users, location.login);
+			}
+			catch (error) {
+				console.error(error);
+				continue;
+			}
+			user.updateRole(client, { host: location.host, begin_at: location.begin_at });
+		}
+		catch (error) {
 			console.error(error);
 		}
 	}
