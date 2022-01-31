@@ -24,7 +24,8 @@ function onMessage(client, users) {
 		if (!message?.identifier
 			|| !message?.message
 			|| JSON.parse(message.identifier).channel != 'LocationChannel') {return;}
-		const ft_login = message.message.location.login;
+		const location = message.message.location;
+		const ft_login = location.login;
 
 		let user;
 		try {
@@ -35,14 +36,7 @@ function onMessage(client, users) {
 			console.error(error);
 			return;
 		}
-		await user.updateRole(client, !message.message.location.end_at);
-		if (!!message.message.location.end_at) {
-			user.host = message.message.location.end_at;
-			user.begin_at = message.message.location.begin_at;
-		} else {
-			user.host = null;
-			user.begin_at = null;
-		}
+		await user.updateRole(client, { host: location.host, begin_at: location.begin_at });
 		console.log(`${user.ft_login} has been updated!`);
 	});
 }

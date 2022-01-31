@@ -2,7 +2,6 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed } = require('discord.js');
 const dayjs = require('dayjs');
 const relativeTime = require('dayjs/plugin/relativeTime');
-const ft_api = require('../src/ft_api/fetchUserByLogin.js');
 const createUserInTree = require('../src/createUserInTree.js');
 const users = require('../src/users.js');
 
@@ -20,16 +19,14 @@ module.exports = {
 	async execute(interaction) {
 		await interaction.deferReply({ ephemeral: true });
 		const ft_login = interaction.options.getString('login');
-		let response;
 		try {
-			response = await ft_api.fetchUserByLogin(ft_login);
+			const user = users.find(ft_login)?.data
+				?? await createUserInTree(users, ft_login);
 		} catch (error) {
 			console.error(error);
-			await interaction.editReply('😵 An unknown error occurred... Please try again later!');
+			await interaction.editReply(`😵 ${error}`);
 			return;
 		}
-		const user = users.find(ft_login)?.data
-			?? await createUserInTree(users, ft_login);
 		let embed = new MessageEmbed()
 			.setColor('#1abc9c')
 			.setTitle(ft_login)

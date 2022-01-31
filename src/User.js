@@ -22,7 +22,7 @@ module.exports = class User {
 		this.begin_at = null;
 	}
 
-	async updateRole(client, is_at_school) {
+	async updateRole(client, location) {
 		for (const user_guild of this.guilds) {
 			const guild = client.guilds.cache.get(user_guild.id);
 			if (guild === undefined) continue;
@@ -53,13 +53,15 @@ module.exports = class User {
 			}
 
 			try {
-				if (is_at_school) assignRole(memberRoles, newRole);
-				else if (!is_at_school) removeRole(memberRoles, newRole);
+				if (!!location) assignRole(memberRoles, newRole);
+				else removeRole(memberRoles, newRole);
 			}
 			catch (error) {
 				console.error(error);
 				continue;
 			}
+			this.host = location.host;
+			this.begin_at = location.begin_at;
 		}
 	}
 };

@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { supabaseClient } = require('../utils/supabaseClient.js');
-const ft_api = require('../src/ft_api/fetchUserByLogin.js');
+const ft_api = require('../src/ft_api/fetchUserLocationsByLogin.js');
 const users = require('../src/users.js');
 const createUserInTree = require('../src/createUserInTree.js');
 const client = require('../client.js');
@@ -57,10 +57,17 @@ module.exports = {
 			await interaction.editReply('😵 An unknown error occurred... Please try again later!');
 			return;
 		}
-		const response = await ft_api.fetchUserByLogin(ft_login);
+		let response;
+		try {
+			response = await ft_api.fetchUserLocationByLogin(ft_login);
+		} catch (error) {
+			console.error(error);
+			await interaction.editReply('😵 An unknown error occurred... Please try again later!');
+			return;
+		}
 		if (response.data.length == 0) {
 			console.error('No such user at 42');
-				await interaction.editReply('⛔ This user does not exist...');
+			await interaction.editReply('⛔ This user does not exist...');
 			return;
 		}
 		const ft_id = response.data.id;
@@ -79,12 +86,15 @@ module.exports = {
 		}
 		catch (error) {
 			console.error(error);
+			await interaction.editReply('😵 An unknown error occurred... Please try again later!');
 			return;
 		}
-		if (!!response.data.location) {
-			await user.updateRole(client, !response.data.location.end_at);
-			user.host = response.data.location.end_at;
-			user.begin_at = response.data.location.begin_at;
+		if (!response.data[0].end_at) {
+			const location = {
+				host: response.data[0].host,
+				begin_at: response.data[0].begin_at
+			};
+			await user.updateRole(client, location);
 		}
 		// To delete
 		const wait = require('util').promisify(setTimeout);
