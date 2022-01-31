@@ -52,7 +52,8 @@ module.exports = {
 				await interaction.editReply('⛔ You seem to be already registered...');
 				return;
 			}
-		} catch (error) {
+		}
+		catch (error) {
 			console.error(error);
 			await interaction.editReply('😵 An unknown error occurred... Please try again later!');
 			return;
@@ -60,7 +61,8 @@ module.exports = {
 		let response;
 		try {
 			response = await ft_api.fetchUserLocationByLogin(ft_login);
-		} catch (error) {
+		}
+		catch (error) {
 			console.error(error);
 			await interaction.editReply('😵 An unknown error occurred... Please try again later!');
 			return;
@@ -71,10 +73,11 @@ module.exports = {
 			return;
 		}
 		const ft_id = response.data.id;
-	
+
 		try {
 			await uploadToDb(interaction.user.id, ft_id, ft_login, interaction.guild.id);
-		} catch (error) {
+		}
+		catch (error) {
 			console.error(error);
 			await interaction.editReply('😵 An unknown error occurred... Please try again later!');
 			return;
@@ -92,7 +95,7 @@ module.exports = {
 		if (!response.data[0].end_at) {
 			const location = {
 				host: response.data[0].host,
-				begin_at: response.data[0].begin_at
+				begin_at: response.data[0].begin_at,
 			};
 			await user.updateRole(client, location);
 		}

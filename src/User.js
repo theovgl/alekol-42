@@ -53,7 +53,7 @@ module.exports = class User {
 			}
 
 			try {
-				if (!!location) assignRole(memberRoles, newRole);
+				if (location) assignRole(memberRoles, newRole);
 				else removeRole(memberRoles, newRole);
 			}
 			catch (error) {

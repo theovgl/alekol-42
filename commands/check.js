@@ -19,22 +19,24 @@ module.exports = {
 	async execute(interaction) {
 		await interaction.deferReply({ ephemeral: true });
 		const ft_login = interaction.options.getString('login');
+		let user;
 		try {
-			const user = users.find(ft_login)?.data
+			user = users.find(ft_login)?.data
 				?? await createUserInTree(users, ft_login);
-		} catch (error) {
+		}
+		catch (error) {
 			console.error(error);
 			await interaction.editReply(`😵 ${error}`);
 			return;
 		}
-		let embed = new MessageEmbed()
+		const embed = new MessageEmbed()
 			.setColor('#1abc9c')
 			.setTitle(ft_login)
-			.setDescription(`Is ${!!user.host ? "" : "not "}at school`)
+			.setDescription(`Is ${user.host ? '' : 'not '}at school`)
 			.setURL(`https://profile.intra.42.fr/users/${ft_login}`)
 			.setTimestamp();
-		if (!!user.host) embed.addField('Host', user.host, true);
-		if (!!user.begin_at) embed.addField('Since', dayjs(user.begin_at).fromNow(), true);
+		if (user.host) embed.addField('Host', user.host, true);
+		if (user.begin_at) embed.addField('Since', dayjs(user.begin_at).fromNow(), true);
 		await interaction.editReply({ embeds: [embed] });
 	},
 };
