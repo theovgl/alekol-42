@@ -5,6 +5,7 @@ const client = require('./client.js');
 const { onOpen, onClose, onMessage, onError } = require('./utils/websocket.js');
 const users = require('./src/users.js');
 const createUserInTree = require('./src/createUserInTree.js');
+require('./deploy-commands.js');
 
 const axios = require('axios');
 
