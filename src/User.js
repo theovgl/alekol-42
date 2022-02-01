@@ -23,6 +23,7 @@ module.exports = class User {
 	}
 
 	async updateRole(client, location) {
+		console.log(client);
 		for (const user_guild of this.guilds) {
 			const guild = client.guilds.cache.get(user_guild.id);
 			if (guild === undefined) continue;
