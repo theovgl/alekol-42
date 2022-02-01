@@ -1,6 +1,8 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { supabaseClient } = require('../utils/supabaseClient.js');
 const ft_api = require('../src/ft_api/fetchUserLocationsByLogin.js');
+const createUserInTree = require('../src/createUserInTree.js');
+const users = require('../src/users.js');
 
 // use Promise.all() here
 async function entryExists(discord_id, ft_login, guild_id) {
@@ -75,6 +77,25 @@ module.exports = {
 			console.error(error);
 			await interaction.editReply('😵 An unknown error occurred... Please try again later!');
 			return;
+		}
+		let user;
+		try {
+			user = users.find(ft_login)?.data
+				?? await createUserInTree(users, ft_login);
+		} catch (error) {
+			console.error(error);
+			await interaction.editReply('😵 An unknown error occurred... Please try again later!');
+			return ;
+		}
+		if (!response.data[0].end_at)
+		{
+			const location = {
+				host: response.data[0].host,
+				begin_at: response.data[0].begin_at,
+			};
+			await user.updateRole(interaction.user.client, location);
+			this.host = location.host;
+			this.begin_at = location.begin_at;
 		}
 		// To delete
 		const wait = require('util').promisify(setTimeout);
