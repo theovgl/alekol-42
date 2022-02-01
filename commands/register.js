@@ -59,7 +59,7 @@ module.exports = {
 		}
 		let response;
 		try {
-			response = await ft_api.fetchUserLocationByLogin(ft_login);
+			response = await ft_api.fetchUserLocationsByLogin(ft_login);
 		} catch (error) {
 			console.error(error);
 			await interaction.editReply('😵 An unknown error occurred... Please try again later!');
