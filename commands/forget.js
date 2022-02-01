@@ -1,13 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { supabaseClient } = require('../utils/supabaseClient.js');
-
-async function deleteFromDb(discord_id, guild_id) {
-	const { error } = await supabaseClient
-		.from('users')
-		.delete()
-		.match({ discord_id, guild_id });
-	if (error) throw (error);
-}
+const supabase = require('../utils/supabase.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -25,7 +17,7 @@ module.exports = {
 			return;
 		}
 		try {
-			await deleteFromDb(interaction.user.id, interaction.guild.id);
+			await supabase.deleteUser(interaction.user.id, interaction.guild.id);
 		} catch (error) {
 			console.error(error);
 			await interaction.editReply('😵 An unknown error occurred... Please try again later!');

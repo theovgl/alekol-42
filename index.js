@@ -1,6 +1,7 @@
 const WebSocket = require('ws');
 const dotenv = require('dotenv');
 dotenv.config();
+// client -> discord
 const client = require('./client.js');
 const { onOpen, onClose, onMessage, onError } = require('./utils/websocket.js');
 const users = require('./src/users.js');

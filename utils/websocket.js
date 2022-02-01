@@ -26,7 +26,6 @@ function onMessage(client, users) {
 			|| JSON.parse(message.identifier).channel != 'LocationChannel') {return;}
 		const location = message.message.location;
 		const ft_login = location.login;
-
 		let user;
 		try {
 			user = users.find(ft_login)?.data
@@ -36,7 +35,7 @@ function onMessage(client, users) {
 			return;
 		}
 		await user.updateRole(client, { host: location.host, begin_at: location.begin_at });
-		console.log(`${user.ft_login} has been updated!`);
+		console.log(`${user.ft_login} location has been updated!`);
 	});
 }
 

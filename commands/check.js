@@ -25,7 +25,7 @@ module.exports = {
 				?? await createUserInTree(users, ft_login);
 		} catch (error) {
 			console.error(error);
-			await interaction.editReply(`😵 ${error}`);
+			await interaction.editReply('😵 An unknown error occurred... Please try again later!');
 			return;
 		}
 		const embed = new MessageEmbed()
