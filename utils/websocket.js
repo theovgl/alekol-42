@@ -1,4 +1,4 @@
-const createUserInTree = require('../src/createUserInTree.js');
+const supabase = require('./supabase.js');
 
 function onOpen(ws) {
 	return (() => {
@@ -29,7 +29,7 @@ function onMessage(client, users) {
 		let user;
 		try {
 			user = users.find(ft_login)?.data
-				?? await createUserInTree(users, ft_login);
+				?? await users.insertFromDb(supabase, ft_login);
 		} catch (error) {
 			console.error(error);
 			return;

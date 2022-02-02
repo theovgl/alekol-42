@@ -1,3 +1,3 @@
-const AVLTree = require('avl');
+const UserTree = require('./UserTree.js');
 
-module.exports = new AVLTree();
+module.exports = new UserTree();

@@ -1,5 +1,5 @@
 const axios = require('axios');
-const createUserInTree = require('./createUserInTree.js');
+const supabase = require('../utils/supabase.js');
 
 function getUsersMap() {
 	return axios({
@@ -30,7 +30,7 @@ async function initUsersMap(client, users) {
 			let user;
 			try {
 				user = users.find(location.login)?.data
-					?? await createUserInTree(users, location.login);
+					?? await users.insertFromDb(supabase, location.login);
 			} catch (error) {
 				console.error(error);
 				continue;

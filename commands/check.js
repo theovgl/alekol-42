@@ -2,7 +2,7 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed } = require('discord.js');
 const dayjs = require('dayjs');
 const relativeTime = require('dayjs/plugin/relativeTime');
-const createUserInTree = require('../src/createUserInTree.js');
+const supabase = require('../utils/supabase.js');
 const users = require('../src/users.js');
 
 dayjs().format();
@@ -22,7 +22,7 @@ module.exports = {
 		let user;
 		try {
 			user = users.find(ft_login)?.data
-				?? await createUserInTree(users, ft_login);
+				?? await users.insertFromDb(supabase, ft_login);
 		} catch (error) {
 			console.error(error);
 			await interaction.editReply('😵 An unknown error occurred... Please try again later!');

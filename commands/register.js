@@ -1,7 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const supabase = require('../utils/supabase.js');
 const ft_api = require('../src/ft_api/fetchUserLocationsByLogin.js');
-const createUserInTree = require('../src/createUserInTree.js');
 const users = require('../src/users.js');
 
 module.exports = {
@@ -34,7 +33,7 @@ module.exports = {
 
 			await supabase.insertUser(interaction.user.id, ft_login, ft_id, interaction.guild.id);
 			user = users.find(ft_login)?.data
-				?? await createUserInTree(users, ft_login);
+				?? await users.insertFromDb(supabase, ft_login);
 		} catch (error) {
 			console.error(error);
 			await interaction.editReply('😵 An unknown error occurred... Please try again later!');
