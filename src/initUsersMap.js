@@ -1,27 +1,10 @@
-const axios = require('axios');
 const supabase = require('../utils/supabase.js');
 
-function getUsersMap() {
-	return axios({
-		method: 'get',
-		url: 'https://meta.intra.42.fr/clusters.json',
-		headers: {
-			'Cookie': `_intra_42_session_production=${process.env.FT_SESSION};`,
-		},
-	})
-		.then((response) => {
-			return (response.data);
-		})
-		.catch((error) => {
-			console.error(error);
-		});
-}
-
 // Promise.all() here
-async function initUsersMap(client, users) {
+async function initUsersMap(ft_api, client, users) {
 	let users_map;
 	try {
-		users_map = await getUsersMap();
+		users_map = await ft_api.getUsersMap();
 	} catch (error) {
 		console.error(error);
 	}

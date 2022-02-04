@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const supabase = require('../utils/supabase.js');
-const ft_api = require('../src/ft_api/fetchUserLocationsByLogin.js');
+const ft_api = require('../utils/ft_api.js');
 const users = require('../src/users.js');
 
 module.exports = {

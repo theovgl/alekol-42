@@ -7,7 +7,7 @@
     "start": "NODE_ENV=production node index.js",
     "dev": "NODE_ENV=development nodemon index.js",
     "lint": "eslint .",
-    "test": "NODE_ENV=test echo \"Error: no test specified\" && exit 1"
+    "test": "NODE_ENV=test jest"
   },
   "repository": {
     "type": "git",
@@ -29,6 +29,7 @@
     "discord-api-types": "^0.26.1",
     "discord.js": "^13.6.0",
     "dotenv": "^14.2.0",
+    "jest": "^27.4.7",
     "simple-oauth2": "^4.3.0"
   },
   "type": "commonjs",

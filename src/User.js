@@ -38,13 +38,7 @@ module.exports = class User {
 			// If we create the role, it can be too fast to check if
 			// it already exists so the role will be created too many times
 			const memberRoles = member.roles;
-			let newRole;
-			try {
-				newRole = guild.roles.cache.find((r) => r.name === ROLE);
-			} catch (error) {
-				console.error(error);
-				continue;
-			}
+			const newRole = guild.roles.cache.find((r) => r.name === ROLE);
 			if (!newRole) {
 				console.error(`Could not find the role (${ROLE}) in the guild (${user_guild.id})`);
 				continue;
@@ -57,8 +51,8 @@ module.exports = class User {
 				console.error(error);
 				continue;
 			}
-			this.host = location.host;
-			this.begin_at = location.begin_at;
+			this.host = location?.host;
+			this.begin_at = location?.begin_at;
 		}
 	}
 };
