@@ -1,4 +1,4 @@
-const ROLE = 'alekol-user';
+const ROLE = 'alekolique';
 
 async function assignRole(memberRoles, to_add) {
 	await memberRoles.add(to_add);
