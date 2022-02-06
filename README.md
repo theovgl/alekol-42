@@ -24,6 +24,7 @@ SECRET_42=
 
 FT_USER_ID=
 FT_SESSION=
+REDIRECT_URI=
 ```
 
 Install node packages and run the program:

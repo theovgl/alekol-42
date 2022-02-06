@@ -21,7 +21,7 @@ module.exports = {
 			.setColor('#1abc9c')
 			.setTitle('Registration request')
 			.setDescription('Please follow the link')
-			.setURL(`https://api.intra.42.fr/oauth/authorize?client_id=137cb6a1ee4053050015749731fd55dcfe71a54cfce122a5ac42696e428a0c8d&redirect_uri=http%3A%2F%2Flocalhost%3A3000&response_type=code&state=${state}`);
+			.setURL(`https://api.intra.42.fr/oauth/authorize?client_id=${process.env.UID_42}&redirect_uri=${encodeURIComponent(process.env.REDIRECT_URI)}&response_type=code&state=${state}`);
 		await interaction.editReply({ embeds: [embed] });
 	},
 };
