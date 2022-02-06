@@ -60,7 +60,7 @@ async function fetchMe(authorization_code) {
 	const access_token = clientAC.createToken(token);
 	return axios({
 		method: 'GET',
-		url: `https://api.intra.42.fr/v2/me`,
+		url: 'https://api.intra.42.fr/v2/me',
 		headers: {
 			'Authorization': `Bearer ${access_token.token.access_token}`,
 		},

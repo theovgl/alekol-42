@@ -66,14 +66,14 @@ async function fetchState(state) {
 		.match({ state });
 	if (error) throw (error);
 	deleteState(state);
-	return (!!data.length ? data[0] : null);
+	return (data.length ? data[0] : null);
 }
 
 async function insertState(state, guild_id, discord_id) {
-	const { data, error } = await client
+	const { error } = await client
 		.from('state')
 		.insert([
-			{state, discord_id, guild_id}
+			{ state, discord_id, guild_id },
 		]);
 	if (error) throw (error);
 }
