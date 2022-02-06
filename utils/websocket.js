@@ -1,3 +1,5 @@
+const WebSocket = require('ws');
+
 function onOpen(ws) {
 	return (() => {
 		console.log('WebSocket connection established!');
@@ -7,8 +9,25 @@ function onOpen(ws) {
 	});
 }
 
-function onClose(code, reason) {
-	console.log('Closing connection (code %d): REASON %s', code, reason);
+function onClose(ws, client, supabase, users) {
+	return ((code, reason) => {
+		console.log('Closing connection (code %d): REASON %s', code, reason);
+		const websocket_config = {
+			protocolVersion: 13,
+			perMessageDeflate: true,
+			headers: {
+				Origin: 'https://meta.intra.42.fr',
+				Cookie: `user.id=${process.env.FT_USER_ID};`,
+			},
+		};
+		ws = new WebSocket('wss://profile.intra.42.fr/cable',
+			['actioncable-v1-json', 'actioncable-unsupported'],
+			websocket_config);
+		ws.on('open', onOpen(ws));
+		ws.on('close', onClose(ws));
+		ws.on('message', onMessage(client, supabase, users));
+		ws.on('error', onError);
+	});
 }
 
 function onMessage(client, supabase, users) {

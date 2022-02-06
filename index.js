@@ -21,11 +21,11 @@ const websocket_config = {
 		Cookie: `user.id=${process.env.FT_USER_ID};`,
 	},
 };
-const ws = new WebSocket('wss://profile.intra.42.fr/cable',
+let ws = new WebSocket('wss://profile.intra.42.fr/cable',
 	['actioncable-v1-json', 'actioncable-unsupported'],
 	websocket_config);
 ws.on('open', onOpen(ws));
-ws.on('close', onClose);
+ws.on('close', onClose(ws, client, supabase, users));
 ws.on('message', onMessage(client, supabase, users));
 ws.on('error', onError);
 
