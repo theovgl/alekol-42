@@ -1,4 +1,4 @@
-const { ClientCredentials } = require('simple-oauth2');
+const { ClientCredentials, AuthorizationCode } = require('simple-oauth2');
 const axios = require('axios');
 
 const apiConfig = {
@@ -12,7 +12,8 @@ const apiConfig = {
 		authorizePath: '/oauth/authorize',
 	},
 };
-const apiClient = new ClientCredentials(apiConfig);
+const clientCC = new ClientCredentials(apiConfig);
+const clientAC = new AuthorizationCode(apiConfig);
 
 function getUsersMap() {
 	return axios({
@@ -31,17 +32,45 @@ function getUsersMap() {
 }
 
 async function fetchUserLocationsByLogin(login) {
-	const { token } = await apiClient.getToken({
+	const { token } = await clientCC.getToken({
 		scope: 'public',
 	});
-	const access_token = apiClient.createToken(token);
-	return (axios({
+	const access_token = clientCC.createToken(token);
+	return axios({
 		method: 'GET',
 		url: `https://api.intra.42.fr/v2/users/${login}/locations`,
 		headers: {
 			'Authorization': `Bearer ${access_token.token.access_token}`,
 		},
-	}));
+	})
+		.then((response) => {
+			return (response.data);
+		})
+		.catch((error) => {
+			console.error(error);
+		});
 }
 
-module.exports = { getUsersMap, fetchUserLocationsByLogin };
+async function fetchMe(authorization_code) {
+	const { token } = await clientAC.getToken({
+		code: authorization_code,
+		redirect_uri: 'http://localhost:3000',
+		scope: 'public',
+	});
+	const access_token = clientAC.createToken(token);
+	return axios({
+		method: 'GET',
+		url: `https://api.intra.42.fr/v2/me`,
+		headers: {
+			'Authorization': `Bearer ${access_token.token.access_token}`,
+		},
+	})
+		.then((response) => {
+			return (response.data);
+		})
+		.catch((error) => {
+			console.error(error);
+		});
+}
+
+module.exports = { getUsersMap, fetchUserLocationsByLogin, fetchMe };

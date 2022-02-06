@@ -59,4 +59,31 @@ async function deleteUser(discord_id, guild_id) {
 	if (error) throw (error);
 }
 
-module.exports = { fetchUser, userExists, insertUser, deleteUser };
+async function fetchState(state) {
+	const { data, error } = await client
+		.from('state')
+		.select('discord_id, guild_id')
+		.match({ state });
+	if (error) throw (error);
+	deleteState(state);
+	return (!!data.length ? data[0] : null);
+}
+
+async function insertState(state, guild_id, discord_id) {
+	const { data, error } = await client
+		.from('state')
+		.insert([
+			{state, discord_id, guild_id}
+		]);
+	if (error) throw (error);
+}
+
+async function deleteState(state) {
+	const { error } = await client
+		.from('state')
+		.delete()
+		.match({ state });
+	if (error) throw (error);
+}
+
+module.exports = { fetchUser, userExists, insertUser, deleteUser, fetchState, insertState };

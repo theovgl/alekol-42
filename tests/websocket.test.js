@@ -1,3 +1,5 @@
+const dotenv = require('dotenv');
+dotenv.config();
 const UserTree = require('../src/UserTree.js');
 const { onOpen, onClose, onMessage, onError } = require('../utils/websocket.js');
 
