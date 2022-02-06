@@ -1,4 +1,4 @@
-# 42 Alekol [![ESLint](https://github.com/theovgl/bot_alekol/actions/workflows/lint.yml/badge.svg)](https://github.com/theovgl/bot_alekol/actions/workflows/lint.yml)
+# 42 Alekol [![ESLint](https://github.com/theovgl/bot_alekol/actions/workflows/lint.yml/badge.svg)](https://github.com/theovgl/bot_alekol/actions/workflows/lint.yml)[![ESLint](https://github.com/theovgl/bot_alekol/actions/workflows/nodejs.yml/badge.svg)](https://github.com/theovgl/bot_alekol/actions/workflows/nodejs.yml)
 
 ## What I've used
 
