@@ -18,6 +18,7 @@ module.exports = {
 		}
 		try {
 			await supabase.deleteUser(interaction.user.id, interaction.guild.id);
+			await interaction.member.roles.remove(interaction.guild.roles.cache.find((r) => r.name === 'alekolique'));
 		} catch (error) {
 			console.error(error);
 			await interaction.editReply('😵 An unknown error occurred... Please try again later!');
