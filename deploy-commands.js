@@ -12,6 +12,7 @@ const commands = [];
 const commandsFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 for (const file of commandsFiles) {
 	const command = require(`./commands/${file}`);
+	if (NODE_ENV == 'development') command.data.setDescription('🛠️ ' + command.data.description);
 	commands.push(command.data.toJSON());
 }
 
