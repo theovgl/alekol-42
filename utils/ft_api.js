@@ -52,12 +52,11 @@ async function fetchUserLocationsByLogin(login) {
 }
 
 async function fetchMe(authorization_code) {
-	const { token } = await clientAC.getToken({
+	const access_token = await clientAC.getToken({
 		code: authorization_code,
-		redirect_uri: 'http://localhost:3000',
+		redirect_uri: process.env.REDIRECT_URI,
 		scope: 'public',
 	});
-	const access_token = clientAC.createToken(token);
 	return axios({
 		method: 'GET',
 		url: 'https://api.intra.42.fr/v2/me',

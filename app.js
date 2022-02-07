@@ -19,6 +19,7 @@ module.exports = (supabase, ft_api, discord, users) => {
 			user = users.find(user_data.login)?.data
 				?? await users.insertFromDb(supabase, user_data.login);
 		} catch (error) {
+			console.error(error);
 			return res.status(error?.code || 500).send(error?.message || 'An unknown error occured');
 		}
 		let new_location = null;
