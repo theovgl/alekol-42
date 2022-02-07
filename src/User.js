@@ -51,7 +51,7 @@ module.exports = class User {
 				console.error(error);
 				let message = `I tried to change the role \`${ROLE}\` but I could not...\n`;
 				if (error.code == 50013) message += 'I guess you should contact the serveur admin, and tell them that they must give higher permissions to the bot (me) than the role I want to give to people.';
-				else message += `I don\'t even know what is the problem, just contact the developpers please.`;
+				else message += 'I don\'t even know what is the problem, just contact the developpers please.';
 				await member.send(message);
 				continue;
 			}
