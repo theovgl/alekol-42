@@ -8,6 +8,8 @@ module.exports = {
 		.setDescription('Register to the bot'),
 	async execute(interaction) {
 		await interaction.deferReply({ ephemeral: true });
+
+		// Generate an OAuth2 state and insert it in the database
 		let state;
 		try {
 			state = (Math.random() + 1).toString(36);

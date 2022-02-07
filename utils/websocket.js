@@ -1,5 +1,24 @@
 const WebSocket = require('ws');
 
+function initWebsocket(client, supabase, users) {
+	const websocket_config = {
+		protocolVersion: 13,
+		perMessageDeflate: true,
+		headers: {
+			Origin: 'https://meta.intra.42.fr',
+			Cookie: `user.id=${process.env.FT_USER_ID};`,
+		},
+	};
+	const ws = new WebSocket('wss://profile.intra.42.fr/cable',
+		['actioncable-v1-json', 'actioncable-unsupported'],
+		websocket_config);
+	ws.on('open', onOpen(ws));
+	ws.on('close', onClose(ws, client, supabase, users));
+	ws.on('message', onMessage(client, supabase, users));
+	ws.on('error', onError);
+	return ws;
+}
+
 function onOpen(ws) {
 	return (() => {
 		console.log('WebSocket connection established!');
@@ -12,26 +31,13 @@ function onOpen(ws) {
 function onClose(ws, client, supabase, users) {
 	return ((code, reason) => {
 		console.log('Closing connection (code %d): REASON %s', code, reason);
-		const websocket_config = {
-			protocolVersion: 13,
-			perMessageDeflate: true,
-			headers: {
-				Origin: 'https://meta.intra.42.fr',
-				Cookie: `user.id=${process.env.FT_USER_ID};`,
-			},
-		};
-		ws = new WebSocket('wss://profile.intra.42.fr/cable',
-			['actioncable-v1-json', 'actioncable-unsupported'],
-			websocket_config);
-		ws.on('open', onOpen(ws));
-		ws.on('close', onClose(ws));
-		ws.on('message', onMessage(client, supabase, users));
-		ws.on('error', onError);
+		ws = initWebsocket(client, supabase, users);
 	});
 }
 
 function onMessage(client, supabase, users) {
 	return (async (data) => {
+		// Parse the message
 		let message;
 		try {
 			message = JSON.parse(data);
@@ -44,6 +50,7 @@ function onMessage(client, supabase, users) {
 		const wait = require('util').promisify(setTimeout);
 		await wait(500);
 
+		// Parse the location (informations about the user's connection)
 		if (!message?.identifier
 			|| !message?.message
 			|| JSON.parse(message.identifier).channel != 'LocationChannel') {return false;}
@@ -52,6 +59,7 @@ function onMessage(client, supabase, users) {
 			console.error('The location object is missing in the message');
 			return false;
 		}
+		// Get the user from the binary tree
 		const ft_login = location.login;
 		let user;
 		try {
@@ -61,6 +69,7 @@ function onMessage(client, supabase, users) {
 			console.error(error);
 			return false;
 		}
+		// Update the user's role according to its location
 		let new_location = null;
 		if (!location.end_at) new_location = { host: location.host, begin_at: location.begin_at };
 		await user.updateRole(client, new_location);
@@ -73,4 +82,4 @@ function onError(error) {
 	console.error(error);
 }
 
-module.exports = { onOpen, onClose, onMessage, onError };
+module.exports = initWebsocket;

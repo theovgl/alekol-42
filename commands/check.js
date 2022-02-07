@@ -19,6 +19,8 @@ module.exports = {
 	async execute(interaction) {
 		await interaction.deferReply({ ephemeral: true });
 		const ft_login = interaction.options.getString('login');
+
+		// Get the user from the binary tree
 		let user;
 		try {
 			user = users.find(ft_login)?.data
