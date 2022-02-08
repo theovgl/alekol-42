@@ -5,6 +5,7 @@ module.exports = (supabase, ft_api, discord, users) => {
 	const app = express();
 
 	app.get('/', async (req, res) => {
+		while (!discord.isReady());
 		const { code, state } = req.query;
 		let user;
 		let locations;
@@ -20,7 +21,7 @@ module.exports = (supabase, ft_api, discord, users) => {
 			if (await supabase.userExists(state_data.discord_id, user_data.login, state_data.guild_id)) throw { message: 'You are already registered', code: '200' };
 
 			// Insert the user in the database
-			await supabase.insertUser(state_data.discord_id, user_data.login, user_data.id, state_data.guild_id);
+			await supabase.insertUser(state_data.discord_id, user_data.login, user_data.id, state_data.guild_id, discord.application.id);
 
 			// Get the user's locations
 			locations = await ft_api.fetchUserLocationsByLogin(user_data.login);

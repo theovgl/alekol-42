@@ -7,6 +7,23 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
 const client = supabase.createClient(supabaseUrl, supabaseAnonKey);
 
+async function insertGuild(guild_id, guild_name, client_id) {
+	const { error } = await client
+		.from('guilds')
+		.insert([
+			{ id: guild_id, name: guild_name, client_id },
+		]);
+	if (error) throw (error);
+}
+
+async function deleteGuild(guild_id, client_id) {
+	const { error } = await client
+		.from('guilds')
+		.delete()
+		.match({ id: guild_id, client_id });
+	if (error) throw (error);
+}
+
 async function fetchUser(user_ids) {
 	if (!user_ids
 		|| (!user_ids.discord_id
@@ -42,20 +59,28 @@ async function userExists(discord_id, ft_login, guild_id) {
 	return false;
 }
 
-async function insertUser(discord_id, ft_login, ft_id, guild_id) {
+async function insertUser(discord_id, ft_login, ft_id, guild_id, client_id) {
 	const { error } = await client
 		.from('users')
 		.insert([
-			{ discord_id, ft_login, ft_id, guild_id },
+			{ discord_id, ft_login, ft_id, guild_id, client_id },
 		]);
 	if (error) throw (error);
 }
 
-async function deleteUser(discord_id, guild_id) {
+async function deleteUser(discord_id, guild_id, client_id) {
 	const { error } = await client
 		.from('users')
 		.delete()
-		.match({ discord_id, guild_id });
+		.match({ discord_id, guild_id, client_id });
+	if (error) throw (error);
+}
+
+async function deleteUsersOfGuild(guild_id, client_id) {
+	const { error } = await client
+		.from('users')
+		.delete()
+		.match({ guild_id, client_id });
 	if (error) throw (error);
 }
 
@@ -86,4 +111,4 @@ async function deleteState(state) {
 	if (error) throw (error);
 }
 
-module.exports = { fetchUser, userExists, insertUser, deleteUser, fetchState, insertState };
+module.exports = { insertGuild, deleteGuild, fetchUser, userExists, insertUser, deleteUser, deleteUsersOfGuild, fetchState, insertState };

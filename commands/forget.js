@@ -20,7 +20,7 @@ module.exports = {
 		}
 		try {
 			// Delete the user and remove its role
-			await supabase.deleteUser(interaction.user.id, interaction.guild.id);
+			await supabase.deleteUser(interaction.user.id, interaction.guild.id, interaction.applicationId);
 			await interaction.member.roles.remove(interaction.guild.roles.cache.find((r) => r.name === 'alekolique'));
 		} catch (error) {
 			console.error(error);
