@@ -7,6 +7,15 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
 const client = supabase.createClient(supabaseUrl, supabaseAnonKey);
 
+async function fetchGuild(guild_id, client_id) {
+	const { data, error } = await client
+		.from('guilds')
+		.select('id, name, client_id, role')
+		.match({ id: guild_id, client_id });
+	if (error) throw (error);
+	else return (data);
+}
+
 async function insertGuild(guild_id, guild_name, client_id) {
 	const { error } = await client
 		.from('guilds')
@@ -111,4 +120,4 @@ async function deleteState(state) {
 	if (error) throw (error);
 }
 
-module.exports = { insertGuild, deleteGuild, fetchUser, userExists, insertUser, deleteUser, deleteUsersOfGuild, fetchState, insertState };
+module.exports = { fetchGuild, insertGuild, deleteGuild, fetchUser, userExists, insertUser, deleteUser, deleteUsersOfGuild, fetchState, insertState };

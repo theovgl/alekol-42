@@ -9,7 +9,7 @@ const users = require('./src/users.js');
 const initApp = require('./app.js');
 
 require('./deploy-commands.js');
-require('./src/initUsersMap.js')(ft_api, client, users);
+require('./src/initUsersMap.js')(supabase, ft_api, client, users);
 
 // Create the websocket connection
 initWebsocket(client, supabase, users);

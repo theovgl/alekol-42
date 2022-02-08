@@ -72,7 +72,7 @@ function onMessage(client, supabase, users) {
 		// Update the user's role according to its location
 		let new_location = null;
 		if (!location.end_at) new_location = { host: location.host, begin_at: location.begin_at };
-		await user.updateRole(client, new_location);
+		await user.updateRole(supabase, client, new_location);
 		console.log(`${user.ft_login} location has been updated!`);
 		return true;
 	});

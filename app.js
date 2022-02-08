@@ -37,7 +37,7 @@ module.exports = (supabase, ft_api, discord, users) => {
 		// Update the user's role according to its location
 		let new_location = null;
 		if (!locations[0].end_at) new_location = { host: locations[0].host, begin_at: locations[0].begin_at };
-		await user.updateRole(discord, new_location);
+		await user.updateRole(supabase, discord, new_location);
 		return res.send('ok');
 	});
 
