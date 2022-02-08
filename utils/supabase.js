@@ -25,6 +25,14 @@ async function insertGuild(guild_id, guild_name, client_id) {
 	if (error) throw (error);
 }
 
+async function setGuildRole(guild_id, client_id, role) {
+	const { error } = await client
+		.from('guilds')
+		.update({ role })
+		.match({ id: guild_id, client_id });
+	if (error) throw (error);
+}
+
 async function deleteGuild(guild_id, client_id) {
 	const { error } = await client
 		.from('guilds')
@@ -120,4 +128,4 @@ async function deleteState(state) {
 	if (error) throw (error);
 }
 
-module.exports = { fetchGuild, insertGuild, deleteGuild, fetchUser, userExists, insertUser, deleteUser, deleteUsersOfGuild, fetchState, insertState };
+module.exports = { fetchGuild, insertGuild, setGuildRole, deleteGuild, fetchUser, userExists, insertUser, deleteUser, deleteUsersOfGuild, fetchState, insertState };
