@@ -1,5 +1,10 @@
 const initUsersMap = require('../src/initUsersMap.js');
 
+const discord_id = '123abc';
+const ft_id = 'ghi456';
+const ft_login = 'norminet';
+const guild_id = 'tuv345';
+let mockSupabase;
 const mockGetUsersMap = jest.fn().mockResolvedValue([]);
 const mockDiscordClient = {
 	guilds: {
@@ -11,23 +16,27 @@ const mockDiscordClient = {
 let users;
 
 beforeEach(() => {
+	mockSupabase = {
+		fetchUser: jest.fn().mockResolvedValue({ discord_id, ft_id, ft_login, guild_id }),
+		fetchGuild: jest.fn().mockResolvedValue()
+	};
 	mockGetUsersMap.mockClear();
 	mockDiscordClient.guilds.cache.get.mockClear();
 	users = undefined;
 });
 
 test('should fetch the current users map', async () => {
-	await initUsersMap({ getUsersMap: mockGetUsersMap }, mockDiscordClient, users);
+	await initUsersMap(mockSupabase, { getUsersMap: mockGetUsersMap }, mockDiscordClient, users);
 	expect(mockGetUsersMap).toHaveBeenCalledTimes(1);
 });
 
 test('should not crash if users map is empty', async () => {
-	expect(async () => await initUsersMap({ getUsersMap: mockGetUsersMap }, mockDiscordClient, users)).resolves;
+	expect(async () => await initUsersMap(mockSupabase, { getUsersMap: mockGetUsersMap }, mockDiscordClient, users)).resolves;
 });
 
 test('should not crash if request fails', async () => {
 	mockGetUsersMap.mockRejectedValueOnce('error');
-	expect(async () => await initUsersMap({ getUsersMap: mockGetUsersMap }, mockDiscordClient, users)).resolves;
+	expect(async () => await initUsersMap(mockSupabase, { getUsersMap: mockGetUsersMap }, mockDiscordClient, users)).resolves;
 });
 
 describe('should fetch an user', () => {
@@ -45,7 +54,7 @@ describe('should fetch an user', () => {
 			find: jest.fn().mockReturnValue({ data: { updateRole: jest.fn() } }),
 			insertFromDb: jest.fn()
 		};
-		await initUsersMap({ getUsersMap: mockGetUsersMap }, mockDiscordClient, users)
+		await initUsersMap(mockSupabase, { getUsersMap: mockGetUsersMap }, mockDiscordClient, users)
 		expect(users.find).toHaveBeenCalledTimes(5);
 	});
 
@@ -65,9 +74,9 @@ test('should update each user role', async () => {
 		find: jest.fn().mockReturnValue({ data: { updateRole: mockUserUpdateRole } }),
 		insertFromDb: jest.fn()
 	};
-	await initUsersMap({ getUsersMap: mockGetUsersMap }, mockDiscordClient, users)
+	await initUsersMap(mockSupabase, { getUsersMap: mockGetUsersMap }, mockDiscordClient, users)
 	expect(mockUserUpdateRole).toHaveBeenCalledTimes(5);
 	locations.forEach((location, index) => {
-		expect(mockUserUpdateRole.mock.calls[index]).toEqual([mockDiscordClient, { host: location.host, begin_at: location.begin_at }]);
+		expect(mockUserUpdateRole.mock.calls[index]).toEqual([mockSupabase, mockDiscordClient, { host: location.host, begin_at: location.begin_at }]);
 	});
 });
