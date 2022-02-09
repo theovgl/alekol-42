@@ -8,6 +8,7 @@ const guild_id = 'qrs345';
 const discord_id = '890fgh';
 const ft_login = 'norminet';
 const ft_id = 'vwx765';
+const application_id = '890lmn';
 const host = 'e1r2p3';
 const begin_at = '1970-01-01 00:00:00 UTC';
 const end_at = null;
@@ -27,6 +28,10 @@ beforeEach(() => {
 		insertUser: jest.fn().mockResolvedValue()
 	};
 	mockDiscordClient = {
+		isReady: jest.fn().mockReturnValue(true),
+		application: {
+			id: application_id
+		}
 	};
 	mockUserUpdateRole = jest.fn();
 	mockUsers = {
@@ -35,8 +40,17 @@ beforeEach(() => {
 	};
 });
 
+test('should wait until the client is ready', async () => {
+	mockDiscordClient.isReady.mockClear();
+	mockDiscordClient.isReady.mockReturnValueOnce(false);
+	mockDiscordClient.isReady.mockReturnValueOnce(false);
+	mockDiscordClient.isReady.mockReturnValueOnce(true);
+	await supertest(app(mockSupabase, mockFtApi, mockDiscordClient, mockUsers)).get(`/?state=${state}&code=${code}`);
+	expect(mockDiscordClient.isReady).toHaveBeenCalledTimes(3);
+});
+
 test('should fetch the state from the database', async () => {
-	await supertest(app(mockSupabase, mockFtApi, mockUsers)).get(`/?state=${state}&code=${code}`);
+	await supertest(app(mockSupabase, mockFtApi, mockDiscordClient, mockUsers)).get(`/?state=${state}&code=${code}`);
 	expect(mockSupabase.fetchState).toHaveBeenCalledWith(state);
 });
 
@@ -61,7 +75,7 @@ test('should check that the user is not already registered', async () => {
 
 test('should register the user in the database', async () => {
 	await supertest(app(mockSupabase, mockFtApi, mockDiscordClient, mockUsers)).get(`/?state=${state}&code=${code}`);
-	expect(mockSupabase.insertUser).toHaveBeenCalledWith(discord_id, ft_login, ft_id, guild_id);
+	expect(mockSupabase.insertUser).toHaveBeenCalledWith(discord_id, ft_login, ft_id, guild_id, application_id);
 });
 
 test('should get the user\'s location from the 42 api', async () => {
@@ -92,14 +106,14 @@ describe('should update the user\'s role', () => {
 
 	test('if at school', async () => {
 		await supertest(app(mockSupabase, mockFtApi, mockDiscordClient, mockUsers)).get(`/?state=${state}&code=${code}`);
-		expect(mockUserUpdateRole).toHaveBeenCalledWith(mockDiscordClient, { host, begin_at });
+		expect(mockUserUpdateRole).toHaveBeenCalledWith(mockSupabase, mockDiscordClient, { host, begin_at });
 	});
 
 	test('if not at school', async () => {
 		mockFtApi.fetchUserLocationsByLogin.mockClear();
 		mockFtApi.fetchUserLocationsByLogin.mockResolvedValue([{login: ft_login, host, begin_at, end_at: '1970-01-01 12:00:00 UTC' }])
 		await supertest(app(mockSupabase, mockFtApi, mockDiscordClient, mockUsers)).get(`/?state=${state}&code=${code}`);
-		expect(mockUserUpdateRole).toHaveBeenCalledWith(mockDiscordClient, null);
+		expect(mockUserUpdateRole).toHaveBeenCalledWith(mockSupabase, mockDiscordClient, null);
 	});
 
 	test('should respond with an HTML file', async () => {
