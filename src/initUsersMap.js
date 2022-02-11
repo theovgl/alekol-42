@@ -8,7 +8,6 @@ async function initUsersMap(supabase, ft_api, client, users) {
 	} catch (error) {
 		console.error(error);
 	}
-	users_map.unshift({"host":"e2r4p23","begin_at":"2022-02-08T21:39:43.996+01:00","end_at":null,"login":"vfurmane","image":"vfurmane.jpg","campus_id":1});
 	for (const location of users_map) {
 		try {
 			let user;
