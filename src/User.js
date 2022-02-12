@@ -21,7 +21,7 @@ module.exports = class User {
 	}
 
 	async updateRole(supabase, client, location) {
-		if (!client.isReady()) setTimeout(() => this.updateRole(supabase, client, location), 1000);
+		while (!client.isReady());
 		for (const user_guild of this.guilds) {
 			const guild = client.guilds.cache.get(user_guild.id);
 			if (guild === undefined) continue;

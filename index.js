@@ -10,6 +10,7 @@ const initApp = require('./app.js');
 
 require('./deploy-commands.js');
 require('./src/initUsersMap.js')(supabase, ft_api, client, users);
+require('./src/resetRoles.js')(supabase, client);
 
 // Create the websocket connection
 initWebsocket(client, supabase, users);
