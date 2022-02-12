@@ -4,6 +4,8 @@ module.exports = (supabase, ft_api, discord, users) => {
 
 	const app = express();
 
+	app.set('view engine', 'pug');
+
 	app.get('/', async (req, res) => {
 		while (!discord.isReady());
 		const { code, state } = req.query;
@@ -32,13 +34,13 @@ module.exports = (supabase, ft_api, discord, users) => {
 				?? await users.insertFromDb(supabase, user_data.login);
 		} catch (error) {
 			console.error(error);
-			return res.status(error?.code || 500).send(error?.message || 'An unknown error occured');
+			return res.status(error?.code || 500).render('index', { title: 'Error', message: error?.message || 'An unknown error occured' });
 		}
 		// Update the user's role according to its location
 		let new_location = null;
 		if (!locations[0].end_at) new_location = { host: locations[0].host, begin_at: locations[0].begin_at };
 		await user.updateRole(supabase, discord, new_location);
-		return res.send('ok');
+		return res.render('index', { title: 'Succesful registration', message: 'You have been successfuly registered' });
 	});
 
 	return app;
