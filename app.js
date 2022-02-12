@@ -27,19 +27,19 @@ module.exports = (supabase, ft_api, discord, users) => {
 
 			// Get the user's locations
 			locations = await ft_api.fetchUserLocationsByLogin(user_data.login);
-			if (locations.length == 0) return res.send('ok');
-
-			// Get the user from the binary tree
-			user = users.find(user_data.login)?.data
-				?? await users.insertFromDb(supabase, user_data.login);
+			if (locations.length > 0) {
+				// Get the user from the binary tree
+				user = users.find(user_data.login)?.data
+					?? await users.insertFromDb(supabase, user_data.login);
+				// Update the user's role according to its location
+				let new_location = null;
+				if (!locations[0].end_at) new_location = { host: locations[0].host, begin_at: locations[0].begin_at };
+				await user.updateRole(supabase, discord, new_location);
+			}
 		} catch (error) {
 			console.error(error);
 			return res.status(error?.code || 500).render('index', { title: 'Error', message: error?.message || 'An unknown error occured' });
 		}
-		// Update the user's role according to its location
-		let new_location = null;
-		if (!locations[0].end_at) new_location = { host: locations[0].host, begin_at: locations[0].begin_at };
-		await user.updateRole(supabase, discord, new_location);
 		return res.render('index', { title: 'Succesful registration', message: 'You have been successfuly registered' });
 	});
 

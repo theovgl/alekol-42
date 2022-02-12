@@ -1,5 +1,3 @@
-const supabase = require('../utils/supabase.js');
-
 // Promise.all() here
 async function initUsersMap(supabase, ft_api, client, users) {
 	let users_map;

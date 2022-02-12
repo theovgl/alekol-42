@@ -4,7 +4,7 @@ dotenv.config();
 const client = require('./client.js');
 const supabase = require('./utils/supabase.js');
 const ft_api = require('./utils/ft_api.js');
-const initWebsocket = require('./utils/websocket.js');
+const { initWebsocket } = require('./utils/websocket.js');
 const users = require('./src/users.js');
 const initApp = require('./app.js');
 

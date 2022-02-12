@@ -82,4 +82,4 @@ function onError(error) {
 	console.error(error);
 }
 
-module.exports = initWebsocket;
+module.exports = { initWebsocket, onOpen, onClose, onMessage, onError };

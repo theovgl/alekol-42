@@ -1,37 +1,37 @@
 const supertest = require('supertest');
+const { faker } = require('@faker-js/faker');
 const app = require('../app.js');
-// find the errors that the API throws
 
-const code = '123abc';
-const state = 'hij567';
-const guild_id = 'qrs345';
-const discord_id = '890fgh';
-const ft_login = 'norminet';
-const ft_id = 'vwx765';
-const application_id = '890lmn';
-const host = 'e1r2p3';
-const begin_at = '1970-01-01 00:00:00 UTC';
+const code = faker.datatype.number().toString();
+const state = faker.datatype.number().toString();
+const guild_id = faker.datatype.number().toString();
+const discord_id = faker.datatype.number().toString();
+const ft_login = faker.internet.userName();
+const ft_id = faker.datatype.number().toString();
+const application_id = faker.datatype.number().toString();
+const host = faker.internet.ip();
+const begin_at = faker.date.recent();
 const end_at = null;
-let mockFtApi;
-let mockSupabase;
 let mockDiscordClient;
+let mockSupabase;
+let mockFtApi;
 let mockUserUpdateRole;
 let mockUsers;
 beforeEach(() => {
-	mockFtApi = {
-		fetchMe: jest.fn().mockResolvedValue({id: ft_id, login: ft_login}),
-		fetchUserLocationsByLogin: jest.fn().mockResolvedValue([{login: ft_login, host, begin_at, end_at }])
+	mockDiscordClient = {
+		isReady: jest.fn().mockReturnValue(true),
+		application: {
+			id: application_id
+		}
 	};
 	mockSupabase = {
 		fetchState: jest.fn().mockResolvedValue({ guild_id, discord_id }),
 		userExists: jest.fn().mockResolvedValue(false),
 		insertUser: jest.fn().mockResolvedValue()
 	};
-	mockDiscordClient = {
-		isReady: jest.fn().mockReturnValue(true),
-		application: {
-			id: application_id
-		}
+	mockFtApi = {
+		fetchMe: jest.fn().mockResolvedValue({id: ft_id, login: ft_login}),
+		fetchUserLocationsByLogin: jest.fn().mockResolvedValue([{login: ft_login, host, begin_at, end_at }])
 	};
 	mockUserUpdateRole = jest.fn();
 	mockUsers = {
@@ -111,7 +111,7 @@ describe('should update the user\'s role', () => {
 
 	test('if not at school', async () => {
 		mockFtApi.fetchUserLocationsByLogin.mockClear();
-		mockFtApi.fetchUserLocationsByLogin.mockResolvedValue([{login: ft_login, host, begin_at, end_at: '1970-01-01 12:00:00 UTC' }])
+		mockFtApi.fetchUserLocationsByLogin.mockResolvedValue([{login: ft_login, host, begin_at, end_at: faker.date.soon() }])
 		await supertest(app(mockSupabase, mockFtApi, mockDiscordClient, mockUsers)).get(`/?state=${state}&code=${code}`);
 		expect(mockUserUpdateRole).toHaveBeenCalledWith(mockSupabase, mockDiscordClient, null);
 	});
