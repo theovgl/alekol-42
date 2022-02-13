@@ -1,3 +1,8 @@
+async function waitForDiscordClient(client) {
+	const wait = require('util').promisify(setTimeout);
+	while (!client.isReady()) await wait(500);
+}
+
 async function assignRole(memberRoles, to_add) {
 	await memberRoles.add(to_add);
 }
@@ -7,8 +12,7 @@ async function removeRole(memberRoles, to_remove) {
 }
 
 module.exports = class User {
-	constructor(ft_id, ft_login, user_in_guilds) {
-		this.ft_id = ft_id;
+	constructor(ft_login, user_in_guilds) {
 		this.ft_login = ft_login;
 		this.guilds = user_in_guilds.map((guild) => {
 			return ({
@@ -20,8 +24,12 @@ module.exports = class User {
 		this.begin_at = null;
 	}
 
-	async updateRole(supabase, client, location) {
-		while (!client.isReady());
+	get isLogged() {
+		return (!!this.host && !!this.begin_at);
+	}
+
+	async updateRole(supabase, client) {
+		await waitForDiscordClient(client);
 		for (const user_guild of this.guilds) {
 			const guild = client.guilds.cache.get(user_guild.id);
 			if (guild === undefined) continue;
@@ -53,7 +61,7 @@ module.exports = class User {
 			}
 
 			try {
-				if (location) await assignRole(memberRoles, newRole);
+				if (this.isLogged) await assignRole(memberRoles, newRole);
 				else await removeRole(memberRoles, newRole);
 			} catch (error) {
 				console.error(error);
@@ -63,8 +71,6 @@ module.exports = class User {
 				await member.send(message);
 				continue;
 			}
-			this.host = location?.host;
-			this.begin_at = location?.begin_at;
 		}
 	}
 };

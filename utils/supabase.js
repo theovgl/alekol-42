@@ -44,12 +44,11 @@ async function deleteGuild(guild_id, client_id) {
 async function fetchUser(user_ids) {
 	if (!user_ids
 		|| (!user_ids.discord_id
-			&& !user_ids.ft_id
 			&& !user_ids.ft_login)) throw ('The given user id is invalid');
 
 	const { data, error } = await client
 		.from('users')
-		.select('discord_id, ft_id, ft_login, guild_id')
+		.select('discord_id, ft_login, guild_id')
 		.match(user_ids);
 	if (error) throw (error);
 	else return (data);
@@ -60,7 +59,7 @@ async function userExists(discord_id, ft_login, guild_id) {
 	{
 		const { data, error } = await client
 			.from('users')
-			.select('ft_id')
+			.select('ft_login')
 			.match({ discord_id, guild_id });
 		if (error) throw (error);
 		if (data.length > 0) return true;
@@ -68,7 +67,7 @@ async function userExists(discord_id, ft_login, guild_id) {
 	{
 		const { data, error } = await client
 			.from('users')
-			.select('ft_id')
+			.select('ft_login')
 			.match({ ft_login, guild_id });
 		if (error) throw (error);
 		if (data.length > 0) return true;
@@ -76,11 +75,11 @@ async function userExists(discord_id, ft_login, guild_id) {
 	return false;
 }
 
-async function insertUser(discord_id, ft_login, ft_id, guild_id, client_id) {
+async function insertUser(discord_id, ft_login, guild_id, client_id) {
 	const { error } = await client
 		.from('users')
 		.insert([
-			{ discord_id, ft_login, ft_id, guild_id, client_id },
+			{ discord_id, ft_login, guild_id, client_id },
 		]);
 	if (error) throw (error);
 }

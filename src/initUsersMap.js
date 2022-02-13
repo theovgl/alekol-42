@@ -16,7 +16,10 @@ async function initUsersMap(supabase, ft_api, client, users) {
 				console.error(error);
 				continue;
 			}
-			user.updateRole(supabase, client, { host: location.host, begin_at: location.begin_at });
+			user.host = location.host;
+			user.begin_at = location.begin_at;
+			user.updateRole(supabase, client);
+			console.log(`${user.ft_login} location has been updated!`);
 		} catch (error) {
 			console.error(error);
 		}

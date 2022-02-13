@@ -12,14 +12,10 @@ class UserTree extends AVLTree {
 			user_in_guilds = await supabase.fetchUser({ ft_login });
 		} catch (error) {
 			console.error(error);
-			throw (`Could not fetch user (${ft_login})`);
+			throw (`Could not fetch user ${ft_login}`);
 		}
-		if (user_in_guilds.length == 0) throw (`User (${ft_login}) is not registered in the database`);
-
-		const user = new User(user_in_guilds[0].ft_id,
-			user_in_guilds[0].ft_login,
-			user_in_guilds);
-		this.insert(user_in_guilds[0].ft_login, user);
+		const user = new User(ft_login, user_in_guilds);
+		this.insert(ft_login, user);
 		return (user);
 	}
 }

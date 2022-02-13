@@ -2,7 +2,6 @@ const { faker } = require('@faker-js/faker');
 const initUsersMap = require('../src/initUsersMap.js');
 
 const discord_id = faker.datatype.number();
-const ft_id = faker.datatype.number();
 const ft_login = faker.internet.userName();
 const guild_id = faker.datatype.number();
 let users_map = [];
@@ -27,7 +26,7 @@ beforeEach(() => {
 		}
 	};
 	mockSupabase = {
-		fetchUser: jest.fn().mockResolvedValue({ discord_id, ft_id, ft_login, guild_id }),
+		fetchUser: jest.fn().mockResolvedValue({ discord_id, ft_login, guild_id }),
 		fetchGuild: jest.fn().mockResolvedValue()
 	};
 	mockFtApi = {
@@ -37,6 +36,7 @@ beforeEach(() => {
 	mockUsers = {
 		find: jest.fn().mockReturnValue({
 			data: {
+				ft_login,
 				updateRole: mockUserUpdateRole
 			}
 		}),
@@ -63,6 +63,6 @@ test('should update each user role', async () => {
 	mockFtApi.getUsersMap.mockResolvedValueOnce(users_map);
 	await initUsersMap(mockSupabase, mockFtApi, mockDiscordClient, mockUsers)
 	for (const user of users_map) {
-		expect(mockUserUpdateRole).toHaveBeenCalledWith(mockSupabase, mockDiscordClient, { host: user.host, begin_at: user.begin_at });
+		expect(mockUserUpdateRole).toHaveBeenCalledWith(mockSupabase, mockDiscordClient);
 	}
 });

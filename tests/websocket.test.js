@@ -99,22 +99,11 @@ describe('onMessage', () => {
 
 	});
 
-	describe('should fetch an user', () => {
-
-		test('by finding it in the binary tree', async () => {
-			users = new UserTree();
-			const mockUserUpdateRole = jest.fn();
-			users.insert("norminet", { ft_login: "norminet", updateRole: mockUserUpdateRole });
-			await expect(onMessage(mockDiscordClient, mockSupabase, mockUsers)(validJSON)).resolves.not.toThrow();
-		});
-
-		test('by creating it in the binary tree', async () => {
-			mockUsers.find.mockClear();
-			mockUsers.find.mockReturnValue(null);
-			await onMessage(mockDiscordClient, mockSupabase, mockUsers)(validJSON);
-			expect(mockUsers.insertFromDb).toHaveBeenCalledWith(mockSupabase, 'norminet');
-		});
-
+	test('should fetch an user', async () => {
+		users = new UserTree();
+		const mockUserUpdateRole = jest.fn();
+		users.insert("norminet", { ft_login: "norminet", updateRole: mockUserUpdateRole });
+		await expect(onMessage(mockDiscordClient, mockSupabase, mockUsers)(validJSON)).resolves.not.toThrow();
 	});
 
 	test('should not crash when the user doesn\'t exist', async () => {
@@ -128,7 +117,7 @@ describe('onMessage', () => {
 		const mockUserUpdateRole = jest.fn();
 		users.insert("norminet", { ft_login: "norminet", updateRole: mockUserUpdateRole });
 		await onMessage(mockDiscordClient, mockSupabase, users)(validJSON);
-		await expect(mockUserUpdateRole).toHaveBeenCalledWith(mockSupabase, mockDiscordClient, { host: 'e1r2p3', begin_at: '1970-01-01 00:00:00 UTC' });
+		await expect(mockUserUpdateRole).toHaveBeenCalledWith(mockSupabase, mockDiscordClient);
 	});
 
 	test('should remove the role when the user logs out', async () => {
@@ -136,7 +125,7 @@ describe('onMessage', () => {
 		const mockUserUpdateRole = jest.fn();
 		users.insert("norminet", { ft_login: "norminet", updateRole: mockUserUpdateRole });
 		await onMessage(mockDiscordClient, mockSupabase, users)('{"identifier":"{\\"channel\\":\\"LocationChannel\\",\\"user_id\\":12345}","message":{"location":{"id":12345678,"user_id":12345,"begin_at":"1970-01-01 00:00:00 UTC","end_at":"1970-01-02 00:00:00 UTC","primary":true,"host":"e1r2p3","campus_id":1,"login":"norminet"},"id":12345678}}');
-		await expect(mockUserUpdateRole).toHaveBeenCalledWith(mockSupabase, mockDiscordClient, null);
+		await expect(mockUserUpdateRole).toHaveBeenCalledWith(mockSupabase, mockDiscordClient);
 	});
 
 });

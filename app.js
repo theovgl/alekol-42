@@ -10,7 +10,6 @@ module.exports = (supabase, ft_api, discord, users) => {
 		while (!discord.isReady());
 		const { code, state } = req.query;
 		let user;
-		let locations;
 		try {
 			// Check the OAuth2 state
 			const state_data = await supabase.fetchState(state);
@@ -23,18 +22,16 @@ module.exports = (supabase, ft_api, discord, users) => {
 			if (await supabase.userExists(state_data.discord_id, user_data.login, state_data.guild_id)) throw { message: 'You are already registered', code: '200' };
 
 			// Insert the user in the database
-			await supabase.insertUser(state_data.discord_id, user_data.login, user_data.id, state_data.guild_id, discord.application.id);
+			await supabase.insertUser(state_data.discord_id, user_data.login, state_data.guild_id, discord.application.id);
 
-			// Get the user's locations
-			locations = await ft_api.fetchUserLocationsByLogin(user_data.login);
-			if (locations.length > 0) {
-				// Get the user from the binary tree
-				user = users.find(user_data.login)?.data
-					?? await users.insertFromDb(supabase, user_data.login);
+			user = users.find(user_data.login)?.data;
+			if (user) {
+				user.guilds.push({
+					id: state_data.guild_id,
+					discord_id: state_data.discord_id,
+				});
 				// Update the user's role according to its location
-				let new_location = null;
-				if (!locations[0].end_at) new_location = { host: locations[0].host, begin_at: locations[0].begin_at };
-				await user.updateRole(supabase, discord, new_location);
+				await user.updateRole(supabase, discord);
 			}
 		} catch (error) {
 			console.error(error);

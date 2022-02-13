@@ -6,7 +6,6 @@ global.console = {
 	error: jest.fn()
 };
 
-const ft_id = faker.datatype.number().toString();
 const ft_login = faker.internet.userName();
 let user_guilds = [];
 for (let i = 0; i < 5; i++) {
@@ -16,6 +15,8 @@ for (let i = 0; i < 5; i++) {
 	});
 }
 let user;
+let user_host;
+let user_begin_at;
 let mockGetGuildMembers;
 let mockGetCachedGuild;
 const application_id = faker.datatype.number().toString();
@@ -28,7 +29,9 @@ const guild_data = {
 };
 let mockSupabase;
 beforeEach(() => {
-	user = new User(ft_id, ft_login, user_guilds);
+	user = new User(ft_login, user_guilds);
+	user.host = user_host;
+	user.begin_at = user_begin_at;
 	mockGetGuildMembers = {
 		roles: {
 			add: jest.fn(),
@@ -64,15 +67,18 @@ beforeEach(() => {
 describe('updateRole', () => {
 
 	const configs = [
-		{ message: 'in', location: { host: faker.internet.ip(), begin_at: faker.date.recent() } },
-		{ message: 'out', location: null }
+		{ message: 'in', user: { host: faker.internet.ip(), begin_at: faker.date.recent() } },
+		{ message: 'out', user: { host: null, begin_at: null } }
 	];
 	for (const config of configs)
 	{
+		user_host = config.user.host;
+		user_begin_at = config.user.begin_at;
 		describe(`when the user is logged ${config.message}`, () => {
 		
 			test('should get the guild from discord cache', async () => {
-				await user.updateRole(mockSupabase, mockDiscordClient, config.location);
+				await user.updateRole(mockSupabase, mockDiscordClient);
+
 				expect(mockDiscordClient.guilds.cache.get).toHaveBeenCalledTimes(5);
 				user.guilds.forEach((guild, index) => {
 					expect(mockDiscordClient.guilds.cache.get.mock.calls[index]).toEqual([guild.id]);
@@ -82,12 +88,12 @@ describe('updateRole', () => {
 			test('should continue if the guild does not exist', async () => {
 				mockDiscordClient.guilds.cache.get.mockReset();
 				mockDiscordClient.guilds.cache.get = jest.fn().mockReturnValue(undefined);
-				await user.updateRole(mockSupabase, mockDiscordClient, config.location);
+				await user.updateRole(mockSupabase, mockDiscordClient);
 				expect(mockDiscordClient.guilds.cache.get).toHaveBeenCalledTimes(5);
 			});
 	
 			test('should get the member from the guild', async () => {
-				await user.updateRole(mockSupabase, mockDiscordClient, config.location);
+				await user.updateRole(mockSupabase, mockDiscordClient);
 				expect(mockGetCachedGuild.members.fetch).toHaveBeenCalledTimes(5);
 				user.guilds.forEach((guild, index) => {
 					expect(mockGetCachedGuild.members.fetch.mock.calls[index]).toEqual([guild.discord_id]);
@@ -97,43 +103,33 @@ describe('updateRole', () => {
 			test('should continue if the member does not exist', async () => {
 				mockGetCachedGuild.members.fetch.mockReset();
 				mockGetCachedGuild.members.fetch = jest.fn().mockRejectedValue('error');
-				await user.updateRole(mockSupabase, mockDiscordClient, config.location);
+				await user.updateRole(mockSupabase, mockDiscordClient);
 				expect(mockDiscordClient.guilds.cache.get).toHaveBeenCalledTimes(5);
 			});
 
 			test('should fetch the guild data from the database', async () => {
-				await user.updateRole(mockSupabase, mockDiscordClient, config.location);
+				await user.updateRole(mockSupabase, mockDiscordClient);
 				for (const user_guild of user_guilds) {
 					expect(mockSupabase.fetchGuild).toHaveBeenCalledWith(user_guild.guild_id, mockDiscordClient.application.id);
 				}
 			});
 	
 			test('should find the role from the guild', async () => {
-				await user.updateRole(mockSupabase, mockDiscordClient, config.location);
+				await user.updateRole(mockSupabase, mockDiscordClient);
 				expect(mockGetCachedGuild.roles.cache.find).toHaveBeenCalledTimes(5);
 			});
 	
 			test('should continue if the role was not found', async () => {
 				mockGetCachedGuild.roles.cache.find.mockReset();
 				mockGetCachedGuild.roles.cache.find = jest.fn().mockReturnValue(undefined);
-				await user.updateRole(mockSupabase, mockDiscordClient, config.location);
+				await user.updateRole(mockSupabase, mockDiscordClient);
 				expect(mockGetCachedGuild.roles.cache.find).toHaveBeenCalledTimes(5);
 			});
 		
 			test('should update the role', async () => {
-				await user.updateRole(mockSupabase, mockDiscordClient, config.location);
+				await user.updateRole(mockSupabase, mockDiscordClient);
 				if (config.location) expect(mockGetGuildMembers.roles.add).toHaveBeenCalledTimes(5);
 				else expect(mockGetGuildMembers.roles.remove).toHaveBeenCalledTimes(5);
-			});
-	
-			test('should update the host', async () => {
-				await user.updateRole(mockSupabase, mockDiscordClient, config.location);
-				expect(user.host).toBe(config.location?.host);
-			});
-	
-			test('should update the begin_at', async () => {
-				await user.updateRole(mockSupabase, mockDiscordClient, config.location);
-				expect(user.begin_at).toBe(config.location?.begin_at);
 			});
 		
 		});
