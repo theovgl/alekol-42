@@ -20,11 +20,16 @@ module.exports = {
 		await interaction.deferReply({ ephemeral: true });
 		const ft_login = interaction.options.getString('login');
 
-		// Get the user from the binary tree
 		let user;
 		try {
-			user = users.find(ft_login)?.data
-				?? await users.insertFromDb(supabase, ft_login);
+			// Check that the member is registered
+			const member_data = await supabase.fetchUser({ discord_id: interaction.user.id, guild_id: interaction.guildId });
+			if (member_data.length == 0) {
+				await interaction.editReply('🛑 You must be registered to access that information');
+				return;
+			}
+			// Get the user from the binary tree
+			user = users.find(ft_login)?.data;
 		} catch (error) {
 			console.error(error);
 			await interaction.editReply('😵 An unknown error occurred... Please try again later!');
@@ -33,11 +38,11 @@ module.exports = {
 		const embed = new MessageEmbed()
 			.setColor('#1abc9c')
 			.setTitle(ft_login)
-			.setDescription(`Is ${user.host ? '' : 'not '}at school`)
+			.setDescription(`Is ${user?.host ? '' : 'not '}at school`)
 			.setURL(`https://profile.intra.42.fr/users/${ft_login}`)
 			.setTimestamp();
-		if (user.host) embed.addField('Host', user.host, true);
-		if (user.begin_at) embed.addField('Since', dayjs(user.begin_at).fromNow(), true);
+		if (user?.host) embed.addField('Host', user.host, true);
+		if (user?.begin_at) embed.addField('Since', dayjs(user.begin_at).fromNow(), true);
 		await interaction.editReply({ embeds: [embed] });
 	},
 };
