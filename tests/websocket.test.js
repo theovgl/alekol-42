@@ -99,11 +99,22 @@ describe('onMessage', () => {
 
 	});
 
-	test('should fetch an user', async () => {
-		users = new UserTree();
-		const mockUserUpdateRole = jest.fn();
-		users.insert("norminet", { ft_login: "norminet", updateRole: mockUserUpdateRole });
-		await expect(onMessage(mockDiscordClient, mockSupabase, mockUsers)(validJSON)).resolves.not.toThrow();
+	describe('should fetch an user', () => {
+
+		test('by finding it in the binary tree', async () => {
+			users = new UserTree();
+			const mockUserUpdateRole = jest.fn();
+			users.insert("norminet", { ft_login: "norminet", updateRole: mockUserUpdateRole });
+			await expect(onMessage(mockDiscordClient, mockSupabase, mockUsers)(validJSON)).resolves.not.toThrow();
+		});
+
+		test('by creating it in the binary tree', async () => {
+			mockUsers.find.mockClear();
+			mockUsers.find.mockReturnValue(null);
+			await onMessage(mockDiscordClient, mockSupabase, mockUsers)(validJSON);
+			expect(mockUsers.insertFromDb).toHaveBeenCalledWith(mockSupabase, 'norminet');
+		});
+
 	});
 
 	test('should not crash when the user doesn\'t exist', async () => {

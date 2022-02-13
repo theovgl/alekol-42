@@ -63,9 +63,10 @@ function onMessage(client, supabase, users) {
 		const ft_login = location.login;
 		let user;
 		try {
-			user = users.find(ft_login)?.data;
+			user = users.find(ft_login)?.data
+				?? await users.insertFromDb(supabase, ft_login);
 			// Update the user's role
-			if (user) {
+			if (!!user) {
 				user.host = location.host;
 				user.begin_at = location.begin_at;
 				await user.updateRole(supabase, client);
