@@ -1,4 +1,3 @@
-// Promise.all() here
 async function initUsersMap(supabase, ft_api, client, users) {
 	let users_map;
 	try {
@@ -6,24 +5,22 @@ async function initUsersMap(supabase, ft_api, client, users) {
 	} catch (error) {
 		console.error(error);
 	}
+	const requests = [];
 	for (const location of users_map) {
-		try {
-			let user;
-			try {
-				user = users.find(location.login)?.data
-					?? await users.insertFromDb(supabase, location.login);
-			} catch (error) {
-				console.error(error);
-				continue;
-			}
-			user.host = location.host;
-			user.begin_at = location.begin_at;
-			user.updateRole(supabase, client);
-			console.log(`${user.ft_login} location has been updated!`);
-		} catch (error) {
-			console.error(error);
-		}
+		requests.push(users.find(location.login)?.data
+				?? users.insertFromDb(supabase, location.login)
+					.then(async (user) => {
+						user.host = location.host;
+						user.begin_at = location.begin_at;
+						await user.updateRole(supabase, client);
+						console.log(`${user.ft_login} location has been updated!`);
+					})
+					.catch((error) => {
+						console.error(error);
+					}),
+		);
 	}
+	await Promise.all(requests);
 }
 
 module.exports = initUsersMap;
