@@ -19,7 +19,6 @@ let mockUser;
 let mockUsers;
 beforeEach(() => {
 	mockDiscordClient = {
-		isReady: jest.fn().mockReturnValue(true),
 		application: {
 			id: application_id
 		}
@@ -46,15 +45,6 @@ beforeEach(() => {
 		find: jest.fn().mockReturnValue(mockUser),
 		insertFromDb: jest.fn().mockResolvedValue({ updateRole: mockUserUpdateRole })
 	};
-});
-
-test('should wait until the client is ready', async () => {
-	mockDiscordClient.isReady.mockClear();
-	mockDiscordClient.isReady.mockReturnValueOnce(false);
-	mockDiscordClient.isReady.mockReturnValueOnce(false);
-	mockDiscordClient.isReady.mockReturnValueOnce(true);
-	await supertest(app(mockSupabase, mockFtApi, mockDiscordClient, mockUsers)).get(`/?state=${state}&code=${code}`);
-	expect(mockDiscordClient.isReady).toHaveBeenCalledTimes(3);
 });
 
 test('should fetch the state from the database', async () => {

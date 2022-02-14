@@ -1,6 +1,13 @@
 const { Client, Collection, Intents } = require('discord.js');
 const fs = require('fs');
 const supabase = require('./utils/supabase.js');
+const ft_api = require('./utils/ft_api.js');
+const users = require('./src/users.js');
+const initApp = require('./app.js');
+const deployCommands = require('./deploy-commands.js');
+const resetRoles = require('./src/resetRoles.js');
+const { initWebsocket } = require('./utils/websocket.js');
+const initUsersMap = require('./src/initUsersMap.js');
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS] });
 client.commands = new Collection();
@@ -17,8 +24,22 @@ for (const file of commandFiles) {
 }
 
 client.once('ready', async () => {
-	await client.application.fetch();
 	console.log('Discord client ready !');
+	await client.application.fetch(); // delete ?
+	// Create the HTTP application
+	const app = initApp(supabase, ft_api, client, users);
+	const PORT = process.env.PORT || 3000;
+	app.listen(PORT, () => {
+		console.log(`HTTP server listening on port ${PORT}`);
+	});
+	await Promise.all([
+		deployCommands(),
+		resetRoles(supabase, client)
+	]);
+	await Promise.all([
+		initUsersMap(supabase, ft_api, client, users),
+		initWebsocket(client, supabase, users)
+	]);
 });
 
 client.on('interactionCreate', async interaction => {
@@ -34,7 +55,7 @@ client.on('interactionCreate', async interaction => {
 });
 
 client.on('guildCreate', async (guild) => {
-	while (!client.isReady());
+	while (!client.isReady()); // delete ?
 	try {
 		await supabase.insertGuild(guild.id, guild.name, client.application.id);
 	} catch (error) {
@@ -48,7 +69,7 @@ client.on('guildCreate', async (guild) => {
 });
 
 client.on('guildDelete', async (guild) => {
-	while (!client.isReady());
+	while (!client.isReady()); // delete ?
 	try {
 		await supabase.deleteUsersOfGuild(guild.id, client.application.id);
 		await supabase.deleteGuild(guild.id, client.application.id);
@@ -63,5 +84,3 @@ client.on('guildDelete', async (guild) => {
 });
 
 client.login(process.env.DISCORD_TOKEN);
-
-module.exports = client;

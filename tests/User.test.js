@@ -49,7 +49,6 @@ beforeEach(() => {
 		}
 	};
 	mockDiscordClient = {
-		isReady: jest.fn().mockReturnValue(true),
 		application: {
 			id: application_id
 		},

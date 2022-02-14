@@ -1,8 +1,3 @@
-async function waitForDiscordClient(client) {
-	const wait = require('util').promisify(setTimeout);
-	while (!client.isReady()) await wait(500);
-}
-
 async function assignRole(memberRoles, to_add) {
 	await memberRoles.add(to_add);
 }
@@ -29,7 +24,6 @@ module.exports = class User {
 	}
 
 	async updateRole(supabase, client) {
-		await waitForDiscordClient(client);
 		for (const user_guild of this.guilds) {
 			const guild = client.guilds.cache.get(user_guild.id);
 			if (guild === undefined) continue;

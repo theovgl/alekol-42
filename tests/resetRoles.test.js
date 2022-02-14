@@ -46,18 +46,8 @@ beforeEach(() => {
 			cache: {
 				values: jest.fn().mockReturnValue(guilds)
 			}
-		},
-		isReady: jest.fn().mockReturnValue(true)
+		}
 	};
-});
-
-test('should check that the client is ready', async () => {
-	mockDiscordClient.isReady.mockClear();
-	mockDiscordClient.isReady.mockReturnValueOnce(false);
-	mockDiscordClient.isReady.mockReturnValueOnce(false);
-	mockDiscordClient.isReady.mockReturnValueOnce(true);
-	await resetRoles(mockSupabase, mockDiscordClient);
-	expect(mockDiscordClient.isReady).toHaveBeenCalledTimes(3);
 });
 
 test('should fetch the guilds from the database', async () => {

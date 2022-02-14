@@ -7,7 +7,6 @@ module.exports = (supabase, ft_api, discord, users) => {
 	app.set('view engine', 'pug');
 
 	app.get('/', async (req, res) => {
-		while (!discord.isReady());
 		const { code, state } = req.query;
 		let user;
 		try {
