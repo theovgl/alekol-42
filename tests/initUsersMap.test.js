@@ -34,13 +34,12 @@ beforeEach(() => {
 	};
 	mockUserUpdateRole = jest.fn()
 	mockUsers = {
-		find: jest.fn().mockReturnValue({
-			data: {
-				ft_login,
-				updateRole: mockUserUpdateRole
-			}
-		}),
-		insertFromDb: jest.fn()
+		findWithDb: jest.fn().mockResolvedValue({
+			ft_login,
+			host: null,
+			begin_at: null,
+			updateRole: mockUserUpdateRole
+		})
 	};
 });
 
@@ -54,14 +53,14 @@ test('should fetch the user from the binary tree', async () => {
 	mockFtApi.getUsersMap.mockResolvedValueOnce(users_map);
 	await initUsersMap(mockSupabase, mockFtApi, mockDiscordClient, mockUsers)
 	for (const user of users_map) {
-		expect(mockUsers.find).toHaveBeenCalledWith(user.login);
+		expect(mockUsers.findWithDb).toHaveBeenCalledWith(user.login, mockSupabase);
 	}
 });
 
 test('should update each user role', async () => {
 	mockFtApi.getUsersMap.mockClear();
 	mockFtApi.getUsersMap.mockResolvedValueOnce(users_map);
-	await initUsersMap(mockSupabase, mockFtApi, mockDiscordClient, mockUsers)
+	await initUsersMap(mockSupabase, mockFtApi, mockDiscordClient, mockUsers);
 	for (const user of users_map) {
 		expect(mockUserUpdateRole).toHaveBeenCalledWith(mockSupabase, mockDiscordClient);
 	}

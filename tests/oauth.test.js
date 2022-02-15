@@ -42,8 +42,7 @@ beforeEach(() => {
 		}
 	};
 	mockUsers = {
-		find: jest.fn().mockReturnValue(mockUser),
-		insertFromDb: jest.fn().mockResolvedValue({ updateRole: mockUserUpdateRole })
+		find: jest.fn().mockReturnValue(mockUser)
 	};
 });
 

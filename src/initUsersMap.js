@@ -7,17 +7,16 @@ async function initUsersMap(supabase, ft_api, client, users) {
 	}
 	const requests = [];
 	for (const location of users_map) {
-		requests.push(users.find(location.login)?.data
-				?? users.insertFromDb(supabase, location.login)
-					.then(async (user) => {
-						user.host = location.host;
-						user.begin_at = location.begin_at;
-						await user.updateRole(supabase, client);
-						console.log(`${user.ft_login} location has been updated!`);
-					})
-					.catch((error) => {
-						console.error(error);
-					}),
+		requests.push(users.findWithDb(location.login, supabase)
+				.then(async (user) => {
+					user.host = location.host;
+					user.begin_at = location.begin_at;
+					await user.updateRole(supabase, client);
+					console.log(`${user.ft_login} location has been updated!`);
+				})
+				.catch((error) => {
+					console.error(error);
+				}),
 		);
 	}
 	await Promise.all(requests);

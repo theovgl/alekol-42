@@ -6,7 +6,9 @@ class UserTree extends AVLTree {
 		super();
 	}
 
-	async insertFromDb(supabase, ft_login) {
+	async findWithDb(ft_login, supabase) {
+		let user = this.find(ft_login)?.data;
+		if (user) return user;
 		let user_in_guilds;
 		try {
 			user_in_guilds = await supabase.fetchUser({ ft_login });
@@ -14,7 +16,7 @@ class UserTree extends AVLTree {
 			console.error(error);
 			throw (`Could not fetch user ${ft_login}`);
 		}
-		const user = new User(ft_login, user_in_guilds);
+		user = new User(ft_login, user_in_guilds);
 		this.insert(ft_login, user);
 		return (user);
 	}

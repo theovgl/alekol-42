@@ -25,7 +25,8 @@ for (const file of commandFiles) {
 
 client.once('ready', async () => {
 	console.log('Discord client ready !');
-	await client.application.fetch(); // delete ?
+	// delete ?
+	await client.application.fetch();
 	// Create the HTTP application
 	const app = initApp(supabase, ft_api, client, users);
 	const PORT = process.env.PORT || 3000;
@@ -34,11 +35,11 @@ client.once('ready', async () => {
 	});
 	await Promise.all([
 		deployCommands(),
-		resetRoles(supabase, client)
+		resetRoles(supabase, client),
 	]);
 	await Promise.all([
 		initUsersMap(supabase, ft_api, client, users),
-		initWebsocket(client, supabase, users)
+		initWebsocket(client, supabase, users),
 	]);
 });
 
@@ -55,7 +56,8 @@ client.on('interactionCreate', async interaction => {
 });
 
 client.on('guildCreate', async (guild) => {
-	while (!client.isReady()); // delete ?
+	// delete ?
+	while (!client.isReady());
 	try {
 		await supabase.insertGuild(guild.id, guild.name, client.application.id);
 	} catch (error) {
@@ -69,7 +71,8 @@ client.on('guildCreate', async (guild) => {
 });
 
 client.on('guildDelete', async (guild) => {
-	while (!client.isReady()); // delete ?
+	// delete ?
+	while (!client.isReady());
 	try {
 		await supabase.deleteUsersOfGuild(guild.id, client.application.id);
 		await supabase.deleteGuild(guild.id, client.application.id);

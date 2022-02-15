@@ -56,8 +56,7 @@ describe('onMessage', () => {
 			updateRole: jest.fn()
 		};
 		mockUsers = {
-			find: jest.fn().mockReturnValue({ data: mockUser }),
-			insertFromDb: jest.fn().mockResolvedValue(mockUser)
+			findWithDb: jest.fn()
 		};
 		mockDiscordClient = jest.fn();
 		mockSupabase = {
@@ -99,44 +98,23 @@ describe('onMessage', () => {
 
 	});
 
-	describe('should fetch an user', () => {
-
-		test('by finding it in the binary tree', async () => {
-			users = new UserTree();
-			const mockUserUpdateRole = jest.fn();
-			users.insert("norminet", { ft_login: "norminet", updateRole: mockUserUpdateRole });
-			await expect(onMessage(mockDiscordClient, mockSupabase, mockUsers)(validJSON)).resolves.not.toThrow();
-		});
-
-		test('by creating it in the binary tree', async () => {
-			mockUsers.find.mockClear();
-			mockUsers.find.mockReturnValue(null);
-			await onMessage(mockDiscordClient, mockSupabase, mockUsers)(validJSON);
-			expect(mockUsers.insertFromDb).toHaveBeenCalledWith(mockSupabase, 'norminet');
-		});
-
+	test('should fetch an user in the binary tree', async () => {
+		users = new UserTree();
+		const mockUserUpdateRole = jest.fn();
+		users.findWithDb = jest.fn();
+		users.insert("norminet", { ft_login: "norminet", updateRole: mockUserUpdateRole });
+		await onMessage(mockDiscordClient, mockSupabase, users)(validJSON);
+		expect(users.findWithDb).toHaveBeenCalledWith("norminet", mockSupabase);
 	});
 
-	test('should not crash when the user doesn\'t exist', async () => {
-		mockUsers.insertFromDb.mockClear();
-		mockUsers.insertFromDb.mockRejectedValue();
-		await expect(onMessage(mockDiscordClient, mockSupabase, mockUsers)(validJSON)).resolves.not.toThrow();
-	});
-
-	test('should add the role when the user logs in', async () => {
+	test('should update the role', async () => {
 		users = new UserTree();
 		const mockUserUpdateRole = jest.fn();
 		users.insert("norminet", { ft_login: "norminet", updateRole: mockUserUpdateRole });
 		await onMessage(mockDiscordClient, mockSupabase, users)(validJSON);
-		await expect(mockUserUpdateRole).toHaveBeenCalledWith(mockSupabase, mockDiscordClient);
+		expect(mockUserUpdateRole).toHaveBeenCalledWith(mockSupabase, mockDiscordClient);
 	});
 
-	test('should remove the role when the user logs out', async () => {
-		users = new UserTree();
-		const mockUserUpdateRole = jest.fn();
-		users.insert("norminet", { ft_login: "norminet", updateRole: mockUserUpdateRole });
-		await onMessage(mockDiscordClient, mockSupabase, users)('{"identifier":"{\\"channel\\":\\"LocationChannel\\",\\"user_id\\":12345}","message":{"location":{"id":12345678,"user_id":12345,"begin_at":"1970-01-01 00:00:00 UTC","end_at":"1970-01-02 00:00:00 UTC","primary":true,"host":"e1r2p3","campus_id":1,"login":"norminet"},"id":12345678}}');
-		await expect(mockUserUpdateRole).toHaveBeenCalledWith(mockSupabase, mockDiscordClient);
-	});
+	test.todo('should set host and begin_at to null if logging out');
 
 });
