@@ -33,6 +33,7 @@ module.exports = (supabase, ft_api, discord, users) => {
 				await user.updateRole(supabase, discord);
 			}
 		} catch (error) {
+			logAction(console.error, error?.message || 'An unknown error occured');
 			console.error(error);
 			return res.status(error?.code || 500).render('index', { title: 'Error', message: error?.message || 'An unknown error occured' });
 		}

@@ -1,4 +1,5 @@
 const WebSocket = require('ws');
+const { logAction, logUserAction } = require('../src/logs.js');
 
 function initWebsocket(client, supabase, users) {
 	const websocket_config = {
@@ -21,7 +22,7 @@ function initWebsocket(client, supabase, users) {
 
 function onOpen(ws) {
 	return (() => {
-		console.log('WebSocket connection established!');
+		logAction(console.log, 'WebSocket connection established');
 		ws.send(`{"command":"subscribe","identifier":"{\\"channel\\":\\"LocationChannel\\",\\"user_id\\":${process.env.FT_CABLE_USER_ID}}"}`);
 		ws.send(`{"command":"subscribe","identifier":"{\\"channel\\":\\"NotificationChannel\\",\\"user_id\\":${process.env.FT_CABLE_USER_ID}}"}`);
 		ws.send(`{"command":"subscribe","identifier":"{\\"channel\\":\\"FlashChannel\\",\\"user_id\\":${process.env.FT_CABLE_USER_ID}}"}`);
@@ -30,7 +31,7 @@ function onOpen(ws) {
 
 function onClose(ws, client, supabase, users) {
 	return ((code, reason) => {
-		console.log('Closing connection (code %d): REASON %s', code, reason);
+		logAction(console.log, `Closing connection (code ${code}): REASON ${reason}`);
 		ws = initWebsocket(client, supabase, users);
 	});
 }
@@ -42,7 +43,7 @@ function onMessage(client, supabase, users) {
 		try {
 			message = JSON.parse(data);
 		} catch (error) {
-			console.error('Could not parse the JSON message from websocket');
+			logAction(console.error, 'Could not parse the JSON message from websocket');
 			return false;
 		}
 
@@ -56,13 +57,13 @@ function onMessage(client, supabase, users) {
 			|| JSON.parse(message.identifier).channel != 'LocationChannel') {return false;}
 		const location = message.message.location;
 		if (!location) {
-			console.error('The location object is missing in the message');
+			logAction(console.error, 'The location object is missing in the message');
 			return false;
 		}
 		// Get the user from the binary tree
 		const ft_login = location.login;
 		let user;
-		console.log(`${ft_login} | Websocket recevived update`);
+		logUserAction(console.log, ft_login, `Just logged ${location.end_at == null ? "in" : "out"}`);
 		try {
 			user = await users.findWithDb(ft_login, supabase);
 			// Update the user's role
@@ -72,6 +73,7 @@ function onMessage(client, supabase, users) {
 				await user.updateRole(supabase, client);
 			}
 		} catch (error) {
+			logAction(console.error, 'An error occured while updating the role');
 			console.error(error);
 			return false;
 		}
@@ -80,6 +82,7 @@ function onMessage(client, supabase, users) {
 }
 
 function onError(error) {
+	logAction(console.error, 'An error occured with the websocket');
 	console.error(error);
 }
 

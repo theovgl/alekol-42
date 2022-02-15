@@ -1,14 +1,16 @@
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
-const dotenv = require('dotenv');
 const fs = require('fs');
+const dotenv = require('dotenv');
 dotenv.config();
+const { logAction } = require('./src/logs.js');
 
 const environment = process.env.NODE_ENV ?? 'development';
 const client_id = process.env.DISCORD_CLIENT_ID;
 const guild_id = process.env.DISCORD_GUILD_ID;
 
 async function deployCommands() {
+	logAction(console.log, 'Registering commands');
 	// Read all commands inside an array
 	const commands = [];
 	const commandsFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
@@ -22,11 +24,11 @@ async function deployCommands() {
 	const rest = new REST({ version: '9' }).setToken(process.env.DISCORD_TOKEN);
 	if (environment == 'production') {
 		await rest.put(Routes.applicationCommands(client_id), { body: commands })
-			.then(() => console.log('Successfully registered application commands.'))
+			.then(() => logAction(console.log, 'Registered application commands'))
 			.catch(console.error);
 	} else if (environment == 'development') {
 		await rest.put(Routes.applicationGuildCommands(client_id, guild_id), { body: commands })
-			.then(() => console.log('Successfully registered guild application commands.'))
+			.then(() => logAction(console.log, 'Registered guild application commands'))
 			.catch(console.error);
 	}
 }

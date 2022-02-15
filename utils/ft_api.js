@@ -25,9 +25,6 @@ function getUsersMap() {
 	})
 		.then((response) => {
 			return (response.data);
-		})
-		.catch((error) => {
-			console.error(error);
 		});
 }
 
@@ -45,9 +42,6 @@ async function fetchUserLocationsByLogin(login) {
 	})
 		.then((response) => {
 			return (response.data);
-		})
-		.catch((error) => {
-			console.error(error);
 		});
 }
 
@@ -66,9 +60,6 @@ async function fetchMe(authorization_code) {
 	})
 		.then((response) => {
 			return (response.data);
-		})
-		.catch((error) => {
-			console.error(error);
 		});
 }
 

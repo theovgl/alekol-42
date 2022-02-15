@@ -1,3 +1,5 @@
+const { logAction } = require('./logs.js');
+
 async function resetRoles(supabase, discord) {
 	const requests = [];
 	for (const guild of discord.guilds.cache.values()) {
@@ -6,7 +8,7 @@ async function resetRoles(supabase, discord) {
 				await guild.members.fetch();
 				const role_manager = guild.roles.cache.find((role) => role.name == guild_data[0].role);
 				if (!role_manager) {
-					console.error(`The role ${guild_data[0].role} has not been found in guild ${guild.name}`);
+					logAction(console.error, `The role ${guild_data[0].role} has not been found in guild ${guild.name}`);
 					return;
 				}
 				const roles_requests = [];
@@ -16,8 +18,9 @@ async function resetRoles(supabase, discord) {
 				await Promise.all(roles_requests);
 			})
 			.catch((error) => {
+				logAction(console.error, 'An error occured while fetching the guild from the database');
 				console.error(error);
-			}),
+			})
 		);
 	}
 	await Promise.all(requests);

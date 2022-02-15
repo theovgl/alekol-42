@@ -8,6 +8,7 @@ const deployCommands = require('./deploy-commands.js');
 const resetRoles = require('./src/resetRoles.js');
 const { initWebsocket } = require('./utils/websocket.js');
 const initUsersMap = require('./src/initUsersMap.js');
+const { logAction } = require('./src/logs.js');
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS] });
 client.commands = new Collection();
@@ -19,19 +20,19 @@ for (const file of commandFiles) {
 	if (command.data && command.data.name) {
 		client.commands.set(command.data.name, command);
 	} else {
-		console.error(`file ${file} does not have .data or .data.name property!`);
+		logAction(console.error, `File ${file} does not have .data or .data.name property!`);
 	}
 }
 
 client.once('ready', async () => {
-	console.log('Discord client ready !');
+	logAction(console.log, 'Discord client ready');
 	// delete ?
 	await client.application.fetch();
 	// Create the HTTP application
 	const app = initApp(supabase, ft_api, client, users);
 	const PORT = process.env.PORT || 3000;
 	app.listen(PORT, () => {
-		console.log(`HTTP server listening on port ${PORT}`);
+		logAction(console.log, `HTTP server listening on port ${PORT}`);
 	});
 	await Promise.all([
 		deployCommands(),
@@ -51,7 +52,8 @@ client.on('interactionCreate', async interaction => {
 	try {
 		await command.execute(interaction);
 	} catch (error) {
-		console.log(error);
+		logAction(console.error, 'An error occured while executing the interaction\'s command');
+		console.error(error);
 	}
 });
 
@@ -60,14 +62,11 @@ client.on('guildCreate', async (guild) => {
 	while (!client.isReady());
 	try {
 		await supabase.insertGuild(guild.id, guild.name, client.application.id);
+		logAction(console.log, `Bot ${client.application.name} joined guild ${guild.name}`);
 	} catch (error) {
-		console.error('guild_id: ', guild.id);
-		console.error('guild_name: ', guild.name);
-		console.error('client_id: ', client.application.id);
+		logAction(console.error, 'An error occured while joining the guild');
 		console.error(error);
-		return;
 	}
-	console.log(`Bot ${client.application.name} (${client.application.id}) joined guild ${guild.name} (${guild.id})`);
 });
 
 client.on('guildDelete', async (guild) => {
@@ -76,14 +75,11 @@ client.on('guildDelete', async (guild) => {
 	try {
 		await supabase.deleteUsersOfGuild(guild.id, client.application.id);
 		await supabase.deleteGuild(guild.id, client.application.id);
+		logAction(console.log, `Bot ${client.application.name} left guild ${guild.name}`);
 	} catch (error) {
-		console.error('guild_id: ', guild.id);
-		console.error('guild_name: ', guild.name);
-		console.error('client_id: ', client.application.id);
+		logAction(console.error, 'An error occured while leaving the guild');
 		console.error(error);
-		return;
 	}
-	console.log(`Bot ${client.application.name} (${client.application.id}) left guild ${guild.name} (${guild.id})`);
 });
 
 client.login(process.env.DISCORD_TOKEN);
