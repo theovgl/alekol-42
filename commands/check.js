@@ -20,21 +20,14 @@ module.exports = {
 		await interaction.deferReply({ ephemeral: true });
 		const ft_login = interaction.options.getString('login');
 
-		let user;
-		try {
-			// Check that the member is registered
-			const member_data = await supabase.fetchUser({ discord_id: interaction.user.id, guild_id: interaction.guildId });
-			if (member_data.length == 0) {
-				await interaction.editReply('🛑 You must be registered to access that information');
-				return;
-			}
-			// Get the user from the binary tree
-			user = users.find(ft_login)?.data;
-		} catch (error) {
-			console.error(error);
-			await interaction.editReply('😵 An unknown error occurred... Please try again later!');
+		// Check that the member is registered
+		const member_data = await supabase.fetchUser({ discord_id: interaction.user.id, guild_id: interaction.guildId });
+		if (member_data.length == 0) {
+			await interaction.editReply('🛑 You must be registered to access that information');
 			return;
 		}
+		// Get the user from the binary tree
+		const user = users.find(ft_login)?.data;
 		const embed = new MessageEmbed()
 			.setColor('#1abc9c')
 			.setTitle(ft_login)

@@ -52,8 +52,9 @@ client.on('interactionCreate', async interaction => {
 	try {
 		await command.execute(interaction);
 	} catch (error) {
-		logAction(console.error, 'An error occured while executing the interaction\'s command');
+		logAction(console.error, `An error occured while executing the interaction\'s command (${interaction.commandName})`);
 		console.error(error);
+		interaction.editReply('😵 An error occurred... Please try again later!');
 	}
 });
 

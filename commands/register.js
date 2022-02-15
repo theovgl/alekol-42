@@ -10,15 +10,8 @@ module.exports = {
 		await interaction.deferReply({ ephemeral: true });
 
 		// Generate an OAuth2 state and insert it in the database
-		let state;
-		try {
-			state = (Math.random() + 1).toString(36);
-			await supabase.insertState(state, interaction.guild.id, interaction.user.id);
-		} catch (error) {
-			console.error(error);
-			await interaction.editReply('😵 An unknown error occurred... Please try again later!');
-			return;
-		}
+		const state = (Math.random() + 1).toString(36);
+		await supabase.insertState(state, interaction.guild.id, interaction.user.id);
 		const embed = new MessageEmbed()
 			.setColor('#1abc9c')
 			.setTitle('Registration request')
