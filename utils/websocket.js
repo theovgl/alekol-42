@@ -63,7 +63,7 @@ function onMessage(client, supabase, users) {
 		const ft_login = location.login;
 		let user;
 		try {
-			user = await users.findWithDb(ft_login, supabase)
+			user = await users.findWithDb(ft_login, supabase);
 			// Update the user's role
 			if (user) {
 				user.host = location.end_at ? null : location.host;
