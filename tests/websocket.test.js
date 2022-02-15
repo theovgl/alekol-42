@@ -1,10 +1,8 @@
-const dotenv = require('dotenv');
-dotenv.config();
+const { faker } = require('@faker-js/faker');
 const UserTree = require('../src/UserTree.js');
 const { onOpen, onClose, onMessage, onError } = require('../utils/websocket.js');
 
-console.log = jest.fn();
-console.error = jest.fn();
+process.env.FT_CABLE_USER_ID = faker.datatype.number();
 
 describe('onOpen', () => {
 
