@@ -27,6 +27,7 @@ module.exports = class User {
 		for (const user_guild of this.guilds) {
 			const guild = client.guilds.cache.get(user_guild.id);
 			if (guild === undefined) continue;
+			console.log(`${this.ft_login} | Updating in guild ${guild.name}`);
 
 			let member;
 			try {
@@ -50,10 +51,11 @@ module.exports = class User {
 			const memberRoles = member.roles;
 			const newRole = guild.roles.cache.find((r) => r.name === role);
 			if (!newRole) {
-				console.error(`Could not find the role (${role}) in the guild (${user_guild.id})`);
+				console.error(`${this.ft_login} | Could not find the role ${role} in the guild ${user_guild.id}`);
 				continue;
 			}
 
+			console.log(`${this.ft_login} | ${this.isLogged ? "Adding" : "Removing"} the role ${role}`);
 			try {
 				if (this.isLogged) await assignRole(memberRoles, newRole);
 				else await removeRole(memberRoles, newRole);

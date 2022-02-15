@@ -62,19 +62,19 @@ function onMessage(client, supabase, users) {
 		// Get the user from the binary tree
 		const ft_login = location.login;
 		let user;
+		console.log(`${ft_login} | Websocket recevived update`);
 		try {
 			user = await users.findWithDb(ft_login, supabase);
 			// Update the user's role
 			if (user) {
-				user.host = location.end_at ? null : location.host;
-				user.begin_at = location.end_at ? null : location.begin_at;
+				user.host = location.end_at == null ? location.host : null;
+				user.begin_at = location.end_at == null ? location.begin_at : null;
 				await user.updateRole(supabase, client);
 			}
 		} catch (error) {
 			console.error(error);
 			return false;
 		}
-		console.log(`${ft_login} location has been updated!`);
 		return true;
 	});
 }
