@@ -10,7 +10,7 @@ async function initUsersMap(supabase, ft_api, client, users) {
 	}
 	const requests = [];
 	for (const location of users_map) {
-		logUserAction(console.log, location.login, `Is at school`);
+		logUserAction(console.log, location.login, 'Is at school');
 		requests.push(users.findWithDb(location.login, supabase)
 			.then(async (user) => {
 				user.host = location.host;

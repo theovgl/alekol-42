@@ -1,4 +1,5 @@
 const express = require('express');
+const { logAction } = require('./src/logs.js');
 
 module.exports = (supabase, ft_api, discord, users) => {
 

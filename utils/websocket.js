@@ -63,7 +63,7 @@ function onMessage(client, supabase, users) {
 		// Get the user from the binary tree
 		const ft_login = location.login;
 		let user;
-		logUserAction(console.log, ft_login, `Just logged ${location.end_at == null ? "in" : "out"}`);
+		logUserAction(console.log, ft_login, `Just logged ${location.end_at == null ? 'in' : 'out'}`);
 		try {
 			user = await users.findWithDb(ft_login, supabase);
 			// Update the user's role

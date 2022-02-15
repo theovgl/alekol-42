@@ -20,7 +20,7 @@ async function resetRoles(supabase, discord) {
 			.catch((error) => {
 				logAction(console.error, 'An error occured while fetching the guild from the database');
 				console.error(error);
-			})
+			}),
 		);
 	}
 	await Promise.all(requests);

@@ -59,12 +59,12 @@ module.exports = class User {
 				continue;
 			}
 
-			logUserAction(console.log, this.ft_login, `${this.isLogged ? "Adding" : "Removing"} the role ${role}`);
+			logUserAction(console.log, this.ft_login, `${this.isLogged ? 'Adding' : 'Removing'} the role ${role}`);
 			try {
 				if (this.isLogged) await assignRole(memberRoles, newRole);
 				else await removeRole(memberRoles, newRole);
 			} catch (error) {
-				logUserAction(console.error, this.ft_login, `An error occured while updating the role`);
+				logUserAction(console.error, this.ft_login, 'An error occured while updating the role');
 				console.error(error);
 				let message = `I tried to change the role \`${role}\` but I could not...\n`;
 				if (error.code == 50013) message += 'I guess you should contact the serveur admin, and tell them that they must give higher permissions to the bot (me) than the role I want to give to people.';

@@ -1,6 +1,6 @@
 const AVLTree = require('avl');
 const User = require('./User.js');
-const { logAction, logUserAction } = require('./logs.js');
+const { logUserAction } = require('./logs.js');
 
 class UserTree extends AVLTree {
 	constructor() {
@@ -11,8 +11,7 @@ class UserTree extends AVLTree {
 		let user = this.find(ft_login)?.data;
 		if (user) return user;
 		logUserAction(console.log, ft_login, 'Creating the user in the binary tree');
-		let user_in_guilds;
-		user_in_guilds = await supabase.fetchUser({ ft_login });
+		const user_in_guilds = await supabase.fetchUser({ ft_login });
 		user = new User(ft_login, user_in_guilds);
 		this.insert(ft_login, user);
 		return (user);
