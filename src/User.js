@@ -25,53 +25,43 @@ module.exports = class User {
 		return (!!this.host && !!this.begin_at);
 	}
 
+	async updateMemberRole(member, role_name) {
+		const role = member.guild.roles.cache.find((r) => r.name === role_name);
+		if (!role) {
+			logAction(console.error, `Could not find the role '${role_name}' in the guild`);
+			return;
+		}
+		logUserAction(console.log, this.ft_login, `${this.isLogged ? 'Adding' : 'Removing'} the role '${role_name}'`);
+		if (this.isLogged) await assignRole(member.roles, role);
+		else await removeRole(member.roles, role);
+	}
+
 	async updateRole(supabase, client) {
+		const requests = [];
 		for (const user_guild of this.guilds) {
 			const guild = client.guilds.cache.get(user_guild.id);
-			if (guild === undefined) continue;
-			logUserAction(console.log, this.ft_login, `Updating in guild ${guild.name}`);
-
-			let member;
+			if (!guild) continue;
+			// ===== Should be saved in the User object =====
 			try {
-				member = await guild.members.fetch(user_guild.discord_id);
+				user_guild.member = await guild.members.fetch(user_guild.discord_id);
 			} catch (error) {
-				logAction(console.error, 'An error occured while fetching the guild\'s members');
+				logAction(console.error, 'An error occured while fetching the member');
 				console.error(error);
 				continue;
 			}
-
-			let role;
-			try {
-				const guild_data = await supabase.fetchGuild(user_guild.id, client.application.id);
-				if (guild_data.length == 0) throw `Did not find guild (${user_guild.id}) for user ${this.ft_login}`;
-				role = guild_data[0].role;
-			} catch (error) {
-				logAction(console.error, 'An error occured while fetching the guild from the database');
-				console.error(error);
-				continue;
-			}
-			// If we create the role, it can be too fast to check if
-			// it already exists so the role will be created too many times
-			const memberRoles = member.roles;
-			const newRole = guild.roles.cache.find((r) => r.name === role);
-			if (!newRole) {
-				logUserAction(console.error, this.ft_login, `Could not find the role ${role} in the guild ${user_guild.id}`);
-				continue;
-			}
-
-			logUserAction(console.log, this.ft_login, `${this.isLogged ? 'Adding' : 'Removing'} the role ${role}`);
-			try {
-				if (this.isLogged) await assignRole(memberRoles, newRole);
-				else await removeRole(memberRoles, newRole);
-			} catch (error) {
-				logUserAction(console.error, this.ft_login, 'An error occured while updating the role');
-				console.error(error);
-				let message = `I tried to change the role \`${role}\` but I could not...\n`;
-				if (error.code == 50013) message += 'I guess you should contact the serveur admin, and tell them that they must give higher permissions to the bot (me) than the role I want to give to people.';
-				else message += 'I don\'t even know what is the problem, just contact the developpers please.';
-				await member.send(message);
-				continue;
-			}
+			// =====  =====
+			if (!user_guild.member) continue;
+			requests.push(supabase.fetchGuild(user_guild.id, client.application.id)
+				.then((guild_data) => {
+					if (!guild_data
+						|| guild_data.length == 0) return;
+					return this.updateMemberRole(user_guild.member, guild_data[0].role);
+				})
+				.catch((error) => {
+					logAction(console.error, 'An error occured while fetching the guild\'s data');
+					console.error(error);
+				}));
 		}
+		return Promise.all(requests);
 	}
 };

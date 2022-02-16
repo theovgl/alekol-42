@@ -1,3 +1,4 @@
+const { faker } = require('@faker-js/faker');
 const User = require('../src/User');
 const UserTree = require('../src/UserTree.js');
 
@@ -5,8 +6,9 @@ const ft_login = 'norminet';
 
 let users;
 let mockSupabase;
+const client_id = faker.datatype.number();
 beforeEach(() => {
-	users = new UserTree();
+	users = new UserTree(client_id);
 	mockSupabase = {
 		fetchUser: jest.fn().mockResolvedValue([{
 			discord_id: '123456789',
@@ -28,7 +30,7 @@ describe('findWithDb', () => {
 	test('should fetch the user from the database', async () => {
 		await users.findWithDb(ft_login, mockSupabase);
 		expect(mockSupabase.fetchUser).toHaveBeenCalledTimes(1);
-		expect(mockSupabase.fetchUser).toHaveBeenCalledWith({ ft_login });
+		expect(mockSupabase.fetchUser).toHaveBeenCalledWith({ ft_login, client_id });
 	});
 
 	test('should insert the new user in the tree', async () => {

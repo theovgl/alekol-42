@@ -26,8 +26,12 @@ for (const file of commandFiles) {
 
 client.once('ready', async () => {
 	logAction(console.log, 'Discord client ready');
+	users.client_id = client.application.id;
 	// delete ?
-	await client.application.fetch();
+	await Promise.all([
+		client.application.fetch(),
+		client.guilds.fetch(),
+	]);
 	// Create the HTTP application
 	const app = initApp(supabase, ft_api, client, users);
 	const PORT = process.env.PORT || 3000;
@@ -61,6 +65,7 @@ client.on('interactionCreate', async interaction => {
 client.on('guildCreate', async (guild) => {
 	// delete ?
 	while (!client.isReady());
+	guild.fetch();
 	try {
 		await supabase.insertGuild(guild.id, guild.name, client.application.id);
 		logAction(console.log, `Bot ${client.application.name} joined guild ${guild.name}`);
@@ -73,6 +78,7 @@ client.on('guildCreate', async (guild) => {
 client.on('guildDelete', async (guild) => {
 	// delete ?
 	while (!client.isReady());
+	guild.fetch();
 	try {
 		await supabase.deleteUsersOfGuild(guild.id, client.application.id);
 		await supabase.deleteGuild(guild.id, client.application.id);

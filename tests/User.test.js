@@ -33,6 +33,13 @@ beforeEach(() => {
 	user.host = user_host;
 	user.begin_at = user_begin_at;
 	mockGetGuildMembers = {
+		guild: {
+			roles: {
+				cache: {
+					find: jest.fn().mockReturnValue({})
+				}
+			}
+		},
 		roles: {
 			add: jest.fn(),
 			remove: jest.fn()
@@ -42,11 +49,6 @@ beforeEach(() => {
 		members: {
 			fetch: jest.fn().mockResolvedValue(mockGetGuildMembers)
 		},
-		roles: {
-			cache: {
-				find: jest.fn().mockReturnValue({})
-			}
-		}
 	};
 	mockDiscordClient = {
 		application: {
@@ -98,7 +100,7 @@ describe('updateRole', () => {
 					expect(mockGetCachedGuild.members.fetch.mock.calls[index]).toEqual([guild.discord_id]);
 				});
 			});
-	
+
 			test('should continue if the member does not exist', async () => {
 				mockGetCachedGuild.members.fetch.mockReset();
 				mockGetCachedGuild.members.fetch = jest.fn().mockRejectedValue('error');
@@ -112,25 +114,25 @@ describe('updateRole', () => {
 					expect(mockSupabase.fetchGuild).toHaveBeenCalledWith(user_guild.guild_id, mockDiscordClient.application.id);
 				}
 			});
-	
+
 			test('should find the role from the guild', async () => {
 				await user.updateRole(mockSupabase, mockDiscordClient);
-				expect(mockGetCachedGuild.roles.cache.find).toHaveBeenCalledTimes(5);
+				expect(mockGetGuildMembers.guild.roles.cache.find).toHaveBeenCalledTimes(5);
+			});
+
+			test('should continue if the role was not found', async () => {
+				mockGetGuildMembers.guild.roles.cache.find.mockReset();
+				mockGetGuildMembers.guild.roles.cache.find = jest.fn().mockReturnValue(undefined);
+				await user.updateRole(mockSupabase, mockDiscordClient);
+				expect(mockGetGuildMembers.guild.roles.cache.find).toHaveBeenCalledTimes(5);
 			});
 	
-			test('should continue if the role was not found', async () => {
-				mockGetCachedGuild.roles.cache.find.mockReset();
-				mockGetCachedGuild.roles.cache.find = jest.fn().mockReturnValue(undefined);
-				await user.updateRole(mockSupabase, mockDiscordClient);
-				expect(mockGetCachedGuild.roles.cache.find).toHaveBeenCalledTimes(5);
-			});
-		
 			test('should update the role', async () => {
 				await user.updateRole(mockSupabase, mockDiscordClient);
 				if (config.location) expect(mockGetGuildMembers.roles.add).toHaveBeenCalledTimes(5);
 				else expect(mockGetGuildMembers.roles.remove).toHaveBeenCalledTimes(5);
 			});
-		
+
 		});
 	}
 
