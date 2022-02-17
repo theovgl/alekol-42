@@ -11,6 +11,8 @@ const application_id = faker.datatype.number().toString();
 const host = faker.internet.ip();
 const begin_at = faker.date.recent();
 const end_at = null;
+let mockGuildMember;
+let mockGetCachedGuild;
 let mockDiscordClient;
 let mockSupabase;
 let mockFtApi;
@@ -18,9 +20,19 @@ let mockUserUpdateRole;
 let mockUser;
 let mockUsers;
 beforeEach(() => {
+	mockGetCachedGuild = {
+		members: {
+			fetch: jest.fn().mockResolvedValue()
+		}
+	};
 	mockDiscordClient = {
 		application: {
 			id: application_id
+		},
+		guilds: {
+			cache: {
+				get: jest.fn().mockReturnValue(mockGetCachedGuild)
+			}
 		}
 	};
 	mockSupabase = {
@@ -35,7 +47,7 @@ beforeEach(() => {
 	mockUserUpdateRole = jest.fn();
 	mockUser = {
 		data: {
-			guilds: {
+			guilds_member: {
 				push: jest.fn()
 			},
 			updateRole: mockUserUpdateRole
@@ -78,11 +90,6 @@ test('should register the user in the database', async () => {
 test('should fetch an user from the tree', async () => {
 	await supertest(app(mockSupabase, mockFtApi, mockDiscordClient, mockUsers)).get(`/?state=${state}&code=${code}`);
 	expect(mockUsers.find).toHaveBeenCalledWith(ft_login);
-});
-
-test('should add the guild to the user\'s guilds', async () => {
-	await supertest(app(mockSupabase, mockFtApi, mockDiscordClient, mockUsers)).get(`/?state=${state}&code=${code}`);
-	expect(mockUser.data.guilds.push).toHaveBeenCalledWith({ id: guild_id, discord_id });
 });
 
 test('should update the user\'s role', async () => {

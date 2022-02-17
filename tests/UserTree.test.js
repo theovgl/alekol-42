@@ -4,11 +4,28 @@ const UserTree = require('../src/UserTree.js');
 
 const ft_login = 'norminet';
 
+let mockGuild;
+const client_id = faker.datatype.number();
+let mockDiscord;
 let users;
 let mockSupabase;
-const client_id = faker.datatype.number();
 beforeEach(() => {
-	users = new UserTree(client_id);
+	mockGuild = {
+		members: {
+			fetch: jest.fn().mockResolvedValue()
+		}
+	};
+	mockDiscord = {
+		application: {
+			id: client_id
+		},
+		guilds: {
+			cache: {
+				get: jest.fn().mockReturnValue(mockGuild)
+			}
+		}
+	};
+	users = new UserTree(mockDiscord);
 	mockSupabase = {
 		fetchUser: jest.fn().mockResolvedValue([{
 			discord_id: '123456789',

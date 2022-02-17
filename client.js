@@ -26,7 +26,7 @@ for (const file of commandFiles) {
 
 client.once('ready', async () => {
 	logAction(console.log, 'Discord client ready');
-	users.client_id = client.application.id;
+	users.discord = client;
 	// delete ?
 	await Promise.all([
 		client.application.fetch(),
@@ -86,6 +86,37 @@ client.on('guildDelete', async (guild) => {
 	} catch (error) {
 		logAction(console.error, 'An error occured while leaving the guild');
 		console.error(error);
+	}
+});
+
+async function fetchMember(member) {
+	try {
+		await member.fetch();
+	} catch (error) {
+		logAction(console.error, 'An error occured while fetching the member');
+		console.error(error);
+	}
+}
+
+client.on('guildMemberAdd', fetchMember);
+
+client.on('guildMemberRemove', async (member) => {
+	try {
+		const user_data = await supabase.fetchUser({
+			discord_id: member.id,
+			guild_id: member.guild.id,
+			client_id: client.application.id
+		});
+		if (!user_data
+			|| user_data.length == 0) return;
+		const user = users.find(user_data[0].ft_login)?.data;
+		if (!user) return;
+		await supabase.deleteUser(member.id, member.guild.id, client.application.id);
+		user.guilds_member = user.guilds_member.filter((guild_member) => guild_member.guild.id != member.guild.id);
+	} catch (error) {
+		logAction(console.error, 'An error occured while the member left the guild');
+		console.error(error);
+		return;
 	}
 });
 

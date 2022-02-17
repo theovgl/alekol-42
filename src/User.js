@@ -9,14 +9,9 @@ async function removeRole(memberRoles, to_remove) {
 }
 
 module.exports = class User {
-	constructor(ft_login, user_in_guilds) {
+	constructor(ft_login, guilds_member) {
 		this.ft_login = ft_login;
-		this.guilds = user_in_guilds.map((guild) => {
-			return ({
-				id: guild.guild_id,
-				discord_id: guild.discord_id,
-			});
-		});
+		this.guilds_member = guilds_member;
 		this.host = null;
 		this.begin_at = null;
 	}
@@ -38,24 +33,12 @@ module.exports = class User {
 
 	async updateRole(supabase, client) {
 		const requests = [];
-		for (const user_guild of this.guilds) {
-			const guild = client.guilds.cache.get(user_guild.id);
-			if (!guild) continue;
-			// ===== Should be saved in the User object =====
-			try {
-				user_guild.member = await guild.members.fetch(user_guild.discord_id);
-			} catch (error) {
-				logAction(console.error, 'An error occured while fetching the member');
-				console.error(error);
-				continue;
-			}
-			// =====  =====
-			if (!user_guild.member) continue;
-			requests.push(supabase.fetchGuild(user_guild.id, client.application.id)
+		for (const member of this.guilds_member) {
+			requests.push(supabase.fetchGuild(member.guild.id, client.application.id)
 				.then((guild_data) => {
 					if (!guild_data
 						|| guild_data.length == 0) return;
-					return this.updateMemberRole(user_guild.member, guild_data[0].role);
+					return this.updateMemberRole(member, guild_data[0].role);
 				})
 				.catch((error) => {
 					logAction(console.error, 'An error occured while fetching the guild\'s data');

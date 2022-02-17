@@ -26,10 +26,9 @@ module.exports = (supabase, ft_api, discord, users) => {
 
 			user = users.find(user_data.login)?.data;
 			if (user) {
-				user.guilds.push({
-					id: state_data.guild_id,
-					discord_id: state_data.discord_id,
-				});
+				const guild_member = await discord.guilds.cache.get(state_data.guild_id)
+					.members.fetch(state_data.discord_id);
+				user.guilds_member.push(guild_member);
 				// Update the user's role according to its location
 				await user.updateRole(supabase, discord);
 			}
