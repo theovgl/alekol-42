@@ -6,7 +6,7 @@ function fetchMemberInAllGuilds(discord, user_in_guilds) {
 	const requests = [];
 	for (const user of user_in_guilds) {
 		requests.push(discord.guilds.cache.get(user.guild_id)
-				.members.fetch(user.discord_id));
+			.members.fetch(user.discord_id));
 	}
 	return (requests);
 }

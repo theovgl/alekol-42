@@ -105,7 +105,7 @@ client.on('guildMemberRemove', async (member) => {
 		const user_data = await supabase.fetchUser({
 			discord_id: member.id,
 			guild_id: member.guild.id,
-			client_id: client.application.id
+			client_id: client.application.id,
 		});
 		if (!user_data
 			|| user_data.length == 0) return;
