@@ -1,8 +1,6 @@
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 const fs = require('fs');
-const dotenv = require('dotenv');
-dotenv.config();
 const { logAction } = require('./src/logs.js');
 
 const environment = process.env.NODE_ENV ?? 'development';
