@@ -2,7 +2,6 @@ const { faker } = require('@faker-js/faker');
 const initUsersMap = require('../src/initUsersMap.js');
 
 jest.mock('../utils/supabase.js');
-const mockSupabase = require('../utils/supabase.js');
 jest.mock('../utils/ft_api.js');
 const mockFtApi = require('../utils/ft_api.js');
 jest.mock('../src/users.js');

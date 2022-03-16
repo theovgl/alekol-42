@@ -1,17 +1,16 @@
 const { faker } = require('@faker-js/faker');
-const User = require('../src/User');
 const UserTree = require('../src/UserTree.js');
 
 jest.mock('../utils/supabase.js');
 const mockSupabase = require('../utils/supabase.js');
 jest.mock('../src/logs.js');
-const { logUserAction: mockLogUserAction } = require('../src/logs.js');
 
 const ft_login = faker.internet.userName();
 const client_id = faker.datatype.number().toString();
 const discord_id = faker.datatype.number().toString();
 const guild_id = faker.datatype.number().toString();
 let mockUserData;
+let mockFetchMember;
 let mockGetCachedGuild;
 let mockDiscordClient;
 let users;
@@ -25,24 +24,24 @@ describe('findWithDb', () => {
 		mockUserData = {
 			discord_id,
 			ft_login,
-			guild_id
+			guild_id,
 		};
 		mockSupabase.fetchUser.mockResolvedValue([mockUserData]);
 		mockFetchMember = jest.fn().mockResolvedValue();
 		mockGetCachedGuild = jest.fn().mockReturnValue({
 			members: {
-				fetch: mockFetchMember
-			}
+				fetch: mockFetchMember,
+			},
 		});
 		mockDiscordClient = {
 			application: {
-				id: client_id
+				id: client_id,
 			},
 			guilds: {
 				cache: {
-					get: mockGetCachedGuild
-				}
-			}
+					get: mockGetCachedGuild,
+				},
+			},
 		};
 		users = new UserTree(mockDiscordClient);
 		mockUser = faker.datatype.json();
@@ -87,14 +86,14 @@ describe('findWithDb', () => {
 		test('should insert the new user in the tree', () => {
 			expect(users.insert).toHaveBeenCalledWith(ft_login, expect.objectContaining({
 				ft_login,
-				guilds_member: expect.any(Array)
+				guilds_member: expect.any(Array),
 			}));
 		});
 
 		test('should return the new user', () => {
 			expect(ret).toMatchObject({
 				ft_login,
-				guilds_member: expect.any(Array)
+				guilds_member: expect.any(Array),
 			});
 		});
 

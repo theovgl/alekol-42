@@ -2,14 +2,6 @@ const { Client, Collection, Intents } = require('discord.js');
 const dotenv = require('dotenv');
 const fs = require('fs');
 dotenv.config();
-const supabase = require('./utils/supabase.js');
-const ft_api = require('./utils/ft_api.js');
-const users = require('./src/users.js');
-const initApp = require('./app.js');
-const deployCommands = require('./deploy-commands.js');
-const resetRoles = require('./src/resetRoles.js');
-const { initWebsocket } = require('./utils/websocket.js');
-const initUsersMap = require('./src/initUsersMap.js');
 const { logAction } = require('./src/logs.js');
 const discord = require('./utils/discord.js');
 

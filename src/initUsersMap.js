@@ -1,4 +1,3 @@
-const supabase = require('../utils/supabase.js');
 const ft_api = require('../utils/ft_api.js');
 const users = require('./users.js');
 const { logUserAction } = require('./logs.js');
