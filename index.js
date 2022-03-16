@@ -1,5 +1,7 @@
 const { Client, Collection, Intents } = require('discord.js');
+const dotenv = require('dotenv');
 const fs = require('fs');
+dotenv.config();
 const supabase = require('./utils/supabase.js');
 const ft_api = require('./utils/ft_api.js');
 const users = require('./src/users.js');
