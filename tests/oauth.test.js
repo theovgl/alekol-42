@@ -1,6 +1,9 @@
 const supertest = require('supertest');
 const { faker } = require('@faker-js/faker');
-const app = require('../app.js');
+const initApp = require('../app.js');
+
+jest.mock('../src/logs.js');
+const { logAction } = require('../src/logs.js');
 
 const code = faker.datatype.number().toString();
 const state = faker.datatype.number().toString();
@@ -8,96 +11,439 @@ const guild_id = faker.datatype.number().toString();
 const discord_id = faker.datatype.number().toString();
 const ft_login = faker.internet.userName();
 const application_id = faker.datatype.number().toString();
-const host = faker.internet.ip();
-const begin_at = faker.date.recent();
-const end_at = null;
 let mockGuildMember;
-let mockGetCachedGuild;
+let mockCachedGuild;
 let mockDiscordClient;
+let mockStateData;
 let mockSupabase;
+let mockFtUser;
 let mockFtApi;
-let mockUserUpdateRole;
 let mockUser;
 let mockUsers;
-beforeEach(() => {
-	mockGetCachedGuild = {
-		members: {
-			fetch: jest.fn().mockResolvedValue()
-		}
-	};
-	mockDiscordClient = {
-		application: {
-			id: application_id
-		},
-		guilds: {
-			cache: {
-				get: jest.fn().mockReturnValue(mockGetCachedGuild)
-			}
-		}
-	};
-	mockSupabase = {
-		fetchState: jest.fn().mockResolvedValue({ guild_id, discord_id }),
-		userExists: jest.fn().mockResolvedValue(false),
-		insertUser: jest.fn().mockResolvedValue()
-	};
-	mockFtApi = {
-		fetchMe: jest.fn().mockResolvedValue({ login: ft_login }),
-		fetchUserLocationsByLogin: jest.fn().mockResolvedValue([{login: ft_login, host, begin_at, end_at }])
-	};
-	mockUserUpdateRole = jest.fn();
-	mockUser = {
-		data: {
-			guilds_member: {
-				push: jest.fn()
+let app;
+let response;
+
+describe('sending a wrong state', () => {
+
+	beforeAll(async () => {
+		logAction.mockClear();
+		console.error = jest.fn();
+		mockDiscordClient = {};
+		mockSupabase = {
+			fetchState: jest.fn().mockResolvedValue(null),
+		};
+		mockFtApi = {};
+		mockUser = {};
+		mockUsers = {};
+		app = initApp(mockSupabase, mockFtApi, mockDiscordClient, mockUsers);
+		response = await supertest(app).get(`/?state=${state}&code=${code}`);
+	});
+
+	test('should log an error message', () => {
+		expect(logAction).toHaveBeenCalledWith(console.error, 'This requests seems forged...');
+		expect(console.error).toHaveBeenCalledWith({ message: 'This requests seems forged...', code: '400' });
+	});
+
+	test('should send status code 400', () => {
+		expect(response.statusCode).toBe(400);
+	});
+
+	test('should contain an error message', () => {
+		expect(response.res.text).toEqual(expect.stringContaining('This requests seems forged...'));
+	});
+
+	test('should respond with an HTML file', () => {
+		expect(response.headers['content-type']).toEqual(expect.stringContaining('html'));
+	});
+
+});
+
+describe('when the ft_api.fetchMe request fails', () => {
+
+	beforeAll(async () => {
+		logAction.mockClear();
+		console.error = jest.fn();
+		mockDiscordClient = {};
+		mockSupabase = {
+			fetchState: jest.fn().mockResolvedValue(true),
+		};
+		mockFtApi = {
+			fetchMe: jest.fn().mockRejectedValue(),
+		};
+		mockUser = {};
+		mockUsers = {};
+		app = initApp(mockSupabase, mockFtApi, mockDiscordClient, mockUsers);
+		response = await supertest(app).get(`/?state=${state}&code=${code}`);
+	});
+
+	test('should log an error message', () => {
+		expect(logAction).toHaveBeenCalledWith(console.error, 'This requests seems forged...');
+		expect(console.error).toHaveBeenCalledWith({ message: 'This requests seems forged...', code: '400' });
+	});
+
+	test('should send status code 400', () => {
+		expect(response.statusCode).toBe(400);
+	});
+
+	test('should contain an error message', () => {
+		expect(response.res.text).toEqual(expect.stringContaining('This requests seems forged...'));
+	});
+
+	test('should respond with an HTML file', () => {
+		expect(response.headers['content-type']).toEqual(expect.stringContaining('html'));
+	});
+
+});
+
+describe('when the user is already registered', () => {
+
+	beforeAll(async () => {
+		logAction.mockClear();
+		console.error = jest.fn();
+		mockDiscordClient = {};
+		mockStateData = {
+			discord_id,
+			guild_id,
+		};
+		mockSupabase = {
+			fetchState: jest.fn().mockResolvedValue(mockStateData),
+			userExists: jest.fn().mockResolvedValue(true),
+		};
+		mockFtUser = {
+			login: ft_login,
+		};
+		mockFtApi = {
+			fetchMe: jest.fn().mockResolvedValue(mockFtUser),
+		};
+		mockUser = {};
+		mockUsers = {};
+		app = initApp(mockSupabase, mockFtApi, mockDiscordClient, mockUsers);
+		response = await supertest(app).get(`/?state=${state}&code=${code}`);
+	});
+
+	test('should log an error message', () => {
+		expect(logAction).toHaveBeenCalledWith(console.error, 'You are already registered');
+		expect(console.error).toHaveBeenCalledWith({ message: 'You are already registered', code: '200' });
+	});
+
+	test('should send status code 200', () => {
+		expect(response.statusCode).toBe(200);
+	});
+
+	test('should contain a message', () => {
+		expect(response.res.text).toEqual(expect.stringContaining('You are already registered'));
+	});
+
+	test('should respond with an HTML file', () => {
+		expect(response.headers['content-type']).toEqual(expect.stringContaining('html'));
+	});
+
+});
+
+describe('when the user insertion fails', () => {
+
+	beforeAll(async () => {
+		logAction.mockClear();
+		console.error = jest.fn();
+		mockDiscordClient = {
+			application: {
+				id: application_id,
 			},
-			updateRole: mockUserUpdateRole
-		}
-	};
-	mockUsers = {
-		find: jest.fn().mockReturnValue(mockUser)
-	};
+		};
+		mockStateData = {
+			discord_id,
+			guild_id,
+		};
+		mockSupabase = {
+			fetchState: jest.fn().mockResolvedValue(mockStateData),
+			insertUser: jest.fn().mockRejectedValue(),
+			userExists: jest.fn().mockResolvedValue(false),
+		};
+		mockFtUser = {
+			login: ft_login,
+		};
+		mockFtApi = {
+			fetchMe: jest.fn().mockResolvedValue(mockFtUser),
+		};
+		mockUser = {};
+		mockUsers = {};
+		app = initApp(mockSupabase, mockFtApi, mockDiscordClient, mockUsers);
+		response = await supertest(app).get(`/?state=${state}&code=${code}`);
+	});
+
+	test('should log an error message', () => {
+		expect(logAction).toHaveBeenCalledWith(console.error, 'An unknown error occured');
+		expect(console.error).toHaveBeenCalledTimes(1);
+	});
+
+	test('should send status code 500', () => {
+		expect(response.statusCode).toBe(500);
+	});
+
+	test('should contain an error message', () => {
+		expect(response.res.text).toEqual(expect.stringContaining('An unknown error occured'));
+	});
+
+	test('should respond with an HTML file', () => {
+		expect(response.headers['content-type']).toEqual(expect.stringContaining('html'));
+	});
+
 });
 
-test('should fetch the state from the database', async () => {
-	await supertest(app(mockSupabase, mockFtApi, mockDiscordClient, mockUsers)).get(`/?state=${state}&code=${code}`);
-	expect(mockSupabase.fetchState).toHaveBeenCalledWith(state);
+describe('when the user is not in the binary tree', () => {
+
+	beforeAll(async () => {
+		logAction.mockClear();
+		console.error = jest.fn();
+		mockDiscordClient = {
+			application: {
+				id: application_id,
+			},
+		};
+		mockStateData = {
+			discord_id,
+			guild_id,
+		};
+		mockSupabase = {
+			fetchState: jest.fn().mockResolvedValue(mockStateData),
+			insertUser: jest.fn().mockResolvedValue(),
+			userExists: jest.fn().mockResolvedValue(false),
+		};
+		mockFtUser = {
+			login: ft_login,
+		};
+		mockFtApi = {
+			fetchMe: jest.fn().mockResolvedValue(mockFtUser),
+		};
+		mockUser = {};
+		mockUsers = {
+			find: jest.fn().mockReturnValue(null),
+		};
+		app = initApp(mockSupabase, mockFtApi, mockDiscordClient, mockUsers);
+		response = await supertest(app).get(`/?state=${state}&code=${code}`);
+	});
+
+	test('should send status code 200', () => {
+		expect(response.statusCode).toBe(200);
+	});
+
+	test('should contain a message', () => {
+		expect(response.res.text).toEqual(expect.stringContaining('Succesful registration'));
+	});
+
+	test('should respond with an HTML file', () => {
+		expect(response.headers['content-type']).toEqual(expect.stringContaining('html'));
+	});
+
 });
 
-test('should not accept an invalid state', async () => {
-	mockSupabase.fetchState.mockClear();
-	mockSupabase.fetchState.mockResolvedValue(null);
-	const response = await supertest(app(mockSupabase, mockFtApi, mockDiscordClient, mockUsers)).get(`/?state=${state}&code=${code}`);
-	expect(response.statusCode).toBe(400);
+describe('when the member\'s fetch fails', () => {
+
+	beforeAll(async () => {
+		logAction.mockClear();
+		console.error = jest.fn();
+		mockCachedGuild = {
+			members: {
+				fetch: jest.fn().mockRejectedValue(),
+			},
+		};
+		mockDiscordClient = {
+			application: {
+				id: application_id,
+			},
+			guilds: {
+				cache: {
+					get: jest.fn().mockReturnValue(mockCachedGuild),
+				},
+			},
+		};
+		mockStateData = {
+			discord_id,
+			guild_id,
+		};
+		mockSupabase = {
+			fetchState: jest.fn().mockResolvedValue(mockStateData),
+			insertUser: jest.fn().mockResolvedValue(),
+			userExists: jest.fn().mockResolvedValue(false),
+		};
+		mockFtUser = {
+			login: ft_login,
+		};
+		mockFtApi = {
+			fetchMe: jest.fn().mockResolvedValue(mockFtUser),
+		};
+		mockUser = {
+			guilds_member: [],
+		};
+		mockUsers = {
+			find: jest.fn().mockReturnValue({ data: mockUser }),
+		};
+		app = initApp(mockSupabase, mockFtApi, mockDiscordClient, mockUsers);
+		response = await supertest(app).get(`/?state=${state}&code=${code}`);
+	});
+
+	test('should log an error message', () => {
+		expect(logAction).toHaveBeenCalledWith(console.error, 'An unknown error occured');
+		expect(console.error).toHaveBeenCalledTimes(1);
+	});
+
+	test('should send status code 500', () => {
+		expect(response.statusCode).toBe(500);
+	});
+
+	test('should contain an error message', () => {
+		expect(response.res.text).toEqual(expect.stringContaining('An unknown error occured'));
+	});
+
+	test('should respond with an HTML file', () => {
+		expect(response.headers['content-type']).toEqual(expect.stringContaining('html'));
+	});
+
 });
 
-test('should get the user from the 42 api', async () => {
-	await supertest(app(mockSupabase, mockFtApi, mockDiscordClient, mockUsers)).get(`/?state=${state}&code=${code}`);
-	expect(mockFtApi.fetchMe).toHaveBeenCalledWith(code);
+describe('when the role update fails', () => {
+
+	beforeAll(async () => {
+		logAction.mockClear();
+		console.error = jest.fn();
+		mockGuildMember = {
+			id: discord_id,
+		};
+		mockCachedGuild = {
+			members: {
+				fetch: jest.fn().mockResolvedValue(mockGuildMember),
+			},
+		};
+		mockDiscordClient = {
+			application: {
+				id: application_id,
+			},
+			guilds: {
+				cache: {
+					get: jest.fn().mockReturnValue(mockCachedGuild),
+				},
+			},
+		};
+		mockStateData = {
+			discord_id,
+			guild_id,
+		};
+		mockSupabase = {
+			fetchState: jest.fn().mockResolvedValue(mockStateData),
+			insertUser: jest.fn().mockResolvedValue(),
+			userExists: jest.fn().mockResolvedValue(false),
+		};
+		mockFtUser = {
+			login: ft_login,
+		};
+		mockFtApi = {
+			fetchMe: jest.fn().mockResolvedValue(mockFtUser),
+		};
+		mockUser = {
+			guilds_member: [],
+			updateRole: jest.fn().mockRejectedValue(),
+		};
+		mockUsers = {
+			find: jest.fn().mockReturnValue({ data: mockUser }),
+		};
+		app = initApp(mockSupabase, mockFtApi, mockDiscordClient, mockUsers);
+		response = await supertest(app).get(`/?state=${state}&code=${code}`);
+	});
+
+	test('should log an error message', () => {
+		expect(logAction).toHaveBeenCalledWith(console.error, 'An unknown error occured');
+		expect(console.error).toHaveBeenCalledTimes(1);
+	});
+
+	test('should send status code 500', () => {
+		expect(response.statusCode).toBe(500);
+	});
+
+	test('should contain an error message', () => {
+		expect(response.res.text).toEqual(expect.stringContaining('An unknown error occured'));
+	});
+
+	test('should respond with an HTML file', () => {
+		expect(response.headers['content-type']).toEqual(expect.stringContaining('html'));
+	});
+
 });
 
-test('should check that the user is not already registered', async () => {
-	mockSupabase.userExists.mockClear();
-	mockSupabase.userExists.mockResolvedValue(true);
-	await supertest(app(mockSupabase, mockFtApi, mockDiscordClient, mockUsers)).get(`/?state=${state}&code=${code}`);
-	expect(mockSupabase.userExists).toHaveBeenCalledTimes(1);
-});
+describe('sending a valid request', () => {
 
-test('should register the user in the database', async () => {
-	await supertest(app(mockSupabase, mockFtApi, mockDiscordClient, mockUsers)).get(`/?state=${state}&code=${code}`);
-	expect(mockSupabase.insertUser).toHaveBeenCalledWith(discord_id, ft_login, guild_id, application_id);
-});
+	beforeAll(async () => {
+		logAction.mockClear();
+		console.error = jest.fn();
+		mockGuildMember = {
+			id: discord_id,
+		};
+		mockCachedGuild = {
+			members: {
+				fetch: jest.fn().mockResolvedValue(mockGuildMember),
+			},
+		};
+		mockDiscordClient = {
+			application: {
+				id: application_id,
+			},
+			guilds: {
+				cache: {
+					get: jest.fn().mockReturnValue(mockCachedGuild),
+				},
+			},
+		};
+		mockStateData = {
+			discord_id,
+			guild_id,
+		};
+		mockSupabase = {
+			fetchState: jest.fn().mockResolvedValue(mockStateData),
+			insertUser: jest.fn().mockResolvedValue(),
+			userExists: jest.fn().mockResolvedValue(false),
+		};
+		mockFtUser = {
+			login: ft_login,
+		};
+		mockFtApi = {
+			fetchMe: jest.fn().mockResolvedValue(mockFtUser),
+		};
+		mockUser = {
+			guilds_member: [],
+			updateRole: jest.fn().mockRejectedValue(),
+		};
+		mockUsers = {
+			find: jest.fn().mockReturnValue({ data: mockUser }),
+		};
+		app = initApp(mockSupabase, mockFtApi, mockDiscordClient, mockUsers);
+		response = await supertest(app).get(`/?state=${state}&code=${code}`);
+	});
 
-test('should fetch an user from the tree', async () => {
-	await supertest(app(mockSupabase, mockFtApi, mockDiscordClient, mockUsers)).get(`/?state=${state}&code=${code}`);
-	expect(mockUsers.find).toHaveBeenCalledWith(ft_login);
-});
+	test('should fetch the state from the database', () => {
+		expect(mockSupabase.fetchState).toHaveBeenCalledWith(state);
+	});
 
-test('should update the user\'s role', async () => {
-	await supertest(app(mockSupabase, mockFtApi, mockDiscordClient, mockUsers)).get(`/?state=${state}&code=${code}`);
-	expect(mockUserUpdateRole).toHaveBeenCalledWith(mockSupabase, mockDiscordClient);
-});
+	test('should fetch the user using the code', () => {
+		expect(mockFtApi.fetchMe).toHaveBeenCalledWith(code);
+	});
 
-test('should respond with an HTML file', async () => {
-	const response = await supertest(app(mockSupabase, mockFtApi, mockDiscordClient, mockUsers)).get(`/?state=${state}&code=${code}`);
-	expect(response.headers['content-type']).toEqual(expect.stringContaining('html'));
+	test('should check that the user is not already registered', () => {
+		expect(mockSupabase.userExists).toHaveBeenCalledWith(discord_id, ft_login, guild_id);
+	});
+
+	test('should register the user in the database', () => {
+		expect(mockSupabase.insertUser).toHaveBeenCalledWith(discord_id, ft_login, guild_id, application_id);
+	});
+
+	test('should fetch an user from the tree', () => {
+		expect(mockUsers.find).toHaveBeenCalledWith(ft_login);
+	});
+
+	test('should update the user\'s role', () => {
+		expect(mockUser.updateRole).toHaveBeenCalledTimes(1);
+	});
+
+	test('should respond with an HTML file', () => {
+		expect(response.headers['content-type']).toEqual(expect.stringContaining('html'));
+	});
+
 });

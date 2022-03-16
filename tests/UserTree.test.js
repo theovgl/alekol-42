@@ -2,63 +2,102 @@ const { faker } = require('@faker-js/faker');
 const User = require('../src/User');
 const UserTree = require('../src/UserTree.js');
 
-const ft_login = 'norminet';
+jest.mock('../utils/supabase.js');
+const mockSupabase = require('../utils/supabase.js');
+jest.mock('../src/logs.js');
+const { logUserAction: mockLogUserAction } = require('../src/logs.js');
 
-let mockGuild;
-const client_id = faker.datatype.number();
-let mockDiscord;
+const ft_login = faker.internet.userName();
+const client_id = faker.datatype.number().toString();
+const discord_id = faker.datatype.number().toString();
+const guild_id = faker.datatype.number().toString();
+let mockUserData;
+let mockGetCachedGuild;
+let mockDiscordClient;
 let users;
-let mockSupabase;
-beforeEach(() => {
-	mockGuild = {
-		members: {
-			fetch: jest.fn().mockResolvedValue()
-		}
-	};
-	mockDiscord = {
-		application: {
-			id: client_id
-		},
-		guilds: {
-			cache: {
-				get: jest.fn().mockReturnValue(mockGuild)
-			}
-		}
-	};
-	users = new UserTree(mockDiscord);
-	mockSupabase = {
-		fetchUser: jest.fn().mockResolvedValue([{
-			discord_id: '123456789',
-			ft_login: ft_login,
-			guild_id: '987654321'
-		}])
-	};
-});
+let mockUser;
+let ret;
 
 describe('findWithDb', () => {
 
-	test('should try to find the user in the tree', async () => {
-		users.find = jest.fn().mockReturnValue({});
-		await users.findWithDb(ft_login, mockSupabase);
-		expect(users.find).toHaveBeenCalledTimes(1);
+	function initMocks() {
+		jest.resetAllMocks();
+		mockUserData = {
+			discord_id,
+			ft_login,
+			guild_id
+		};
+		mockSupabase.fetchUser.mockResolvedValue([mockUserData]);
+		mockFetchMember = jest.fn().mockResolvedValue();
+		mockGetCachedGuild = jest.fn().mockReturnValue({
+			members: {
+				fetch: mockFetchMember
+			}
+		});
+		mockDiscordClient = {
+			application: {
+				id: client_id
+			},
+			guilds: {
+				cache: {
+					get: mockGetCachedGuild
+				}
+			}
+		};
+		users = new UserTree(mockDiscordClient);
+		mockUser = faker.datatype.json();
+		users.find = jest.fn().mockReturnValue({ data: mockUser });
+		users.insert = jest.fn();
+	}
+
+	beforeAll(async () => {
+		initMocks();
+		await users.findWithDb(ft_login);
+	});
+
+	test('should try to find the user in the tree', () => {
 		expect(users.find).toHaveBeenCalledWith(ft_login);
 	});
 
-	test('should fetch the user from the database', async () => {
-		await users.findWithDb(ft_login, mockSupabase);
-		expect(mockSupabase.fetchUser).toHaveBeenCalledTimes(1);
-		expect(mockSupabase.fetchUser).toHaveBeenCalledWith({ ft_login, client_id });
+	describe('when the user is in the tree', () => {
+
+		beforeAll(async () => {
+			initMocks();
+			ret = await users.findWithDb(ft_login);
+		});
+
+		test('should return the user', () => {
+			expect(ret).toBe(mockUser);
+		});
+
 	});
 
-	test('should insert the new user in the tree', async () => {
-		await users.findWithDb(ft_login, mockSupabase);
-		expect(users.find(ft_login)).toBeTruthy();
-	});
+	describe('when the user is not in the tree', () => {
 
-	test('should return the new user', async () => {
-		const response = await users.findWithDb(ft_login, mockSupabase);
-		expect(response).toBeInstanceOf(User);
-		expect(response).toHaveProperty('ft_login', ft_login);
+		beforeAll(async () => {
+			initMocks();
+			users.find.mockReturnValue(null);
+			ret = await users.findWithDb(ft_login);
+		});
+
+		test('should fetch the user from the database', () => {
+			expect(mockSupabase.fetchUser).toHaveBeenCalledWith({ ft_login, client_id });
+		});
+
+		test('should insert the new user in the tree', () => {
+			expect(users.insert).toHaveBeenCalledWith(ft_login, expect.objectContaining({
+				ft_login,
+				guilds_member: expect.any(Array)
+			}));
+		});
+
+		test('should return the new user', () => {
+			expect(ret).toMatchObject({
+				ft_login,
+				guilds_member: expect.any(Array)
+			});
+		});
+
 	});
 
 });

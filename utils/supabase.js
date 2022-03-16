@@ -1,11 +1,12 @@
 const supabase = require('@supabase/supabase-js');
-const dotenv = require('dotenv');
 
-dotenv.config();
-
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
-const client = supabase.createClient(supabaseUrl, supabaseAnonKey);
+let client;
+if (process.env.NODE_ENV == 'production'
+	|| process.env.NODE_ENV == 'development') {
+	const supabaseUrl = process.env.SUPABASE_URL;
+	const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+	client = supabase.createClient(supabaseUrl, supabaseAnonKey);
+}
 
 async function fetchGuild(guild_id, client_id) {
 	const { data, error } = await client
@@ -34,11 +35,12 @@ async function setGuildRole(guild_id, client_id, role) {
 }
 
 async function deleteGuild(guild_id, client_id) {
-	const { error } = await client
+	const { data, error } = await client
 		.from('guilds')
 		.delete()
 		.match({ id: guild_id, client_id });
 	if (error) throw (error);
+	return (data);
 }
 
 async function fetchUser(user_ids) {
@@ -85,19 +87,21 @@ async function insertUser(discord_id, ft_login, guild_id, client_id) {
 }
 
 async function deleteUser(discord_id, guild_id, client_id) {
-	const { error } = await client
+	const { data, error } = await client
 		.from('users')
 		.delete()
 		.match({ discord_id, guild_id, client_id });
 	if (error) throw (error);
+	return (data);
 }
 
 async function deleteUsersOfGuild(guild_id, client_id) {
-	const { error } = await client
+	const { data, error } = await client
 		.from('users')
 		.delete()
 		.match({ guild_id, client_id });
 	if (error) throw (error);
+	return (data);
 }
 
 async function fetchState(state) {
@@ -120,11 +124,12 @@ async function insertState(state, guild_id, discord_id) {
 }
 
 async function deleteState(state) {
-	const { error } = await client
+	const { data, error } = await client
 		.from('state')
 		.delete()
 		.match({ state });
 	if (error) throw (error);
+	return (data);
 }
 
 module.exports = { fetchGuild, insertGuild, setGuildRole, deleteGuild, fetchUser, userExists, insertUser, deleteUser, deleteUsersOfGuild, fetchState, insertState };

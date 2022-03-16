@@ -15,14 +15,14 @@ module.exports = {
 
 		const guild_data = await supabase.fetchGuild(interaction.guildId, interaction.applicationId);
 		await supabase.setGuildRole(interaction.guildId, interaction.applicationId, role_name);
-		await interaction.guild.members.fetch();
 		const role_manager = interaction.guild.roles.cache.find(role => role.name == guild_data[0].role);
 		let new_role_manager = interaction.guild.roles.cache.find(role => role.name == role_name);
 		if (!new_role_manager) new_role_manager = await interaction.guild.roles.create({ name: role_name });
+		const requests = [];
 		role_manager.members.forEach((member) => {
-			member.roles.remove(role_manager);
-			member.roles.add(new_role_manager);
+			requests.push(member.roles.remove(role_manager).then(() => member.roles.add(new_role_manager)));
 		});
+		await Promise.all(requests);
 		await interaction.editReply('Done!');
 	},
 };

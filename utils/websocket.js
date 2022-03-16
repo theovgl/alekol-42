@@ -15,7 +15,7 @@ function initWebsocket(client, supabase, users) {
 		websocket_config);
 	ws.on('open', onOpen(ws));
 	ws.on('close', onClose(ws, client, supabase, users));
-	ws.on('message', onMessage(client, supabase, users));
+	ws.on('message', onMessage(supabase, users));
 	ws.on('error', onError);
 	return ws;
 }
@@ -36,7 +36,7 @@ function onClose(ws, client, supabase, users) {
 	});
 }
 
-function onMessage(client, supabase, users) {
+function onMessage(supabase, users) {
 	return (async (data) => {
 		// Parse the message
 		let message;
@@ -65,12 +65,12 @@ function onMessage(client, supabase, users) {
 		let user;
 		logUserAction(console.log, ft_login, `Just logged ${location.end_at == null ? 'in' : 'out'}`);
 		try {
-			user = await users.findWithDb(ft_login, supabase);
+			user = await users.findWithDb(ft_login);
 			// Update the user's role
 			if (user) {
 				user.host = location.end_at == null ? location.host : null;
 				user.begin_at = location.end_at == null ? location.begin_at : null;
-				await user.updateRole(supabase, client);
+				await user.updateRole();
 			}
 		} catch (error) {
 			logAction(console.error, 'An error occured while updating the role');

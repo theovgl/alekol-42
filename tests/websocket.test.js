@@ -1,6 +1,6 @@
 const { faker } = require('@faker-js/faker');
 const UserTree = require('../src/UserTree.js');
-const { onOpen, onClose, onMessage, onError } = require('../utils/websocket.js');
+const { onOpen, onMessage } = require('../utils/websocket.js');
 
 process.env.FT_CABLE_USER_ID = faker.datatype.number();
 
@@ -44,38 +44,31 @@ describe('onOpen', () => {
  * */
 describe('onMessage', () => {
 
-	let mockUser;
 	let mockUsers;
-	let mockDiscordClient;
 	let mockSupabase;
 	beforeEach(() => {
-		mockUser = {
-			ft_login: 'norminet',
-			updateRole: jest.fn()
-		};
 		mockUsers = {
-			findWithDb: jest.fn()
+			findWithDb: jest.fn(),
 		};
-		mockDiscordClient = jest.fn();
 		mockSupabase = {
-			fetchUser: jest.fn()
-		}
+			fetchUser: jest.fn(),
+		};
 	});
 	const validJSON = '{"identifier":"{\\"channel\\":\\"LocationChannel\\",\\"user_id\\":12345}","message":{"location":{"id":12345678,"user_id":12345,"begin_at":"1970-01-01 00:00:00 UTC","end_at":null,"primary":true,"host":"e1r2p3","campus_id":1,"login":"norminet"},"id":12345678}}';
 
 	test('should accept a valid JSON object', async () => {
-		const response = await onMessage(mockDiscordClient, mockSupabase, mockUsers)(validJSON);
+		const response = await onMessage(mockSupabase, mockUsers)(validJSON);
 		expect(response).toBeTruthy();
 	});
 
 	describe('should refuse an invalid JSON object', () => {
 
 		test('while parsing', async () => {
-			await expect(onMessage(mockDiscordClient, mockSupabase, mockUsers)('string')).resolves.not.toThrow();
+			await expect(onMessage(mockSupabase, mockUsers)('string')).resolves.not.toThrow();
 		});
 
 		test('when the identifier.channel is not \'LocationChannel\'', async () => {
-			const response = await onMessage(mockDiscordClient, mockSupabase, mockUsers)('{"identifier":"{\\"user_id\\":12345}","message":{"location":{"id":12345678,"user_id":12345,"begin_at":"1970-01-01 00:00:00 UTC","end_at":"null","primary":true,"host":"e1r2p3","campus_id":1,"login":"norminet"},"id":12345678}}');
+			const response = await onMessage(mockSupabase, mockUsers)('{"identifier":"{\\"user_id\\":12345}","message":{"location":{"id":12345678,"user_id":12345,"begin_at":"1970-01-01 00:00:00 UTC","end_at":"null","primary":true,"host":"e1r2p3","campus_id":1,"login":"norminet"},"id":12345678}}');
 			expect(response).toBeFalsy();
 		});
 
@@ -89,7 +82,7 @@ describe('onMessage', () => {
 		];
 		for (const message of messages) {
 			test(`when the ${message.missing_field} is missing`, async () => {
-				const response = await onMessage(mockDiscordClient, mockSupabase, mockUsers)(message.data);
+				const response = await onMessage(mockSupabase, mockUsers)(message.data);
 				expect(response).toBeFalsy();
 			});
 		}
@@ -97,20 +90,20 @@ describe('onMessage', () => {
 	});
 
 	test('should fetch an user in the binary tree', async () => {
-		users = new UserTree();
+		const users = new UserTree();
 		const mockUserUpdateRole = jest.fn();
 		users.findWithDb = jest.fn();
-		users.insert("norminet", { ft_login: "norminet", updateRole: mockUserUpdateRole });
-		await onMessage(mockDiscordClient, mockSupabase, users)(validJSON);
-		expect(users.findWithDb).toHaveBeenCalledWith("norminet", mockSupabase);
+		users.insert('norminet', { ft_login: 'norminet', updateRole: mockUserUpdateRole });
+		await onMessage(mockSupabase, users)(validJSON);
+		expect(users.findWithDb).toHaveBeenCalledWith('norminet');
 	});
 
 	test('should update the role', async () => {
-		users = new UserTree();
+		const users = new UserTree();
 		const mockUserUpdateRole = jest.fn();
-		users.insert("norminet", { ft_login: "norminet", updateRole: mockUserUpdateRole });
-		await onMessage(mockDiscordClient, mockSupabase, users)(validJSON);
-		expect(mockUserUpdateRole).toHaveBeenCalledWith(mockSupabase, mockDiscordClient);
+		users.insert('norminet', { ft_login: 'norminet', updateRole: mockUserUpdateRole });
+		await onMessage(mockSupabase, users)(validJSON);
+		expect(mockUserUpdateRole).toHaveBeenCalledTimes(1);
 	});
 
 	test.todo('should set host and begin_at to null if logging out');

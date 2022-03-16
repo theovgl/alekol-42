@@ -11,7 +11,7 @@ module.exports = {
 
 		// Generate an OAuth2 state and insert it in the database
 		const state = (Math.random() + 1).toString(36);
-		await supabase.insertState(state, interaction.guild.id, interaction.user.id);
+		await supabase.insertState(state, interaction.guild.id, interaction.member.id);
 		const embed = new MessageEmbed()
 			.setColor('#1abc9c')
 			.setTitle('Registration request')

@@ -16,7 +16,10 @@ module.exports = (supabase, ft_api, discord, users) => {
 			if (!state_data) throw { message: 'This requests seems forged...', code: '400' };
 
 			// Get the user associated to the authorization code
-			const user_data = await ft_api.fetchMe(code);
+			const user_data = await ft_api.fetchMe(code)
+				.catch(() => {
+					throw ({ message: 'This requests seems forged...', code: '400' });
+				});
 
 			// Check if the user is already registered
 			if (await supabase.userExists(state_data.discord_id, user_data.login, state_data.guild_id)) throw { message: 'You are already registered', code: '200' };
@@ -30,7 +33,7 @@ module.exports = (supabase, ft_api, discord, users) => {
 					.members.fetch(state_data.discord_id);
 				user.guilds_member.push(guild_member);
 				// Update the user's role according to its location
-				await user.updateRole(supabase, discord);
+				await user.updateRole();
 			}
 		} catch (error) {
 			logAction(console.error, error?.message || 'An unknown error occured');
