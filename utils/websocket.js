@@ -1,7 +1,5 @@
 const WebSocket = require('ws');
 const { logAction, logUserAction } = require('../src/logs.js');
-const discord = require('./discord.js');
-const supabase = require('./supabase.js');
 const users = require('../src/users.js');
 
 function initWebsocket() {
