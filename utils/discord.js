@@ -83,9 +83,9 @@ async function onReady(client) {
 		deployCommands(),
 		resetRoles(client),
 	]);
+	initWebsocket();
 	await Promise.all([
 		initUsersMap(),
-		initWebsocket(client, supabase, users),
 	]);
 }
 
