@@ -20,8 +20,10 @@ async function onGuildCreate(guild) {
 
 async function onGuildDelete(guild) {
 	try {
-		await supabase.deleteUsersOfGuild(guild.id, guild.applicationId);
-		await supabase.deleteGuild(guild.id, guild.applicationId);
+		await Promise.all([
+			supabase.deleteUsersOfGuild(guild.id, guild.applicationId),
+			supabase.deleteGuild(guild.id, guild.applicationId),
+		]);
 		logAction(console.log, `Left guild ${guild.name}`);
 	} catch (error) {
 		logAction(console.error, 'An error occured while leaving the guild');
