@@ -3,10 +3,16 @@ const { MessageEmbed } = require('discord.js');
 const dayjs = require('dayjs');
 const relativeTime = require('dayjs/plugin/relativeTime');
 const supabase = require('../utils/supabase.js');
+const ft_api = require('../utils/ft_api.js');
 const users = require('../src/users.js');
 
 dayjs().format();
 dayjs.extend(relativeTime);
+
+async function fetchLatestLocationTime(ft_login) {
+	const response = await ft_api.fetchUserLocationsByLogin(ft_login);
+	return response[0].end_at;
+}
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -27,15 +33,21 @@ module.exports = {
 			return;
 		}
 		// Get the user from the binary tree
-		const user = users.find(ft_login)?.data;
+		const user = await users.findWithDb(ft_login);
 		const embed = new MessageEmbed()
-			.setColor('#1abc9c')
 			.setTitle(ft_login)
 			.setDescription(`Is ${user?.host ? '' : 'not '}at school`)
 			.setURL(`https://profile.intra.42.fr/users/${ft_login}`)
 			.setTimestamp();
-		if (user?.host) embed.addField('Host', user.host, true);
-		if (user?.begin_at) embed.addField('Since', dayjs(user.begin_at).fromNow(), true);
+		if (user?.host && user?.begin_at) {
+			embed.setColor('#1abc9c');
+			embed.addField('Host', user.host, true);
+			embed.addField('Logged', dayjs(user.begin_at).fromNow(), true);
+		} else {
+			embed.setColor('#f85a3e');
+			if (!user.end_at) user.end_at = await fetchLatestLocationTime(ft_login);
+			embed.addField('Last seen', dayjs(user.end_at).fromNow(), true);
+		}
 		await interaction.editReply({ embeds: [embed] });
 	},
 };

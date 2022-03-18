@@ -7,6 +7,7 @@ module.exports = class User {
 		this.guilds_member = guilds_member;
 		this.host = null;
 		this.begin_at = null;
+		this.end_at = null;
 	}
 
 	get isLogged() {

@@ -67,6 +67,7 @@ async function onMessage(data) {
 		if (user) {
 			user.host = location.end_at == null ? location.host : null;
 			user.begin_at = location.end_at == null ? location.begin_at : null;
+			user.end_at = location.end_at;
 			await user.updateRole();
 		}
 	} catch (error) {

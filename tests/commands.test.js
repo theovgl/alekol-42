@@ -4,6 +4,8 @@ jest.mock('../utils/supabase.js');
 const mockSupabase = require('../utils/supabase.js');
 jest.mock('../src/users.js');
 const mockUsers = require('../src/users.js');
+jest.mock('../utils/ft_api.js');
+const mockFtApi = require('../utils/ft_api.js');
 
 const ft_login = faker.internet.userName();
 const guild_id = faker.datatype.number().toString();
@@ -14,8 +16,10 @@ const client_id = faker.datatype.number().toString();
 const redirect_uri = faker.internet.url();
 const role_name = faker.name.jobType();
 const mockNewRole = faker.datatype.number();
+const end_at = faker.date.recent();
 let mockInteraction;
 let mockUser;
+let mockUserLocation;
 let mockMemberData;
 let mockUserData;
 let mockRoleManager;
@@ -67,10 +71,10 @@ describe('check', () => {
 			mockMemberData = {
 			};
 			mockSupabase.fetchUser.mockResolvedValueOnce([mockMemberData]);
-			mockUsers.find.mockReturnValue({ data: {
+			mockUsers.findWithDb.mockReturnValue({
 				host,
 				begin_at,
-			} });
+			});
 			await check.execute(mockInteraction);
 		});
 
@@ -83,7 +87,7 @@ describe('check', () => {
 		});
 
 		test('should find the user in the binary tree', () => {
-			expect(mockUsers.find).toHaveBeenCalledWith(ft_login);
+			expect(mockUsers.findWithDb).toHaveBeenCalledWith(ft_login);
 		});
 
 		test('should reply with an embedded message', () => {
@@ -110,10 +114,10 @@ describe('check', () => {
 			mockMemberData = {
 			};
 			mockSupabase.fetchUser.mockResolvedValueOnce([mockMemberData]);
-			mockUsers.find.mockReturnValue({ data: {
+			mockUsers.findWithDb.mockReturnValue({
 				host,
 				begin_at,
-			} });
+			});
 			await check.execute(mockInteraction);
 		});
 
@@ -133,8 +137,8 @@ describe('check', () => {
 			expect(mockInteraction.editReply.mock.calls[0][0].embeds[0].fields).toContainEqual({ name: 'Host', value: host, inline: expect.any(Boolean) });
 		});
 
-		test('there should be a since field', () => {
-			expect(mockInteraction.editReply.mock.calls[0][0].embeds[0].fields).toContainEqual({ name: 'Since', value: expect.any(String), inline: expect.any(Boolean) });
+		test('there should be a logged field', () => {
+			expect(mockInteraction.editReply.mock.calls[0][0].embeds[0].fields).toContainEqual({ name: 'Logged', value: expect.any(String), inline: expect.any(Boolean) });
 		});
 
 	});
@@ -157,10 +161,11 @@ describe('check', () => {
 			mockMemberData = {
 			};
 			mockSupabase.fetchUser.mockResolvedValueOnce([mockMemberData]);
-			mockUsers.find.mockReturnValue({ data: {
+			mockUsers.findWithDb.mockReturnValue({
 				host: null,
 				begin_at: null,
-			} });
+				end_at,
+			});
 			await check.execute(mockInteraction);
 		});
 
@@ -174,6 +179,46 @@ describe('check', () => {
 
 		test('URL should point to the user\'s intra profile', () => {
 			expect(mockInteraction.editReply.mock.calls[0][0].embeds[0].url).toBe(`https://profile.intra.42.fr/users/${ft_login}`);
+		});
+
+		test('there should be a last seen field', () => {
+			expect(mockInteraction.editReply.mock.calls[0][0].embeds[0].fields).toContainEqual({ name: 'Last seen', value: expect.any(String), inline: expect.any(Boolean) });
+		});
+
+		describe('and the bot has never seen user logged in', () => {
+
+			beforeAll(async () => {
+				jest.resetAllMocks();
+				mockInteraction = {
+					guildId: guild_id,
+					options: {
+						getString: jest.fn().mockReturnValue(ft_login),
+					},
+					user: {
+						id: discord_id,
+					},
+					deferReply: jest.fn().mockResolvedValue(),
+					editReply: jest.fn().mockResolvedValue(),
+				};
+				mockMemberData = {
+				};
+				mockSupabase.fetchUser.mockResolvedValueOnce([mockMemberData]);
+				mockUsers.findWithDb.mockReturnValue({
+					host: null,
+					begin_at: null,
+					end_at: null,
+				});
+				mockUserLocation = {
+					end_at,
+				};
+				mockFtApi.fetchUserLocationsByLogin.mockResolvedValue([mockUserLocation]);
+				await check.execute(mockInteraction);
+			});
+
+			test('should fetch the user\'s locations', () => {
+				expect(mockFtApi.fetchUserLocationsByLogin).toHaveBeenCalledWith(ft_login);
+			});
+
 		});
 
 	});
