@@ -8,9 +8,13 @@ const supabase = require('./supabase.js');
 const users = require('../src/users.js');
 const { initWebsocket } = require('./websocket.js');
 
+const DEFAULT_ROLE = process.env.DEFAULT_ROLE || 'worker';
+
 async function onGuildCreate(guild) {
 	try {
-		await supabase.insertGuild(guild.id, guild.name, guild.applicationId);
+		await supabase.insertGuild(guild.id, guild.name, guild.client.application.id);
+		const new_role_manager = guild.roles.cache.find(role => role.name == DEFAULT_ROLE);
+		if (!new_role_manager) await guild.roles.create({ name: DEFAULT_ROLE });
 		logAction(console.log, `Joined guild ${guild.name}`);
 	} catch (error) {
 		logAction(console.error, 'An error occured while joining the guild');

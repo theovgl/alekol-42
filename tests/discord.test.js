@@ -36,6 +36,7 @@ const discord_id = faker.datatype.number().toString();
 const ft_login = faker.internet.userName();
 const command_name = faker.company.bsBuzz();
 const mockError = faker.hacker.phrase();
+const DEFAULT_ROLE = 'worker';
 let mockGuild;
 let mockMember;
 let mockUser;
@@ -52,9 +53,13 @@ describe('onGuildCreate', () => {
 		beforeAll(async () => {
 			jest.resetAllMocks();
 			mockGuild = {
+				client: {
+					application: {
+						id: client_id,
+					},
+				},
 				id: guild_id,
 				name: guild_name,
-				applicationId: client_id,
 			};
 			mockSupabase.insertGuild.mockRejectedValueOnce(mockError);
 			await onGuildCreate(mockGuild);
@@ -67,20 +72,89 @@ describe('onGuildCreate', () => {
 
 	});
 
-	describe('when the guild\'s insertion succeeds', () => {
+	describe('when the role does not already exist', () => {
 
 		beforeAll(async () => {
 			jest.resetAllMocks();
 			mockGuild = {
+				client: {
+					application: {
+						id: client_id,
+					},
+				},
 				id: guild_id,
 				name: guild_name,
-				applicationId: client_id,
+				roles: {
+					cache: {
+						find: jest.fn().mockReturnValue(null),
+					},
+					create: jest.fn().mockResolvedValue(),
+				},
+			};
+			await onGuildCreate(mockGuild);
+		});
+
+		test('should create the role', () => {
+			expect(mockGuild.roles.create).toHaveBeenCalledWith({ name: DEFAULT_ROLE });
+		});
+
+		describe('when the role creation fails', () => {
+
+			beforeAll(async () => {
+				jest.resetAllMocks();
+				mockGuild = {
+					client: {
+						application: {
+							id: client_id,
+						},
+					},
+					id: guild_id,
+					name: guild_name,
+					roles: {
+						cache: {
+							find: jest.fn().mockReturnValue(null),
+						},
+						create: jest.fn().mockRejectedValue(),
+					},
+				};
+				await onGuildCreate(mockGuild);
+			});
+
+			test('should log an error message', () => {
+				expect(logAction).toHaveBeenCalledWith(console.error, 'An error occured while joining the guild');
+			});
+
+		});
+
+	});
+
+	describe('when everything is ok', () => {
+
+		beforeAll(async () => {
+			jest.resetAllMocks();
+			mockGuild = {
+				client: {
+					application: {
+						id: client_id,
+					},
+				},
+				id: guild_id,
+				name: guild_name,
+				roles: {
+					cache: {
+						find: jest.fn().mockReturnValue({}),
+					},
+				},
 			};
 			await onGuildCreate(mockGuild);
 		});
 
 		test('should insert the guild into the database', () => {
 			expect(mockSupabase.insertGuild).toHaveBeenCalledWith(guild_id, guild_name, client_id);
+		});
+
+		test('should check if the guild exists', () => {
+			expect(mockGuild.roles.cache.find).toHaveBeenCalled();
 		});
 
 		test('should log a message', () => {
