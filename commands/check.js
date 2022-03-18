@@ -5,6 +5,7 @@ const relativeTime = require('dayjs/plugin/relativeTime');
 const supabase = require('../utils/supabase.js');
 const ft_api = require('../utils/ft_api.js');
 const users = require('../src/users.js');
+const { logAction } = require('../src/logs.js');
 
 dayjs().format();
 dayjs.extend(relativeTime);
@@ -45,7 +46,13 @@ module.exports = {
 			embed.addField('Logged', dayjs(user.begin_at).fromNow(), true);
 		} else {
 			embed.setColor('#f85a3e');
-			if (!user.end_at) user.end_at = await fetchLatestLocationTime(ft_login);
+			try {
+				if (!user.end_at) user.end_at = await fetchLatestLocationTime(ft_login);
+			} catch (error) {
+				logAction(console.error, `The user ${ft_login} does not exist.`);
+				await interaction.editReply(`🙅 The user ${ft_login} does not exist`);
+				return;
+			}
 			embed.addField('Last seen', dayjs(user.end_at).fromNow(), true);
 		}
 		await interaction.editReply({ embeds: [embed] });

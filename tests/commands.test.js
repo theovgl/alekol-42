@@ -6,6 +6,8 @@ jest.mock('../src/users.js');
 const mockUsers = require('../src/users.js');
 jest.mock('../utils/ft_api.js');
 const mockFtApi = require('../utils/ft_api.js');
+jest.mock('../src/logs.js');
+const { logAction: mockLogAction } = require('../src/logs.js');
 
 const ft_login = faker.internet.userName();
 const guild_id = faker.datatype.number().toString();
@@ -187,36 +189,77 @@ describe('check', () => {
 
 		describe('and the bot has never seen user logged in', () => {
 
-			beforeAll(async () => {
-				jest.resetAllMocks();
-				mockInteraction = {
-					guildId: guild_id,
-					options: {
-						getString: jest.fn().mockReturnValue(ft_login),
-					},
-					user: {
-						id: discord_id,
-					},
-					deferReply: jest.fn().mockResolvedValue(),
-					editReply: jest.fn().mockResolvedValue(),
-				};
-				mockMemberData = {
-				};
-				mockSupabase.fetchUser.mockResolvedValueOnce([mockMemberData]);
-				mockUsers.findWithDb.mockReturnValue({
-					host: null,
-					begin_at: null,
-					end_at: null,
+			describe('when the user does not exist', () => {
+
+				beforeAll(async () => {
+					jest.resetAllMocks();
+					mockInteraction = {
+						guildId: guild_id,
+						options: {
+							getString: jest.fn().mockReturnValue(ft_login),
+						},
+						user: {
+							id: discord_id,
+						},
+						deferReply: jest.fn().mockResolvedValue(),
+						editReply: jest.fn().mockResolvedValue(),
+					};
+					mockMemberData = {
+					};
+					mockSupabase.fetchUser.mockResolvedValueOnce([mockMemberData]);
+					mockUsers.findWithDb.mockReturnValue({
+						host: null,
+						begin_at: null,
+						end_at: null,
+					});
+					mockFtApi.fetchUserLocationsByLogin.mockRejectedValue();
+					await check.execute(mockInteraction);
 				});
-				mockUserLocation = {
-					end_at,
-				};
-				mockFtApi.fetchUserLocationsByLogin.mockResolvedValue([mockUserLocation]);
-				await check.execute(mockInteraction);
+
+				test('should log an error message', () => {
+					expect(mockLogAction).toHaveBeenCalledWith(console.error, `The user ${ft_login} does not exist.`);
+				});
+
+				test('should reply with an error message', () => {
+					expect(mockInteraction.editReply).toHaveBeenCalledWith(`🙅 The user ${ft_login} does not exist`);
+				});
+
 			});
 
-			test('should fetch the user\'s locations', () => {
-				expect(mockFtApi.fetchUserLocationsByLogin).toHaveBeenCalledWith(ft_login);
+			describe('when everything is ok', () => {
+
+				beforeAll(async () => {
+					jest.resetAllMocks();
+					mockInteraction = {
+						guildId: guild_id,
+						options: {
+							getString: jest.fn().mockReturnValue(ft_login),
+						},
+						user: {
+							id: discord_id,
+						},
+						deferReply: jest.fn().mockResolvedValue(),
+						editReply: jest.fn().mockResolvedValue(),
+					};
+					mockMemberData = {
+					};
+					mockSupabase.fetchUser.mockResolvedValueOnce([mockMemberData]);
+					mockUsers.findWithDb.mockReturnValue({
+						host: null,
+						begin_at: null,
+						end_at: null,
+					});
+					mockUserLocation = {
+						end_at,
+					};
+					mockFtApi.fetchUserLocationsByLogin.mockResolvedValue([mockUserLocation]);
+					await check.execute(mockInteraction);
+				});
+
+				test('should fetch the user\'s locations', () => {
+					expect(mockFtApi.fetchUserLocationsByLogin).toHaveBeenCalledWith(ft_login);
+				});
+
 			});
 
 		});

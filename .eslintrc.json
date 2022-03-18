@@ -47,5 +47,15 @@
 		"spaced-comment": "error",
 		"yoda": "error",
 		"semi": ["error", "always"]
-	}
+	},
+	"overrides": [
+    	{
+    		"files": [
+    			"**/*.test.js"
+    		],
+			"rules": {
+				"max-nested-callbacks": 0
+			}
+		}
+	]
 }
