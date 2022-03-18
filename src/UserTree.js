@@ -1,10 +1,9 @@
 const AVLTree = require('avl');
 const User = require('./User.js');
-const discord = require('../utils/discord.js');
 const supabase = require('../utils/supabase.js');
 const { logUserAction } = require('./logs.js');
 
-function fetchMemberInAllGuilds(user_in_guilds) {
+function fetchMemberInAllGuilds(discord, user_in_guilds) {
 	const requests = [];
 	for (const user of user_in_guilds) {
 		requests.push(discord.guilds.cache.get(user.guild_id)
@@ -14,16 +13,17 @@ function fetchMemberInAllGuilds(user_in_guilds) {
 }
 
 class UserTree extends AVLTree {
-	constructor() {
+	constructor(discord) {
 		super();
+		this.discord = discord ?? null;
 	}
 
 	async findWithDb(ft_login) {
 		let user = this.find(ft_login)?.data;
 		if (user) return user;
 		logUserAction(console.log, ft_login, 'Creating the user in the binary tree');
-		const user_in_guilds = await supabase.fetchUser({ ft_login, client_id: discord.application.id });
-		const guilds_member = await fetchMemberInAllGuilds(user_in_guilds);
+		const user_in_guilds = await supabase.fetchUser({ ft_login, client_id: this.discord.application.id });
+		const guilds_member = await fetchMemberInAllGuilds(this.discord, user_in_guilds);
 		user = new User(ft_login, guilds_member);
 		this.insert(ft_login, user);
 		return (user);

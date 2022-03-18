@@ -1,8 +1,6 @@
 const { faker } = require('@faker-js/faker');
 const UserTree = require('../src/UserTree.js');
 
-jest.mock('../utils/discord.js');
-const mockDiscord = require('../utils/discord.js');
 jest.mock('../utils/supabase.js');
 const mockSupabase = require('../utils/supabase.js');
 jest.mock('../src/logs.js');
@@ -14,6 +12,7 @@ const guild_id = faker.datatype.number().toString();
 let mockUserData;
 let mockFetchMember;
 let mockGetCachedGuild;
+let mockDiscordClient;
 let users;
 let mockUser;
 let ret;
@@ -34,15 +33,17 @@ describe('findWithDb', () => {
 				fetch: mockFetchMember,
 			},
 		});
-		mockDiscord.application = {
-			id: client_id,
-		};
-		mockDiscord.guilds = {
-			cache: {
-				get: mockGetCachedGuild,
+		mockDiscordClient = {
+			application: {
+				id: client_id,
+			},
+			guilds: {
+				cache: {
+					get: mockGetCachedGuild,
+				},
 			},
 		};
-		users = new UserTree();
+		users = new UserTree(mockDiscordClient);
 		mockUser = faker.datatype.json();
 		users.find = jest.fn().mockReturnValue({ data: mockUser });
 		users.insert = jest.fn();
