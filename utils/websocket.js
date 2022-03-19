@@ -44,10 +44,6 @@ async function onMessage(data) {
 		return false;
 	}
 
-	// To delete
-	const wait = require('util').promisify(setTimeout);
-	await wait(500);
-
 	// Parse the location (informations about the user's connection)
 	if (!message?.identifier
 		|| !message?.message
