@@ -24,9 +24,27 @@ function initWebsocket() {
 
 function onOpen() {
 	logAction(console.log, 'WebSocket connection established');
-	this.send(`{"command":"subscribe","identifier":"{\\"channel\\":\\"LocationChannel\\",\\"user_id\\":${process.env.FT_CABLE_USER_ID}}"}`);
-	this.send(`{"command":"subscribe","identifier":"{\\"channel\\":\\"NotificationChannel\\",\\"user_id\\":${process.env.FT_CABLE_USER_ID}}"}`);
-	this.send(`{"command":"subscribe","identifier":"{\\"channel\\":\\"FlashChannel\\",\\"user_id\\":${process.env.FT_CABLE_USER_ID}}"}`);
+	this.send(JSON.stringify({
+		command: "subscribe",
+		identifier: JSON.stringify({
+			channel: "LocationChannel",
+			user_id: parseInt(process.env.FT_CABLE_USER_ID),
+		}),
+	}));
+	this.send(JSON.stringify({
+		command: "subscribe",
+		identifier: JSON.stringify({
+			channel: "NotificationChannel",
+			user_id: parseInt(process.env.FT_CABLE_USER_ID),
+		}),
+	}));
+	this.send(JSON.stringify({
+		command: "subscribe",
+		identifier: JSON.stringify({
+			channel: "FlashChannel",
+			user_id: parseInt(process.env.FT_CABLE_USER_ID),
+		}),
+	}));
 }
 
 function onClose(code, reason) {
