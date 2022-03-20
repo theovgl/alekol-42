@@ -5,6 +5,7 @@ jest.mock('../src/users.js');
 const mockUsers = require('../src/users.js');
 jest.mock('../src/logs.js');
 const { logAction: mockLogAction } = require('../src/logs.js');
+global.console.error = jest.fn();
 
 const host = faker.internet.ip();
 const begin_at = faker.date.recent();
