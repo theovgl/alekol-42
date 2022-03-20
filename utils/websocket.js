@@ -25,23 +25,23 @@ function initWebsocket() {
 function onOpen() {
 	logAction(console.log, 'WebSocket connection established');
 	this.send(JSON.stringify({
-		command: "subscribe",
+		command: 'subscribe',
 		identifier: JSON.stringify({
-			channel: "LocationChannel",
+			channel: 'LocationChannel',
 			user_id: parseInt(process.env.FT_CABLE_USER_ID),
 		}),
 	}));
 	this.send(JSON.stringify({
-		command: "subscribe",
+		command: 'subscribe',
 		identifier: JSON.stringify({
-			channel: "NotificationChannel",
+			channel: 'NotificationChannel',
 			user_id: parseInt(process.env.FT_CABLE_USER_ID),
 		}),
 	}));
 	this.send(JSON.stringify({
-		command: "subscribe",
+		command: 'subscribe',
 		identifier: JSON.stringify({
-			channel: "FlashChannel",
+			channel: 'FlashChannel',
 			user_id: parseInt(process.env.FT_CABLE_USER_ID),
 		}),
 	}));
@@ -54,22 +54,24 @@ function onClose(code, reason) {
 
 async function onMessage(data) {
 	// Parse the message
-	let message;
 	try {
-		message = JSON.parse(data);
+		data = JSON.parse(data);
 	} catch (error) {
 		logAction(console.error, 'Could not parse the JSON message from websocket');
-		return false;
+		return;
 	}
 
 	// Parse the location (informations about the user's connection)
-	if (!message?.identifier
-		|| !message?.message
-		|| JSON.parse(message.identifier).channel != 'LocationChannel') {return false;}
-	const location = message.message.location;
+	if (!data?.identifier
+		|| !data?.message
+		|| JSON.parse(data.identifier).channel != 'LocationChannel') {
+		logAction(console.log, 'The message does not concern an update of an user\'s location');
+		return;
+	}
+	const location = data.message.location;
 	if (!location) {
 		logAction(console.error, 'The location object is missing in the message');
-		return false;
+		return;
 	}
 	// Get the user from the binary tree
 	const ft_login = location.login;
@@ -87,9 +89,8 @@ async function onMessage(data) {
 	} catch (error) {
 		logAction(console.error, 'An error occured while updating the role');
 		console.error(error);
-		return false;
+		return;
 	}
-	return true;
 }
 
 function onError(error) {
