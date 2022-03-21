@@ -17,7 +17,6 @@ const mockUsers = require('../src/users.js');
 jest.mock('../app.js');
 const mockInitApp = require('../app.js');
 jest.mock('../utils/ft_api.js');
-const mockFtApi = require('../utils/ft_api.js');
 jest.mock('../deploy-commands.js');
 const mockDeployCommands = require('../deploy-commands.js');
 jest.mock('../src/resetRoles.js');
@@ -538,7 +537,7 @@ describe('onReady', () => {
 	});
 
 	test('should init the HTTP app', () => {
-		expect(mockInitApp).toHaveBeenCalledWith(mockSupabase, mockFtApi, mockClient, mockUsers);
+		expect(mockInitApp).toHaveBeenCalledWith(mockClient);
 	});
 
 	test('should listen on port 3000 (default)', () => {

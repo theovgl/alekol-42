@@ -1,7 +1,10 @@
 const express = require('express');
+const supabase = require('./utils/supabase.js');
+const ft_api = require('./utils/ft_api.js');
+const users = require('./src/users.js');
 const { logAction } = require('./src/logs.js');
 
-module.exports = (supabase, ft_api, discord, users) => {
+module.exports = (discord) => {
 
 	const app = express();
 

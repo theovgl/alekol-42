@@ -3,7 +3,6 @@ const deployCommands = require('../deploy-commands.js');
 const initUsersMap = require('../src/initUsersMap.js');
 const { logAction } = require('../src/logs.js');
 const resetRoles = require('../src/resetRoles.js');
-const ft_api = require('./ft_api.js');
 const supabase = require('./supabase.js');
 const users = require('../src/users.js');
 const { initWebsocket } = require('./websocket.js');
@@ -80,7 +79,7 @@ async function onReady(client) {
 		client.guilds.fetch(),
 	]);
 	// Create the HTTP application
-	const app = initApp(supabase, ft_api, client, users);
+	const app = initApp(client);
 	const PORT = process.env.PORT || 3000;
 	app.listen(PORT, () => {
 		logAction(console.log, `HTTP server listening on port ${PORT}`);
