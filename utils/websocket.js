@@ -65,7 +65,7 @@ async function onMessage(data) {
 	if (!data?.identifier
 		|| !data?.message
 		|| JSON.parse(data.identifier).channel != 'LocationChannel') {
-		logAction(console.log, 'The message does not concern an update of an user\'s location');
+		if (data?.type !== 'ping') logAction(console.log, 'The message does not concern an update of an user\'s location');
 		return;
 	}
 	const location = data.message.location;
