@@ -30,9 +30,15 @@ describe('sending a wrong state', () => {
 		console.error = jest.fn();
 		mockDiscordClient = {};
 		mockSupabase = {
-			fetchState: jest.fn().mockResolvedValue(null),
+			fetchState: jest.fn().mockResolvedValue(mockStateData),
+			userExists: jest.fn().mockResolvedValue(true),
 		};
-		mockFtApi = {};
+		mockFtUser = {
+			login: ft_login,
+		};
+		mockFtApi = {
+			fetchMe: jest.fn().mockResolvedValue(mockFtUser),
+		};
 		mockUser = {};
 		mockUsers = {};
 		app = initApp(mockSupabase, mockFtApi, mockDiscordClient, mockUsers);
@@ -65,10 +71,14 @@ describe('when the ft_api.fetchMe request fails', () => {
 		console.error = jest.fn();
 		mockDiscordClient = {};
 		mockSupabase = {
-			fetchState: jest.fn().mockResolvedValue(true),
+			fetchState: jest.fn().mockResolvedValue(mockStateData),
+			userExists: jest.fn().mockResolvedValue(true),
+		};
+		mockFtUser = {
+			login: ft_login,
 		};
 		mockFtApi = {
-			fetchMe: jest.fn().mockRejectedValue(),
+			fetchMe: jest.fn().mockResolvedValue(mockFtUser),
 		};
 		mockUser = {};
 		mockUsers = {};

@@ -11,17 +11,14 @@ module.exports = (supabase, ft_api, discord, users) => {
 		const { code, state } = req.query;
 		let user;
 		try {
-			// Check the OAuth2 state
-			const state_data = await supabase.fetchState(state);
+			const [state_data, user_data] = await Promise.all([
+				supabase.fetchState(state),
+				ft_api.fetchMe(code)
+					.catch(() => {
+						throw ({ message: 'This requests seems forged...', code: '400' });
+					}),
+			]);
 			if (!state_data) throw { message: 'This requests seems forged...', code: '400' };
-
-			// Get the user associated to the authorization code
-			const user_data = await ft_api.fetchMe(code)
-				.catch(() => {
-					throw ({ message: 'This requests seems forged...', code: '400' });
-				});
-
-			// Check if the user is already registered
 			if (await supabase.userExists(state_data.discord_id, user_data.login, state_data.guild_id)) throw { message: 'You are already registered', code: '200' };
 
 			// Insert the user in the database
