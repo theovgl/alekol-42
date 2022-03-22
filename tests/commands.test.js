@@ -498,8 +498,27 @@ describe('role', () => {
 			},
 			deferReply: jest.fn().mockResolvedValue(),
 			editReply: jest.fn().mockResolvedValue(),
+			member: {
+				permissions: {
+					has: jest.fn().mockReturnValue(true),
+				},
+			},
 		};
 	}
+
+	describe('when the user does not have enough permissions', () => {
+
+		beforeAll(async () => {
+			initMocks();
+			mockInteraction.member.permissions.has.mockReturnValue(false);
+			await role.execute(mockInteraction);
+		});
+
+		test('should reply with a message', () => {
+			expect(mockInteraction.editReply).toHaveBeenCalledWith('🛑 You need \'Manage Server\' permissions to change the role');
+		});
+
+	});
 
 	describe('when the role does not exist', () => {
 
