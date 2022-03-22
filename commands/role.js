@@ -23,11 +23,13 @@ module.exports = {
 		const role_manager = interaction.guild.roles.cache.find(role => role.name == guild_data[0].role);
 		let new_role_manager = interaction.guild.roles.cache.find(role => role.name == role_name);
 		if (!new_role_manager) new_role_manager = await interaction.guild.roles.create({ name: role_name });
-		const requests = [];
-		role_manager.members.forEach((member) => {
-			requests.push(member.roles.remove(role_manager).then(() => member.roles.add(new_role_manager)));
-		});
-		await Promise.all(requests);
+		if (role_manager) {
+			const requests = [];
+			role_manager.members.forEach((member) => {
+				requests.push(member.roles.remove(role_manager).then(() => member.roles.add(new_role_manager)));
+			});
+			await Promise.all(requests);
+		}
 		await interaction.editReply('Done!');
 	},
 };

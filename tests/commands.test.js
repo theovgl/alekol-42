@@ -536,6 +536,22 @@ describe('role', () => {
 
 	});
 
+	describe('when the old role does not exist', () => {
+
+		beforeAll(async () => {
+			initMocks();
+			mockInteraction.guild.roles.cache.find.mockReset();
+			mockInteraction.guild.roles.cache.find.mockReturnValue(mockNewRole)
+				.mockReturnValueOnce(undefined);
+			await role.execute(mockInteraction);
+		});
+
+		test('should reply with a message', () => {
+			expect(mockInteraction.editReply).toHaveBeenCalledWith('Done!');
+		});
+
+	});
+
 	describe('when everything is ok', () => {
 
 		beforeAll(async () => {
