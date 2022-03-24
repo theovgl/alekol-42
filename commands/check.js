@@ -12,7 +12,7 @@ dayjs.extend(relativeTime);
 
 async function fetchLatestLocationTime(ft_login) {
 	const response = await ft_api.fetchUserLocationsByLogin(ft_login);
-	return response[0].end_at;
+	return response[0]?.end_at;
 }
 
 module.exports = {
@@ -48,8 +48,10 @@ module.exports = {
 			embed.setColor('#f85a3e');
 			try {
 				if (!user.end_at) user.end_at = await fetchLatestLocationTime(ft_login);
+				if (!user.end_at) return interaction.editReply(`💤 The user ${ft_login} has never logged in`);
 			} catch (error) {
 				logAction(console.error, `The user ${ft_login} does not exist.`);
+				console.error(error);
 				await interaction.editReply(`🙅 The user ${ft_login} does not exist`);
 				return;
 			}

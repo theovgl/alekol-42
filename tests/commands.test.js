@@ -8,6 +8,7 @@ jest.mock('../utils/ft_api.js');
 const mockFtApi = require('../utils/ft_api.js');
 jest.mock('../src/logs.js');
 const { logAction: mockLogAction } = require('../src/logs.js');
+global.console.error = jest.fn();
 
 const ft_login = faker.internet.userName();
 const guild_id = faker.datatype.number().toString();
@@ -222,6 +223,39 @@ describe('check', () => {
 
 				test('should reply with an error message', () => {
 					expect(mockInteraction.editReply).toHaveBeenCalledWith(`🙅 The user ${ft_login} does not exist`);
+				});
+
+			});
+
+			describe('when the user has never logged in', () => {
+
+				beforeAll(async () => {
+					jest.resetAllMocks();
+					mockInteraction = {
+						guildId: guild_id,
+						options: {
+							getString: jest.fn().mockReturnValue(ft_login),
+						},
+						user: {
+							id: discord_id,
+						},
+						deferReply: jest.fn().mockResolvedValue(),
+						editReply: jest.fn().mockResolvedValue(),
+					};
+					mockMemberData = {
+					};
+					mockSupabase.fetchUser.mockResolvedValueOnce([mockMemberData]);
+					mockUsers.findWithDb.mockReturnValue({
+						host: null,
+						begin_at: null,
+						end_at: null,
+					});
+					mockFtApi.fetchUserLocationsByLogin.mockResolvedValue([]);
+					await check.execute(mockInteraction);
+				});
+
+				test('should reply with an error message', () => {
+					expect(mockInteraction.editReply).toHaveBeenCalledWith(`💤 The user ${ft_login} has never logged in`);
 				});
 
 			});
