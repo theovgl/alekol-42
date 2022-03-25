@@ -15,17 +15,31 @@ const apiConfig = {
 const clientCC = new ClientCredentials(apiConfig);
 const clientAC = new AuthorizationCode(apiConfig);
 
-function getUsersMap() {
-	return axios({
-		method: 'get',
-		url: 'https://meta.intra.42.fr/clusters.json',
-		headers: {
-			'Cookie': `_intra_42_session_production=${process.env.FT_SESSION};`,
-		},
-	})
-		.then((response) => {
-			return (response.data);
-		});
+async function getUsersMap() {
+	const { token } = await clientCC.getToken({
+		scope: 'public',
+	});
+	const access_token = clientCC.createToken(token);
+	let url = 'https://api.intra.42.fr/v2/locations?filter%5Bactive%5D=true&per_page=100';
+	let users_map = [];
+	do {
+		const response = await axios({
+			method: 'get',
+			url,
+			headers: {
+				'Authorization': `Bearer ${access_token.token.access_token}`,
+			},
+		})
+			.catch(() => {
+				if (response.status == 429) return new Promise(resolve => setTimeout(resolve, 500, null));
+			});
+		if (response == null) continue ;
+		users_map = users_map.concat(response.data);
+		url = /<([^>]+)>; rel="next"/.exec(response.headers['link']);
+		if (!url) break ;
+		url = url[1];
+	} while (url);
+	return users_map;
 }
 
 async function fetchUserLocationsByLogin(login) {

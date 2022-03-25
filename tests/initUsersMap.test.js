@@ -14,7 +14,9 @@ for (let i = 0; i < 5; i++) {
 	users_map.push({
 		begin_at: faker.date.recent(),
 		host: faker.internet.ip(),
-		login: faker.internet.userName(),
+		user: {
+			login: faker.internet.userName(),
+		},
 	});
 }
 let mockUser;
@@ -34,13 +36,13 @@ test('should fetch the current users map', () => {
 
 test('should log a message for each user', () => {
 	for (const user of users_map) {
-		expect(mockLogUserAction).toHaveBeenCalledWith(console.log, user.login, 'Is at school');
+		expect(mockLogUserAction).toHaveBeenCalledWith(console.log, user.user.login, 'Is at school');
 	}
 });
 
 test('should find the user in the binary tree', () => {
 	for (const user of users_map) {
-		expect(mockUsers.findWithDb).toHaveBeenCalledWith(user.login);
+		expect(mockUsers.findWithDb).toHaveBeenCalledWith(user.user.login);
 	}
 });
 

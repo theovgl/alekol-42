@@ -6,8 +6,8 @@ async function initUsersMap() {
 	const users_map = await ft_api.getUsersMap();
 	const requests = [];
 	for (const location of users_map) {
-		logUserAction(console.log, location.login, 'Is at school');
-		requests.push(users.findWithDb(location.login)
+		logUserAction(console.log, location.user.login, 'Is at school');
+		requests.push(users.findWithDb(location.user.login)
 			.then(async (user) => {
 				user.host = location.host;
 				user.begin_at = location.begin_at;
