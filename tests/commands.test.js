@@ -31,21 +31,33 @@ let mockMember;
 const check = require('../commands/check.js');
 describe('check', () => {
 
+	function initMocks() {
+		jest.resetAllMocks();
+		mockInteraction = {
+			guildId: guild_id,
+			options: {
+				getString: jest.fn().mockReturnValue(ft_login),
+			},
+			user: {
+				id: discord_id,
+			},
+			deferReply: jest.fn().mockResolvedValue(),
+			editReply: jest.fn().mockResolvedValue(),
+		};
+		mockMemberData = {
+		};
+		mockSupabase.fetchUser.mockResolvedValue([mockMemberData]);
+		mockUsers.findWithDb.mockReturnValue({
+			host,
+			begin_at,
+			end_at,
+		});
+	}
+
 	describe('when the member is not registered', () => {
 
 		beforeAll(async () => {
-			jest.resetAllMocks();
-			mockInteraction = {
-				guildId: guild_id,
-				options: {
-					getString: jest.fn().mockReturnValue(ft_login),
-				},
-				user: {
-					id: discord_id,
-				},
-				deferReply: jest.fn().mockResolvedValue(),
-				editReply: jest.fn().mockResolvedValue(),
-			};
+			initMocks();
 			mockSupabase.fetchUser.mockResolvedValueOnce([]);
 			await check.execute(mockInteraction);
 		});
@@ -59,25 +71,7 @@ describe('check', () => {
 	describe('when everything is ok', () => {
 
 		beforeAll(async () => {
-			jest.resetAllMocks();
-			mockInteraction = {
-				guildId: guild_id,
-				options: {
-					getString: jest.fn().mockReturnValue(ft_login),
-				},
-				user: {
-					id: discord_id,
-				},
-				deferReply: jest.fn().mockResolvedValue(),
-				editReply: jest.fn().mockResolvedValue(),
-			};
-			mockMemberData = {
-			};
-			mockSupabase.fetchUser.mockResolvedValueOnce([mockMemberData]);
-			mockUsers.findWithDb.mockReturnValue({
-				host,
-				begin_at,
-			});
+			initMocks();
 			await check.execute(mockInteraction);
 		});
 
@@ -102,25 +96,7 @@ describe('check', () => {
 	describe('when at school', () => {
 
 		beforeAll(async () => {
-			jest.resetAllMocks();
-			mockInteraction = {
-				guildId: guild_id,
-				options: {
-					getString: jest.fn().mockReturnValue(ft_login),
-				},
-				user: {
-					id: discord_id,
-				},
-				deferReply: jest.fn().mockResolvedValue(),
-				editReply: jest.fn().mockResolvedValue(),
-			};
-			mockMemberData = {
-			};
-			mockSupabase.fetchUser.mockResolvedValueOnce([mockMemberData]);
-			mockUsers.findWithDb.mockReturnValue({
-				host,
-				begin_at,
-			});
+			initMocks();
 			await check.execute(mockInteraction);
 		});
 
@@ -149,22 +125,8 @@ describe('check', () => {
 	describe('when not at school', () => {
 
 		beforeAll(async () => {
-			jest.resetAllMocks();
-			mockInteraction = {
-				guildId: guild_id,
-				options: {
-					getString: jest.fn().mockReturnValue(ft_login),
-				},
-				user: {
-					id: discord_id,
-				},
-				deferReply: jest.fn().mockResolvedValue(),
-				editReply: jest.fn().mockResolvedValue(),
-			};
-			mockMemberData = {
-			};
-			mockSupabase.fetchUser.mockResolvedValueOnce([mockMemberData]);
-			mockUsers.findWithDb.mockReturnValue({
+			initMocks();
+			mockUsers.findWithDb.mockReturnValueOnce({
 				host: null,
 				begin_at: null,
 				end_at,
@@ -190,30 +152,16 @@ describe('check', () => {
 
 		describe('and the bot has never seen user logged in', () => {
 
-			describe('when the user does not exist', () => {
+			describe('and the user does not exist', () => {
 
 				beforeAll(async () => {
-					jest.resetAllMocks();
-					mockInteraction = {
-						guildId: guild_id,
-						options: {
-							getString: jest.fn().mockReturnValue(ft_login),
-						},
-						user: {
-							id: discord_id,
-						},
-						deferReply: jest.fn().mockResolvedValue(),
-						editReply: jest.fn().mockResolvedValue(),
-					};
-					mockMemberData = {
-					};
-					mockSupabase.fetchUser.mockResolvedValueOnce([mockMemberData]);
-					mockUsers.findWithDb.mockReturnValue({
+					initMocks();
+					mockUsers.findWithDb.mockReturnValueOnce({
 						host: null,
 						begin_at: null,
 						end_at: null,
 					});
-					mockFtApi.fetchUserLocationsByLogin.mockRejectedValue();
+					mockFtApi.fetchUserLocationsByLogin.mockRejectedValueOnce();
 					await check.execute(mockInteraction);
 				});
 
@@ -227,30 +175,16 @@ describe('check', () => {
 
 			});
 
-			describe('when the user has never logged in', () => {
+			describe('and the user has never logged in', () => {
 
 				beforeAll(async () => {
-					jest.resetAllMocks();
-					mockInteraction = {
-						guildId: guild_id,
-						options: {
-							getString: jest.fn().mockReturnValue(ft_login),
-						},
-						user: {
-							id: discord_id,
-						},
-						deferReply: jest.fn().mockResolvedValue(),
-						editReply: jest.fn().mockResolvedValue(),
-					};
-					mockMemberData = {
-					};
-					mockSupabase.fetchUser.mockResolvedValueOnce([mockMemberData]);
-					mockUsers.findWithDb.mockReturnValue({
+					initMocks();
+					mockUsers.findWithDb.mockReturnValueOnce({
 						host: null,
 						begin_at: null,
 						end_at: null,
 					});
-					mockFtApi.fetchUserLocationsByLogin.mockResolvedValue([]);
+					mockFtApi.fetchUserLocationsByLogin.mockResolvedValueOnce([]);
 					await check.execute(mockInteraction);
 				});
 
@@ -260,33 +194,16 @@ describe('check', () => {
 
 			});
 
-			describe('when everything is ok', () => {
+			describe('and everything is ok', () => {
 
 				beforeAll(async () => {
-					jest.resetAllMocks();
-					mockInteraction = {
-						guildId: guild_id,
-						options: {
-							getString: jest.fn().mockReturnValue(ft_login),
-						},
-						user: {
-							id: discord_id,
-						},
-						deferReply: jest.fn().mockResolvedValue(),
-						editReply: jest.fn().mockResolvedValue(),
-					};
-					mockMemberData = {
-					};
-					mockSupabase.fetchUser.mockResolvedValueOnce([mockMemberData]);
-					mockUsers.findWithDb.mockReturnValue({
+					initMocks();
+					mockUsers.findWithDb.mockReturnValueOnce({
 						host: null,
 						begin_at: null,
 						end_at: null,
 					});
-					mockUserLocation = {
-						end_at,
-					};
-					mockFtApi.fetchUserLocationsByLogin.mockResolvedValue([mockUserLocation]);
+					mockFtApi.fetchUserLocationsByLogin.mockResolvedValueOnce([mockUserLocation]);
 					await check.execute(mockInteraction);
 				});
 
@@ -305,17 +222,48 @@ describe('check', () => {
 const forget = require('../commands/forget.js');
 describe('forget', () => {
 
+	function initMocks() {
+		jest.resetAllMocks();
+		mockUser = {
+			guilds_member: [
+				{ guild: { id: guild_id } },
+				{ guild: { id: guild_id + '1' } },
+			],
+		};
+		mockUsers.find.mockReturnValueOnce({ data: mockUser });
+		mockUserData = {
+			ft_login,
+		};
+		mockSupabase.deleteUser.mockResolvedValueOnce([mockUserData]);
+		mockInteraction = {
+			applicationId: client_id,
+			guild: {
+				id: guild_id,
+				roles: {
+					cache: {
+						find: jest.fn().mockReturnValue({}),
+					},
+				},
+			},
+			member: {
+				id: discord_id,
+				roles: {
+					remove: jest.fn().mockResolvedValue(),
+				},
+			},
+			options: {
+				getBoolean: jest.fn().mockReturnValue(true),
+			},
+			deferReply: jest.fn().mockResolvedValue(),
+			editReply: jest.fn().mockResolvedValue(),
+		};
+	}
+
 	describe('when the user do not want to unregister', () => {
 
 		beforeAll(async () => {
-			jest.resetAllMocks();
-			mockInteraction = {
-				options: {
-					getBoolean: jest.fn().mockReturnValue(false),
-				},
-				deferReply: jest.fn().mockResolvedValue(),
-				editReply: jest.fn().mockResolvedValue(),
-			};
+			initMocks();
+			mockInteraction.options.getBoolean.mockReturnValue(false);
 			await forget.execute(mockInteraction);
 		});
 
@@ -328,38 +276,11 @@ describe('forget', () => {
 	describe('when the user is not in the binary tree', () => {
 
 		beforeAll(async () => {
-			jest.resetAllMocks();
+			initMocks();
 			mockUser = {
 				guilds_member: {
 					filter: jest.fn(),
 				},
-			};
-			mockUsers.find.mockReturnValueOnce(null);
-			mockUserData = {
-				ft_login,
-			};
-			mockSupabase.deleteUser.mockResolvedValueOnce([mockUserData]);
-			mockInteraction = {
-				applicationId: client_id,
-				guild: {
-					id: guild_id,
-					roles: {
-						cache: {
-							find: jest.fn().mockReturnValue({}),
-						},
-					},
-				},
-				member: {
-					id: discord_id,
-					roles: {
-						remove: jest.fn().mockResolvedValue(),
-					},
-				},
-				options: {
-					getBoolean: jest.fn().mockReturnValue(true),
-				},
-				deferReply: jest.fn().mockResolvedValue(),
-				editReply: jest.fn().mockResolvedValue(),
 			};
 			await forget.execute(mockInteraction);
 		});
@@ -373,40 +294,7 @@ describe('forget', () => {
 	describe('when everything is ok', () => {
 
 		beforeAll(async () => {
-			jest.resetAllMocks();
-			mockUser = {
-				guilds_member: [
-					{ guild: { id: guild_id } },
-					{ guild: { id: guild_id + '1' } },
-				],
-			};
-			mockUsers.find.mockReturnValueOnce({ data: mockUser });
-			mockUserData = {
-				ft_login,
-			};
-			mockSupabase.deleteUser.mockResolvedValueOnce([mockUserData]);
-			mockInteraction = {
-				applicationId: client_id,
-				guild: {
-					id: guild_id,
-					roles: {
-						cache: {
-							find: jest.fn().mockReturnValue({}),
-						},
-					},
-				},
-				member: {
-					id: discord_id,
-					roles: {
-						remove: jest.fn().mockResolvedValue(),
-					},
-				},
-				options: {
-					getBoolean: jest.fn().mockReturnValue(true),
-				},
-				deferReply: jest.fn().mockResolvedValue(),
-				editReply: jest.fn().mockResolvedValue(),
-			};
+			initMocks();
 			await forget.execute(mockInteraction);
 		});
 
@@ -442,6 +330,7 @@ const ping = require('../commands/ping.js');
 describe('ping', () => {
 
 	beforeAll(async () => {
+		jest.resetAllMocks();
 		mockInteraction = {
 			reply: jest.fn(),
 		};
