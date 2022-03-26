@@ -22,7 +22,7 @@ for (let i = 0; i < 5; i++) {
 let mockUser;
 
 beforeAll(async () => {
-	mockFtApi.getUsersMap.mockResolvedValue(users_map);
+	mockFtApi.getUsersLocation.mockResolvedValue(users_map);
 	mockUser = {
 		updateRole: jest.fn().mockResolvedValue(),
 	};
@@ -31,7 +31,7 @@ beforeAll(async () => {
 });
 
 test('should fetch the current users map', () => {
-	expect(mockFtApi.getUsersMap).toHaveBeenCalledTimes(1);
+	expect(mockFtApi.getUsersLocation).toHaveBeenCalledTimes(1);
 });
 
 test('should log a message for each user', () => {

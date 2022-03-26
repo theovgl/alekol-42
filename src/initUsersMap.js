@@ -3,7 +3,7 @@ const users = require('./users.js');
 const { logUserAction } = require('./logs.js');
 
 async function initUsersMap() {
-	const users_map = await ft_api.getUsersMap();
+	const users_map = await ft_api.getUsersLocation();
 	const requests = [];
 	for (const location of users_map) {
 		logUserAction(console.log, location.user.login, 'Is at school');

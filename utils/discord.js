@@ -10,6 +10,7 @@ const ws_healthcheck = require('../src/ws_healthcheck.js');
 const ft_api = require('./ft_api.js');
 
 const DEFAULT_ROLE = process.env.DEFAULT_ROLE || 'worker';
+let disconnected = false;
 
 async function onGuildCreate(guild) {
 	try {
@@ -92,14 +93,22 @@ async function onReady(client) {
 	]);
 	initWebsocket();
 	setInterval(async () => {
-		const latest_location = await ft_api.getLatestLocation();
-		if (latest_location.id > ws_healthcheck.latest_ws_id) {
-			logAction(console.log, 'Websocket seems broken, going to sleep...');
-			client.user.setStatus('idle');
-			initWebsocket();
-		} else {
-			logAction(console.log, 'Websocket reconnected!');
-			client.user.setStatus('online');
+		try {
+			const latest_location = await ft_api.getLatestLocation();
+			if (latest_location.id > ws_healthcheck.latest_ws_id + 3) {
+				disconnected = true;
+				console.log('ws', ws_healthcheck.latest_ws_id);
+				console.log('api', latest_location.id);
+				logAction(console.log, 'Websocket seems broken, going to sleep...');
+				client.user.setStatus('idle');
+				initWebsocket();
+			} else if (disconnected) {
+				disconnected = false;
+				logAction(console.log, 'Websocket reconnected!');
+				client.user.setStatus('online');
+			}
+		} catch (error) {
+			console.error(error);
 		}
 	}, 60 * 1000);
 	await Promise.all([

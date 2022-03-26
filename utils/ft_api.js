@@ -32,7 +32,13 @@ async function getLatestLocation() {
 		});
 }
 
-async function getUsersMap() {
+function getNextUrl(link_header) {
+	const url = /<([^>]+)>; rel="next"/.exec(link_header);
+	if (!url) return null;
+	return url[1];
+}
+
+async function getUsersLocation() {
 	const { token } = await clientCC.getToken({
 		scope: 'public',
 	});
@@ -47,14 +53,12 @@ async function getUsersMap() {
 				'Authorization': `Bearer ${access_token.token.access_token}`,
 			},
 		})
-			.catch(() => {
-				if (response.status == 429) return new Promise(resolve => setTimeout(resolve, 500, null));
+			.catch((error) => {
+				if (error.status == 429) return new Promise(resolve => setTimeout(resolve, 500, error));
 			});
-		if (response == null) continue ;
+		if (response.status == 429) continue ;
 		users_map = users_map.concat(response.data);
-		url = /<([^>]+)>; rel="next"/.exec(response.headers['link']);
-		if (!url) break ;
-		url = url[1];
+		url = getNextUrl(response.headers['link']);
 	} while (url);
 	return users_map;
 }
@@ -94,4 +98,4 @@ async function fetchMe(authorization_code) {
 		});
 }
 
-module.exports = { getLatestLocation, getUsersMap, fetchUserLocationsByLogin, fetchMe };
+module.exports = { getLatestLocation, getUsersLocation, fetchUserLocationsByLogin, fetchMe };
