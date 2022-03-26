@@ -6,6 +6,8 @@ const resetRoles = require('../src/resetRoles.js');
 const supabase = require('./supabase.js');
 const users = require('../src/users.js');
 const { initWebsocket } = require('./websocket.js');
+const ws_healthcheck = require('../src/ws_healthcheck.js');
+const ft_api = require('./ft_api.js');
 
 const DEFAULT_ROLE = process.env.DEFAULT_ROLE || 'worker';
 
@@ -89,6 +91,17 @@ async function onReady(client) {
 		resetRoles(client),
 	]);
 	initWebsocket();
+	setInterval(async () => {
+		const latest_location = await ft_api.getLatestLocation();
+		if (latest_location.id > ws_healthcheck.latest_ws_id) {
+			logAction(console.log, 'Websocket seems broken, going to sleep...');
+			client.user.setStatus('idle');
+			initWebsocket();
+		} else {
+			logAction(console.log, 'Websocket reconnected!');
+			client.user.setStatus('online');
+		}
+	}, 60 * 1000);
 	await Promise.all([
 		initUsersMap(),
 	]);

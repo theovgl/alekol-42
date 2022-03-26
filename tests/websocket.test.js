@@ -5,12 +5,15 @@ jest.mock('../src/users.js');
 const mockUsers = require('../src/users.js');
 jest.mock('../src/logs.js');
 const { logAction: mockLogAction } = require('../src/logs.js');
+jest.mock('../src/ws_healthcheck.js');
+const mockWsHealthcheck = require('../src/ws_healthcheck.js');
 global.console.error = jest.fn();
 
 const host = faker.internet.ip();
 const begin_at = faker.date.recent();
 const end_at = faker.date.recent();
 const ft_login = faker.internet.userName();
+const location_id = faker.datatype.number();
 let mockUser;
 let mockMessage;
 
@@ -28,6 +31,7 @@ describe('onMessage', () => {
 			},
 			message: {
 				location: {
+					id: location_id,
 					login: ft_login,
 					end_at,
 					host,
@@ -87,6 +91,10 @@ describe('onMessage', () => {
 			initMocks();
 			mockMessage.identifier = JSON.stringify(mockMessage.identifier);
 			await onMessage(JSON.stringify(mockMessage));
+		});
+
+		test('should save the location ID', () => {
+			expect(mockWsHealthcheck).toHaveProperty('latest_ws_id', location_id);
 		});
 
 		test('should get the user', () => {

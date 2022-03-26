@@ -1,6 +1,7 @@
 const WebSocket = require('ws');
 const { logAction, logUserAction } = require('../src/logs.js');
 const users = require('../src/users.js');
+const ws_healthcheck = require('../src/ws_healthcheck.js');
 
 function initWebsocket() {
 	const websocket_config = {
@@ -14,7 +15,6 @@ function initWebsocket() {
 	const ws = new WebSocket('wss://profile.intra.42.fr/cable',
 		['actioncable-v1-json', 'actioncable-unsupported'],
 		websocket_config);
-	onOpen.bind(ws);
 	ws.on('open', onOpen);
 	ws.on('close', onClose);
 	ws.on('message', onMessage);
@@ -73,6 +73,7 @@ async function onMessage(data) {
 		logAction(console.error, 'The location object is missing in the message');
 		return;
 	}
+	ws_healthcheck.latest_ws_id = location.id;
 	// Get the user from the binary tree
 	const ft_login = location.login;
 	let user;

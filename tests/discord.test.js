@@ -25,6 +25,10 @@ jest.mock('../src/initUsersMap.js');
 const mockInitUsersMap = require('../src/initUsersMap.js');
 jest.mock('../utils/websocket.js');
 const { initWebsocket: mockInitWebsocket } = require('../utils/websocket.js');
+jest.mock('../src/ws_healthcheck.js');
+const mockWsHealthcheck = require('../src/ws_healthcheck.js');
+jest.mock('../utils/ft_api.js');
+const mockFtApi = require('../utils/ft_api.js');
 console.error = jest.fn();
 
 const guild_id = faker.datatype.number().toString();
@@ -35,6 +39,7 @@ const discord_id = faker.datatype.number().toString();
 const ft_login = faker.internet.userName();
 const command_name = faker.company.bsBuzz();
 const mockError = faker.hacker.phrase();
+const location_id = faker.datatype.number();
 const DEFAULT_ROLE = 'worker';
 let mockGuild;
 let mockMember;
@@ -44,6 +49,7 @@ let mockInteraction;
 let mockCommand;
 let mockClient;
 let mockApp;
+let mockLocation;
 
 describe('onGuildCreate', () => {
 
@@ -513,6 +519,8 @@ describe('onReady', () => {
 
 	beforeAll(async () => {
 		jest.resetAllMocks();
+		jest.useFakeTimers();
+		jest.spyOn(global, 'setInterval');
 		mockApp = {
 			listen: jest.fn(),
 		};
@@ -524,8 +532,17 @@ describe('onReady', () => {
 			guilds: {
 				fetch: jest.fn().mockResolvedValue(),
 			},
+			user: {
+				setStatus: jest.fn(),
+			},
 		};
+		mockLocation = {
+			id: location_id,
+		};
+		mockWsHealthcheck.latest_ws_id = location_id;
+		mockFtApi.getLatestLocation.mockResolvedValue(mockLocation);
 		await onReady(mockClient);
+		jest.advanceTimersByTime(60 * 1000);
 	});
 
 	test('should fetch the application', () => {
@@ -554,6 +571,10 @@ describe('onReady', () => {
 
 	test('should fetch users map', () => {
 		expect(mockInitUsersMap).toHaveBeenCalledTimes(1);
+	});
+
+	test('should run a websocket health checker', () => {
+		expect(setInterval).toHaveBeenCalledWith(expect.any(Function), 60 * 1000);
 	});
 
 	test('should initialize the websocket', () => {
