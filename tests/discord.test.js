@@ -540,7 +540,7 @@ describe('onReady', () => {
 			id: location_id,
 		};
 		mockWsHealthcheck.latest_ws_id = location_id;
-		mockFtApi.getLatestLocation.mockResolvedValue(mockLocation);
+		mockFtApi.getLatestActiveLocation.mockResolvedValue(mockLocation);
 		await onReady(mockClient);
 		jest.advanceTimersByTime(60 * 1000);
 	});

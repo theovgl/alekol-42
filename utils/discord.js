@@ -94,8 +94,8 @@ async function onReady(client) {
 	initWebsocket();
 	setInterval(async () => {
 		try {
-			const latest_location = await ft_api.getLatestLocation();
-			if (latest_location.id > ws_healthcheck.latest_ws_id + 3) {
+			const latest_location = await ft_api.getLatestActiveLocation();
+			if (latest_location.id > ws_healthcheck.latest_ws_id + 20) {
 				disconnected = true;
 				console.log('ws', ws_healthcheck.latest_ws_id);
 				console.log('api', latest_location.id);

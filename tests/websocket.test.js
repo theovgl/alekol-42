@@ -11,7 +11,6 @@ global.console.error = jest.fn();
 
 const host = faker.internet.ip();
 const begin_at = faker.date.recent();
-const end_at = faker.date.recent();
 const ft_login = faker.internet.userName();
 const location_id = faker.datatype.number();
 let mockUser;
@@ -33,7 +32,6 @@ describe('onMessage', () => {
 				location: {
 					id: location_id,
 					login: ft_login,
-					end_at,
 					host,
 					begin_at,
 				},

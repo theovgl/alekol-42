@@ -73,7 +73,7 @@ async function onMessage(data) {
 		logAction(console.error, 'The location object is missing in the message');
 		return;
 	}
-	ws_healthcheck.latest_ws_id = location.id;
+	if (!location.end_at) ws_healthcheck.latest_ws_id = location.id;
 	// Get the user from the binary tree
 	const ft_login = location.login;
 	let user;

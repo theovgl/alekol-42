@@ -15,19 +15,20 @@ const apiConfig = {
 const clientCC = new ClientCredentials(apiConfig);
 const clientAC = new AuthorizationCode(apiConfig);
 
-async function getLatestLocation() {
+async function getLatestActiveLocation() {
 	const { token } = await clientCC.getToken({
 		scope: 'public',
 	});
 	const access_token = clientCC.createToken(token);
 	return axios({
 		method: 'get',
-		url: 'https://api.intra.42.fr/v2/locations?per_page=1',
+		url: 'https://api.intra.42.fr/v2/locations?sort=-id&filter[active]=true&per_page=1',
 		headers: {
 			'Authorization': `Bearer ${access_token.token.access_token}`,
 		},
 	})
 		.then((response) => {
+			console.log(response.data[0]);
 			return (response.data[0]);
 		});
 }
@@ -98,4 +99,4 @@ async function fetchMe(authorization_code) {
 		});
 }
 
-module.exports = { getLatestLocation, getUsersLocation, fetchUserLocationsByLogin, fetchMe };
+module.exports = { getLatestActiveLocation, getUsersLocation, fetchUserLocationsByLogin, fetchMe };
