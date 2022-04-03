@@ -1,35 +1,35 @@
-const { Permissions } = require('discord.js');
+const { Permissions, MessageActionRow, MessageSelectMenu } = require('discord.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const supabase = require('../utils/supabase.js');
+
+function canGiveRole(interaction, role) {
+	const bot_can_give = role.comparePositionTo(interaction.guild.me.roles.highest) <= 0;
+	const user_can_give = role.comparePositionTo(interaction.member.roles.highest) <= 0;
+	const user_is_admin = interaction.member.permissions.has('ADMINISTRATOR');
+	const role_is_everyone = role == interaction.guild.roles.everyone;
+	const is_managed = role.managed;
+	return bot_can_give && (user_can_give || user_is_admin) && !role_is_everyone && !is_managed;
+}
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('role')
-		.setDescription('Set the role name to give to members')
-		.addStringOption(option =>
-			option.setName('name')
-				.setDescription('The role name')
-				.setRequired(true)),
+		.setDescription('Set the role name to give to members'),
 	async execute(interaction) {
 		await interaction.deferReply({ ephemeral: true });
 		if (!interaction.member.permissions.has(Permissions.FLAGS.MANAGE_GUILD, true)) {
-			await interaction.editReply('🛑 You need \'Manage Server\' permissions to change the role');
-			return ;
+			return interaction.editReply('🛑 You need \'Manage Server\' permissions to change the role');
 		}
-		const role_name = interaction.options.getString('name');
-
-		const guild_data = await supabase.fetchGuild(interaction.guildId, interaction.applicationId);
-		await supabase.setGuildRole(interaction.guildId, interaction.applicationId, role_name);
-		const role_manager = interaction.guild.roles.cache.find(role => role.name == guild_data[0].role);
-		let new_role_manager = interaction.guild.roles.cache.find(role => role.name == role_name);
-		if (!new_role_manager) new_role_manager = await interaction.guild.roles.create({ name: role_name });
-		if (role_manager) {
-			const requests = [];
-			role_manager.members.forEach((member) => {
-				requests.push(member.roles.remove(role_manager).then(() => member.roles.add(new_role_manager)));
-			});
-			await Promise.all(requests);
-		}
-		await interaction.editReply('Done!');
+		const roles = interaction.guild.roles.cache
+			.filter(role => canGiveRole(interaction, role))
+			.map(role => ({ label: role.name, value: role.id }));
+		if (roles.length == 0) return interaction.editReply('🛑 You have no permission on any role');
+		const row = new MessageActionRow()
+			.addComponents(
+				new MessageSelectMenu()
+					.setCustomId('role_selector')
+					.setPlaceholder('Nothing selected...')
+					.addOptions(roles),
+			);
+		await interaction.editReply({ components: [row] });
 	},
 };

@@ -14,23 +14,28 @@ module.exports = class User {
 		return (!!this.host && !!this.begin_at);
 	}
 
-	updateMemberRole(member, role_name) {
-		const role = member.guild.roles.cache.find((r) => r.name === role_name);
-		if (!role) return Promise.reject(new Error(`Could not find the role '${role_name}' in the guild`));
-		logUserAction(console.log, this.ft_login, `${this.isLogged ? 'Adding' : 'Removing'} the role '${role_name}'`);
+	async updateMemberRole(member, role_id) {
+		const role = member.guild.roles.cache.get(role_id);
+		if (!role) throw new Error(`Could not find the role (${role_id}) in the guild`);
+		logUserAction(console.log, this.ft_login, `${this.isLogged ? 'Adding' : 'Removing'} the role (${role_id})`);
 		if (this.isLogged) return member.roles.add(role);
 		else return member.roles.remove(role);
 	}
 
-	updateRole() {
+	async updateRole() {
 		const requests = [];
 		for (const member of this.guilds_member) {
 			requests.push(supabase.fetchGuild(member.guild.id, member.client.application.id)
-				.then((guild_data) => {
-					if (!guild_data || guild_data.length == 0) return null;
+				.then(async (guild_data) => {
+					if (!guild_data || guild_data.length == 0) {
+						throw new Error(`The guild (${member.guild.id}) related to the client (${member.client.application.id}) is not registered in the database`);
+					} else if (!guild_data[0].role) {
+						throw new Error(`The guild (${member.guild.id}) related to the client (${member.client.application.id}) has not set a role`);
+					}
 					return this.updateMemberRole(member, guild_data[0].role)
 						.catch((error) => {
-							logAction(console.error, error.message);
+							logAction(console.error, 'An error occured while updating the member role');
+							console.error(error);
 							return null;
 						});
 				})

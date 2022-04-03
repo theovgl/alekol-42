@@ -8,7 +8,7 @@ const { logAction: mockLogAction } = require('../src/logs.js');
 global.console.error = jest.fn();
 
 const ft_login = faker.internet.userName();
-const role_name = faker.name.jobType();
+const role_id = faker.datatype.number();
 const host = faker.internet.ip();
 const begin_at = faker.date.recent();
 const client_id = faker.datatype.number().toString();
@@ -32,7 +32,7 @@ describe('updateMemberRole', () => {
 			guild: {
 				roles: {
 					cache: {
-						find: jest.fn().mockReturnValue(mockCachedRole),
+						get: jest.fn().mockReturnValue(mockCachedRole),
 					},
 				},
 			},
@@ -47,12 +47,12 @@ describe('updateMemberRole', () => {
 
 		beforeAll(() => {
 			initMocks();
-			mockMember.guild.roles.cache.find.mockReturnValue(null);
-			ret = user.updateMemberRole(mockMember, role_name);
+			mockMember.guild.roles.cache.get.mockReturnValue(null);
+			ret = user.updateMemberRole(mockMember, role_id);
 		});
 
 		test('should reject the promise', () => {
-			return expect(ret).rejects.toThrow(`Could not find the role '${role_name}' in the guild`);
+			return expect(ret).rejects.toThrow(`Could not find the role (${role_id}) in the guild`);
 		});
 
 	});
@@ -61,11 +61,11 @@ describe('updateMemberRole', () => {
 
 		beforeAll(async () => {
 			initMocks();
-			ret = await user.updateMemberRole(mockMember, role_name);
+			ret = await user.updateMemberRole(mockMember, role_id);
 		});
 
 		test('should get the role from the guild', () => {
-			expect(mockMember.guild.roles.cache.find).toHaveBeenCalledTimes(1);
+			expect(mockMember.guild.roles.cache.get).toHaveBeenCalledTimes(1);
 		});
 
 		test('should return the initial member object', () => {
@@ -80,7 +80,7 @@ describe('updateMemberRole', () => {
 			initMocks();
 			user.host = host;
 			user.begin_at = begin_at;
-			ret = await user.updateMemberRole(mockMember, role_name);
+			ret = await user.updateMemberRole(mockMember, role_id);
 		});
 
 		test('should add the role', () => {
@@ -93,7 +93,7 @@ describe('updateMemberRole', () => {
 
 		beforeAll(async () => {
 			initMocks();
-			ret = await user.updateMemberRole(mockMember, role_name);
+			ret = await user.updateMemberRole(mockMember, role_id);
 		});
 
 		test('should remove the role', () => {
@@ -109,7 +109,7 @@ describe('updateRole', () => {
 	function initMocks() {
 		jest.resetAllMocks();
 		mockGuildData = {
-			role: role_name,
+			role: role_id,
 		};
 		mockSupabase.fetchGuild.mockResolvedValue([mockGuildData]);
 		guilds_member = [];
@@ -165,6 +165,40 @@ describe('updateRole', () => {
 			ret = await user.updateRole();
 		});
 
+		test('should log an error message', () => {
+			expect(mockLogAction).toHaveBeenCalledWith(console.error, 'An error occured while fetching the guild\'s data');
+		});
+
+		test('should return an array of null', () => {
+			expect(ret).toBeInstanceOf(Array);
+			for (const elm of ret) {
+				expect(elm).toBeNull();
+			}
+		});
+
+		test('should continue to fetch guilds', () => {
+			for (const member of guilds_member) {
+				expect(mockSupabase.fetchGuild).toHaveBeenCalledWith(member.guild.id, member.client.application.id);
+			}
+		});
+
+	});
+
+	describe('when the role has not been set', () => {
+
+		beforeAll(async () => {
+			initMocks();
+			mockGuildData = {
+				role: null,
+			};
+			mockSupabase.fetchGuild.mockResolvedValue([mockGuildData]);
+			ret = await user.updateRole();
+		});
+
+		test('should log an error message', () => {
+			expect(mockLogAction).toHaveBeenCalledWith(console.error, 'An error occured while fetching the guild\'s data');
+		});
+
 		test('should return an array of null', () => {
 			expect(ret).toBeInstanceOf(Array);
 			for (const elm of ret) {
@@ -189,7 +223,8 @@ describe('updateRole', () => {
 		});
 
 		test('should log an error message', () => {
-			expect(mockLogAction).toHaveBeenCalledWith(console.error, mockError.message);
+			expect(mockLogAction).toHaveBeenCalledWith(console.error, 'An error occured while updating the member role');
+			expect(console.error).toHaveBeenCalledWith(mockError);
 		});
 
 		test('should return an array of null', () => {
@@ -201,7 +236,7 @@ describe('updateRole', () => {
 
 		test('should continue to update roles', () => {
 			for (const member of guilds_member) {
-				expect(user.updateMemberRole).toHaveBeenCalledWith(member, role_name);
+				expect(user.updateMemberRole).toHaveBeenCalledWith(member, role_id);
 			}
 		});
 
@@ -222,7 +257,7 @@ describe('updateRole', () => {
 
 		test('should update each member role', () => {
 			for (const member of guilds_member) {
-				expect(user.updateMemberRole).toHaveBeenCalledWith(member, role_name);
+				expect(user.updateMemberRole).toHaveBeenCalledWith(member, role_id);
 			}
 		});
 

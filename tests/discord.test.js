@@ -38,9 +38,12 @@ const member_id = faker.datatype.number().toString();
 const discord_id = faker.datatype.number().toString();
 const ft_login = faker.internet.userName();
 const command_name = faker.company.bsBuzz();
-const mockError = faker.hacker.phrase();
+const role_id = faker.datatype.number();
 const location_id = faker.datatype.number();
-const DEFAULT_ROLE = 'worker';
+const role_name = faker.name.jobType();
+const color = faker.datatype.number();
+const mockError = faker.hacker.phrase();
+const mockReturn = faker.datatype.number();
 let mockGuild;
 let mockMember;
 let mockUser;
@@ -50,23 +53,38 @@ let mockCommand;
 let mockClient;
 let mockApp;
 let mockLocation;
+let mockOldRole;
+let mockNewRole;
+let mockGuildData;
+let mockRoleRemove;
+let mockRoleAdd;
+let ret;
 
 describe('onGuildCreate', () => {
+
+	function initMocks() {
+		jest.resetAllMocks();
+		mockGuild = {
+			client: {
+				application: {
+					id: client_id,
+				},
+			},
+			id: guild_id,
+			name: guild_name,
+			roles: {
+				cache: {
+					find: jest.fn().mockReturnValue({}),
+				},
+			},
+		};
+	}
 
 	describe('when the guild\'s insertion fails', () => {
 
 		beforeAll(async () => {
-			jest.resetAllMocks();
-			mockGuild = {
-				client: {
-					application: {
-						id: client_id,
-					},
-				},
-				id: guild_id,
-				name: guild_name,
-			};
-			mockSupabase.insertGuild.mockRejectedValueOnce(mockError);
+			initMocks();
+			mockSupabase.insertGuild.mockRejectedValue(mockError);
 			await onGuildCreate(mockGuild);
 		});
 
@@ -77,80 +95,10 @@ describe('onGuildCreate', () => {
 
 	});
 
-	describe('when the role does not already exist', () => {
-
-		beforeAll(async () => {
-			jest.resetAllMocks();
-			mockGuild = {
-				client: {
-					application: {
-						id: client_id,
-					},
-				},
-				id: guild_id,
-				name: guild_name,
-				roles: {
-					cache: {
-						find: jest.fn().mockReturnValue(null),
-					},
-					create: jest.fn().mockResolvedValue(),
-				},
-			};
-			await onGuildCreate(mockGuild);
-		});
-
-		test('should create the role', () => {
-			expect(mockGuild.roles.create).toHaveBeenCalledWith({ name: DEFAULT_ROLE });
-		});
-
-		describe('when the role creation fails', () => {
-
-			beforeAll(async () => {
-				jest.resetAllMocks();
-				mockGuild = {
-					client: {
-						application: {
-							id: client_id,
-						},
-					},
-					id: guild_id,
-					name: guild_name,
-					roles: {
-						cache: {
-							find: jest.fn().mockReturnValue(null),
-						},
-						create: jest.fn().mockRejectedValue(),
-					},
-				};
-				await onGuildCreate(mockGuild);
-			});
-
-			test('should log an error message', () => {
-				expect(logAction).toHaveBeenCalledWith(console.error, 'An error occured while joining the guild');
-			});
-
-		});
-
-	});
-
 	describe('when everything is ok', () => {
 
 		beforeAll(async () => {
-			jest.resetAllMocks();
-			mockGuild = {
-				client: {
-					application: {
-						id: client_id,
-					},
-				},
-				id: guild_id,
-				name: guild_name,
-				roles: {
-					cache: {
-						find: jest.fn().mockReturnValue({}),
-					},
-				},
-			};
+			initMocks();
 			await onGuildCreate(mockGuild);
 		});
 
@@ -172,17 +120,26 @@ describe('onGuildCreate', () => {
 
 describe('onGuildDelete', () => {
 
+	function initMocks() {
+		jest.resetAllMocks();
+		mockGuild = {
+			id: guild_id,
+			name: guild_name,
+			client: {
+				application: {
+					id: client_id,
+				},
+			},
+		};
+		mockSupabase.deleteGuild.mockResolvedValue();
+		mockSupabase.deleteUsersOfGuild.mockResolvedValue();
+	}
+
 	describe('when the guild\'s users deletion fails', () => {
 
 		beforeAll(async () => {
-			jest.resetAllMocks();
-			mockGuild = {
-				id: guild_id,
-				name: guild_name,
-				applicationId: client_id,
-			};
-			mockSupabase.deleteGuild.mockResolvedValueOnce();
-			mockSupabase.deleteUsersOfGuild.mockRejectedValueOnce(mockError);
+			initMocks();
+			mockSupabase.deleteUsersOfGuild.mockRejectedValue(mockError);
 			await onGuildDelete(mockGuild);
 		});
 
@@ -196,14 +153,8 @@ describe('onGuildDelete', () => {
 	describe('when the guild\'s deletion fails', () => {
 
 		beforeAll(async () => {
-			jest.resetAllMocks();
-			mockGuild = {
-				id: guild_id,
-				name: guild_name,
-				applicationId: client_id,
-			};
-			mockSupabase.deleteGuild.mockRejectedValueOnce(mockError);
-			mockSupabase.deleteUsersOfGuild.mockResolvedValueOnce();
+			initMocks();
+			mockSupabase.deleteGuild.mockRejectedValue(mockError);
 			await onGuildDelete(mockGuild);
 		});
 
@@ -217,14 +168,7 @@ describe('onGuildDelete', () => {
 	describe('when the deletions succeed', () => {
 
 		beforeAll(async () => {
-			jest.resetAllMocks();
-			mockGuild = {
-				id: guild_id,
-				name: guild_name,
-				applicationId: client_id,
-			};
-			mockSupabase.deleteGuild.mockResolvedValueOnce();
-			mockSupabase.deleteUsersOfGuild.mockResolvedValueOnce();
+			initMocks();
 			await onGuildDelete(mockGuild);
 		});
 
@@ -246,13 +190,18 @@ describe('onGuildDelete', () => {
 
 describe('onGuildMemberAdd', () => {
 
+	function initMocks() {
+		jest.resetAllMocks();
+		mockMember = {
+			fetch: jest.fn().mockResolvedValue(),
+		};
+	}
+
 	describe('when the member\'s fetch fails', () => {
 
 		beforeAll(async () => {
-			jest.resetAllMocks();
-			mockMember = {
-				fetch: jest.fn().mockRejectedValueOnce(mockError),
-			};
+			initMocks();
+			mockMember.fetch.mockRejectedValue(mockError);
 			await onGuildMemberAdd(mockMember);
 		});
 
@@ -266,10 +215,7 @@ describe('onGuildMemberAdd', () => {
 	describe('when the member\'s fetch succeeds', () => {
 
 		beforeAll(async () => {
-			jest.resetAllMocks();
-			mockMember = {
-				fetch: jest.fn().mockResolvedValueOnce(),
-			};
+			initMocks();
 			await onGuildMemberAdd(mockMember);
 		});
 
@@ -283,20 +229,39 @@ describe('onGuildMemberAdd', () => {
 
 describe('onGuildMemberRemove', () => {
 
+	function initMocks() {
+		jest.resetAllMocks();
+		mockUserData = [{
+			discord_id,
+			ft_login,
+			guild_id,
+		}];
+		mockSupabase.deleteUser.mockResolvedValue(mockUserData);
+		mockUser = {
+			guilds_member: [
+				{ guild: { id: guild_id } },
+				{ guild: { id: guild_id + '1' } },
+			],
+		};
+		mockUsers.find.mockReturnValue({ data: mockUser });
+		mockMember = {
+			id: member_id,
+			client: {
+				application: {
+					id: client_id,
+				},
+			},
+			guild: {
+				id: guild_id,
+			},
+		};
+	}
+
 	describe('when the member\'s deletion fails', () => {
 
 		beforeAll(async () => {
-			jest.resetAllMocks();
-			mockSupabase.deleteUser.mockRejectedValueOnce(mockError);
-			mockMember = {
-				id: member_id,
-				guild: {
-					id: guild_id,
-				},
-			};
-			global.application = {
-				id: client_id,
-			};
+			initMocks();
+			mockSupabase.deleteUser.mockRejectedValue(mockError);
 			await onGuildMemberRemove(mockMember);
 		});
 
@@ -310,17 +275,8 @@ describe('onGuildMemberRemove', () => {
 	describe('when the member was not registered', () => {
 
 		beforeAll(async () => {
-			jest.resetAllMocks();
-			mockSupabase.deleteUser.mockResolvedValueOnce([]);
-			mockMember = {
-				id: member_id,
-				guild: {
-					id: guild_id,
-				},
-			};
-			global.application = {
-				id: client_id,
-			};
+			initMocks();
+			mockSupabase.deleteUser.mockResolvedValue([]);
 			await onGuildMemberRemove(mockMember);
 		});
 
@@ -330,36 +286,20 @@ describe('onGuildMemberRemove', () => {
 
 	});
 
-	describe('when the member is not the binary tree', () => {
+	describe('when the member is not in the binary tree', () => {
 
 		beforeAll(async () => {
-			jest.resetAllMocks();
-			mockUserData = [{
-				discord_id,
-				ft_login,
-				guild_id,
-			}];
-			mockSupabase.deleteUser.mockResolvedValueOnce(mockUserData);
-			mockUser = {
-				guilds_member: {
-					filter: jest.fn(),
-				},
+			initMocks();
+			mockUsers.find.mockReturnValue(null);
+			mockUser.guilds_member = {
+				filter: jest.fn(),
 			};
-			mockUsers.find.mockReturnValueOnce(null);
-			mockMember = {
-				id: member_id,
-				guild: {
-					id: guild_id,
-				},
-			};
-			global.application = {
-				id: client_id,
-			};
+			mockUser.guilds_member.filter.mockReturnValue(mockUser);
 			await onGuildMemberRemove(mockMember);
 		});
 
 		test('should return before filtering their guilds', () => {
-			expect(mockUser.guilds_member.filter).toHaveBeenCalledTimes(0);
+			expect(mockUser.guilds_member.filter).not.toHaveBeenCalled();
 		});
 
 	});
@@ -367,29 +307,7 @@ describe('onGuildMemberRemove', () => {
 	describe('when the member deletion succeeds', () => {
 
 		beforeAll(async () => {
-			jest.resetAllMocks();
-			mockUserData = [{
-				discord_id,
-				ft_login,
-				guild_id,
-			}];
-			mockSupabase.deleteUser.mockResolvedValueOnce(mockUserData);
-			mockUser = {
-				guilds_member: [
-					{ guild: { id: guild_id } },
-					{ guild: { id: guild_id + '1' } },
-				],
-			};
-			mockUsers.find.mockReturnValueOnce({ data: mockUser });
-			mockMember = {
-				id: member_id,
-				guild: {
-					id: guild_id,
-				},
-			};
-			global.application = {
-				id: client_id,
-			};
+			initMocks();
 			await onGuildMemberRemove(mockMember);
 		});
 
@@ -411,104 +329,280 @@ describe('onGuildMemberRemove', () => {
 
 describe('onInteractionCreate', () => {
 
-	describe('when the interaction is not a command', () => {
+	function initMocks() {
+		jest.resetAllMocks();
+		mockOldRole = {
+			members: [],
+		};
+		mockRoleAdd = jest.fn().mockResolvedValue();
+		mockRoleRemove = jest.fn().mockResolvedValue();
+		for (let i = 0; i < 5; i++) {
+			mockOldRole.members.push({
+				roles: {
+					add: mockRoleAdd,
+					remove: mockRoleRemove,
+				},
+			});
+		}
+		mockNewRole = {
+			color,
+			name: role_name,
+		};
+		mockInteraction = {
+			applicationId: client_id,
+			commandName: command_name,
+			customId: 'role_selector',
+			editReply: jest.fn().mockResolvedValue(),
+			guild: {
+				roles: {
+					cache: {
+						get: jest.fn().mockReturnValue(mockOldRole)
+							.mockReturnValueOnce(mockNewRole),
+					},
+				},
+			},
+			guildId: guild_id,
+			isCommand: jest.fn().mockReturnValue(false),
+			isSelectMenu: jest.fn().mockReturnValue(false),
+			update: jest.fn(),
+			values: [role_id],
+		};
+		mockGuildData = {
+			role: role_id,
+		};
+		mockSupabase.fetchGuild.mockResolvedValue([mockGuildData]);
+		mockCommand = {
+			execute: jest.fn().mockResolvedValue(),
+		};
+		global.commands = {
+			get: jest.fn().mockReturnValue(mockCommand),
+		};
+	}
 
-		beforeAll(async () => {
-			jest.resetAllMocks();
-			mockInteraction = {
-				commandName: command_name,
-				editReply: jest.fn().mockResolvedValue(),
-				isCommand: jest.fn().mockReturnValueOnce(false),
-			};
-			global.commands = {
-				get: jest.fn(),
-			};
-			await onInteractionCreate(mockInteraction);
+	describe('when it is a command', () => {
+
+		describe('and the command was not found', () => {
+
+			beforeAll(async () => {
+				initMocks();
+				mockInteraction.isCommand.mockReturnValue(true);
+				global.commands.get.mockReturnValueOnce(null);
+				await onInteractionCreate(mockInteraction);
+			});
+
+			test('should return before executing the command', () => {
+				expect(mockCommand.execute).toHaveBeenCalledTimes(0);
+			});
+
 		});
 
-		test('should return before getting the command from discord', () => {
-			expect(global.commands.get).toHaveBeenCalledTimes(0);
+		describe('and the command fails to execute', () => {
+
+			beforeAll(async () => {
+				initMocks();
+				mockInteraction.isCommand.mockReturnValue(true);
+				mockCommand.execute.mockRejectedValueOnce(mockError);
+				await onInteractionCreate(mockInteraction);
+			});
+
+			test('should log an error message', () => {
+				expect(logAction).toHaveBeenCalledWith(console.error, `An error occured while executing the interaction's command (${mockInteraction.commandName})`);
+				expect(console.error).toHaveBeenCalledWith(mockError);
+			});
+
+			test('should edit the reply', () => {
+				expect(mockInteraction.editReply).toHaveBeenCalledWith('😵 An error occurred... Please try again later!');
+			});
+
+		});
+
+		describe('and the command executes successfuly', () => {
+
+			beforeAll(async () => {
+				initMocks();
+				mockInteraction.isCommand.mockReturnValue(true);
+				await onInteractionCreate(mockInteraction);
+			});
+
+			test('should get the command from the discord', () => {
+				expect(global.commands.get).toHaveBeenCalledWith(command_name);
+			});
+
+			test('should execute the command', () => {
+				expect(mockCommand.execute).toHaveBeenCalledWith(mockInteraction);
+			});
+
 		});
 
 	});
 
-	describe('when the command was not found', () => {
+	describe('when it is a select menu answer', () => {
 
-		beforeAll(async () => {
-			jest.resetAllMocks();
-			mockInteraction = {
-				commandName: command_name,
-				editReply: jest.fn().mockResolvedValue(),
-				isCommand: jest.fn().mockReturnValueOnce(true),
-			};
-			mockCommand = {
-				execute: jest.fn(),
-			};
-			global.commands = {
-				get: jest.fn().mockReturnValueOnce(null),
-			};
-			await onInteractionCreate(mockInteraction);
+		describe('and the role does not exist', () => {
+
+			beforeAll(async () => {
+				initMocks();
+				mockInteraction.isSelectMenu.mockReturnValue(true);
+				mockInteraction.update.mockResolvedValue(mockReturn);
+				mockInteraction.guild.roles.cache.get.mockReset().mockReturnValue(null);
+				ret = await onInteractionCreate(mockInteraction);
+			});
+
+			test('should update the interaction with a message', () => {
+				expect(mockInteraction.update).toHaveBeenCalledWith({ content: '🤔 This role does not exist anymore', components: [] });
+			});
+
+			test('should return the message', () => {
+				expect(ret).toBe(mockReturn);
+			});
+
 		});
 
-		test('should return before executing the command', () => {
-			expect(mockCommand.execute).toHaveBeenCalledTimes(0);
+		describe('and the guild fetch fails', () => {
+
+			beforeAll(async () => {
+				initMocks();
+				mockInteraction.isSelectMenu.mockReturnValue(true);
+				mockInteraction.update.mockResolvedValue(mockReturn);
+				mockSupabase.fetchGuild.mockRejectedValue(mockError);
+				ret = await onInteractionCreate(mockInteraction);
+			});
+
+			test('should write an error message', () => {
+				expect(console.error).toHaveBeenCalledWith(mockError);
+			});
+
+			test('should update the interaction with a message', () => {
+				expect(mockInteraction.update).toHaveBeenCalledWith({ content: '😵 An error occurred... Please try again later!', components: [] });
+			});
+
+			test('should return the message', () => {
+				expect(ret).toBe(mockReturn);
+			});
+
 		});
 
-	});
+		describe('and the guild update fails', () => {
 
-	describe('when the command fails to execute', () => {
+			beforeAll(async () => {
+				initMocks();
+				mockInteraction.isSelectMenu.mockReturnValue(true);
+				mockInteraction.update.mockResolvedValue(mockReturn);
+				mockSupabase.setGuildRole.mockRejectedValue(mockError);
+				await onInteractionCreate(mockInteraction);
+			});
 
-		beforeAll(async () => {
-			jest.resetAllMocks();
-			mockInteraction = {
-				commandName: command_name,
-				editReply: jest.fn().mockResolvedValue(),
-				isCommand: jest.fn().mockReturnValueOnce(true),
-			};
-			mockCommand = {
-				execute: jest.fn().mockRejectedValueOnce(mockError),
-			};
-			global.commands = {
-				get: jest.fn().mockReturnValueOnce(mockCommand),
-			};
-			await onInteractionCreate(mockInteraction);
+			test('should write an error message', () => {
+				expect(console.error).toHaveBeenCalledWith(mockError);
+			});
+
+			test('should update the interaction with a message', () => {
+				expect(mockInteraction.update).toHaveBeenCalledWith({ content: '😵 An error occurred... Please try again later!', components: [] });
+			});
+
+			test('should return the message', () => {
+				expect(ret).toBe(mockReturn);
+			});
+
 		});
 
-		test('should log an error message', () => {
-			expect(logAction).toHaveBeenCalledWith(console.error, `An error occured while executing the interaction's command (${mockInteraction.commandName})`);
-			expect(console.error).toHaveBeenCalledWith(mockError);
+		describe('and the old role does not exist', () => {
+
+			beforeAll(async () => {
+				initMocks();
+				mockInteraction.isSelectMenu.mockReturnValue(true);
+				mockInteraction.guild.roles.cache.get.mockReturnValue(null);
+				mockInteraction.update.mockResolvedValue(mockReturn);
+				ret = await onInteractionCreate(mockInteraction);
+			});
+
+			test('should return the interaction update', () => {
+				expect(ret).toBe(mockReturn);
+			});
+
 		});
 
-		test('should edit the reply', () => {
-			expect(mockInteraction.editReply).toHaveBeenCalledWith('😵 An error occurred... Please try again later!');
+		describe('and one role remove fails', () => {
+
+			beforeAll(async () => {
+				initMocks();
+				mockInteraction.isSelectMenu.mockReturnValue(true);
+				mockOldRole.members[0].roles.remove.mockRejectedValueOnce(mockError);
+				ret = await onInteractionCreate(mockInteraction);
+			});
+
+			test('should continue to remove other roles', () => {
+				expect(mockRoleRemove).toHaveBeenCalledTimes(5);
+				expect(mockRoleAdd).toHaveBeenCalledTimes(4);
+			});
+
 		});
 
-	});
+		describe('and one role add fails', () => {
 
-	describe('when the command executes successfuly', () => {
+			beforeAll(async () => {
+				initMocks();
+				mockInteraction.isSelectMenu.mockReturnValue(true);
+				mockOldRole.members[0].roles.add.mockRejectedValueOnce(mockError);
+				ret = await onInteractionCreate(mockInteraction);
+			});
 
-		beforeAll(async () => {
-			jest.resetAllMocks();
-			mockInteraction = {
-				commandName: command_name,
-				editReply: jest.fn().mockResolvedValue(),
-				isCommand: jest.fn().mockReturnValueOnce(true),
-			};
-			mockCommand = {
-				execute: jest.fn().mockResolvedValueOnce(),
-			};
-			global.commands = {
-				get: jest.fn().mockReturnValueOnce(mockCommand),
-			};
-			await onInteractionCreate(mockInteraction);
+			test('should continue to remove other roles', () => {
+				expect(mockRoleRemove).toHaveBeenCalledTimes(5);
+				expect(mockRoleAdd).toHaveBeenCalledTimes(5);
+			});
+
 		});
 
-		test('should get the command from the discord', () => {
-			expect(global.commands.get).toHaveBeenCalledWith(command_name);
-		});
+		describe('and everything is ok', () => {
 
-		test('should execute the command', () => {
-			expect(mockCommand.execute).toHaveBeenCalledWith(mockInteraction);
+			beforeAll(async () => {
+				initMocks();
+				mockInteraction.isSelectMenu.mockReturnValue(true);
+				mockInteraction.update.mockResolvedValue(mockReturn);
+				ret = await onInteractionCreate(mockInteraction);
+			});
+
+			test('should get the new role', () => {
+				expect(mockInteraction.guild.roles.cache.get).toHaveBeenCalledWith(role_id);
+			});
+
+			test('should fetch the guild from the database', () => {
+				expect(mockSupabase.fetchGuild).toHaveBeenCalledWith(guild_id, client_id);
+			});
+
+			test('should get the old role', () => {
+				expect(mockInteraction.guild.roles.cache.get).toHaveBeenCalledWith(role_id);
+			});
+
+			test('should set the new role in the database', () => {
+				expect(mockSupabase.setGuildRole).toHaveBeenCalledWith(guild_id, client_id, role_id);
+			});
+
+			test('should replace the members\' role', () => {
+				expect(mockRoleAdd).toHaveBeenCalledTimes(5);
+				expect(mockRoleRemove).toHaveBeenCalledTimes(5);
+			});
+
+			test('should reply with an embed only', () => {
+				expect(ret).toBe(mockReturn);
+			});
+
+			describe('the embedded message', () => {
+
+				test('should have a color', () => {
+					expect(mockInteraction.update.mock.calls[0][0].embeds[0].color).toBe(color);
+				});
+
+				test('should have a name field', () => {
+					expect(mockInteraction.update.mock.calls[0][0].embeds[0].fields[0]).toMatchObject({
+						name: 'Name',
+						value: role_name,
+					});
+				});
+
+			});
+
 		});
 
 	});

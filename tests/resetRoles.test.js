@@ -5,22 +5,24 @@ jest.mock('../utils/supabase.js');
 const mockSupabase = require('../utils/supabase.js');
 jest.mock('../src/logs.js');
 const { logAction: mockLogAction } = require('../src/logs.js');
+global.console.error = jest.fn();
 
 const client_id = faker.datatype.number();
-const role_name = faker.name.jobType();
+const role_id = faker.datatype.number();
 let mockGuildData;
 let mockRoleRemove;
 let mockRoleMembers;
 let mockRoleManager;
-let mockRoleFind;
+let mockRoleGet;
 let mockMembersFetch;
 let mockCachedGuilds;
 let mockDiscordClient;
+let ret;
 
 function initMocks() {
 	jest.resetAllMocks();
 	mockGuildData = {
-		role: role_name,
+		role: role_id,
 	};
 	mockSupabase.fetchGuild.mockResolvedValue([mockGuildData]);
 	mockRoleRemove = jest.fn().mockResolvedValue();
@@ -37,19 +39,19 @@ function initMocks() {
 			values: jest.fn().mockReturnValue(mockRoleMembers),
 		},
 	};
-	mockRoleFind = jest.fn().mockReturnValue(mockRoleManager);
+	mockRoleGet = jest.fn().mockReturnValue(mockRoleManager);
 	mockMembersFetch = jest.fn().mockResolvedValue();
 	mockCachedGuilds = [];
 	for (let i = 0; i < 2; i++) {
 		mockCachedGuilds.push({
 			id: faker.datatype.number(),
-			name: faker.datatype.number(),
+			name: faker.company.companyName(),
 			members: {
 				fetch: mockMembersFetch,
 			},
 			roles: {
 				cache: {
-					find: mockRoleFind,
+					get: mockRoleGet,
 				},
 			},
 		});
@@ -66,22 +68,50 @@ function initMocks() {
 	};
 }
 
-describe('when the role was not found in the guild', () => {
+describe('when the role is not set', () => {
 
 	beforeAll(async () => {
 		initMocks();
-		mockRoleFind.mockReturnValue(null);
-		await resetRoles(mockDiscordClient);
+		mockGuildData = {
+			role: null,
+		};
+		mockSupabase.fetchGuild.mockResolvedValue([mockGuildData]);
+		ret = await resetRoles(mockDiscordClient);
 	});
 
-	test('should write an error message', () => {
-		for (const guild of mockCachedGuilds) {
-			expect(mockLogAction).toHaveBeenCalledWith(console.error, `The role ${role_name} has not been found in guild ${guild.name}`);
+	test('should log an error message', () => {
+		expect(mockLogAction).toHaveBeenCalledWith(console.error, 'An error occured while resetting role');
+		expect(mockLogAction).toHaveBeenCalledTimes(mockCachedGuilds.length);
+	});
+
+	test('should return null', () => {
+		expect(ret).toBeInstanceOf(Array);
+		for (const elm of ret) {
+			expect(elm).toBeNull();
 		}
 	});
 
 	test('should continue', () => {
-		expect(mockRoleFind).toHaveBeenCalledTimes(2);
+		expect(mockSupabase.fetchGuild).toHaveBeenCalledTimes(2);
+	});
+
+});
+
+describe('when the role was not found in the guild', () => {
+
+	beforeAll(async () => {
+		initMocks();
+		mockRoleGet.mockReturnValue(null);
+		await resetRoles(mockDiscordClient);
+	});
+
+	test('should log an error message', () => {
+		expect(mockLogAction).toHaveBeenCalledWith(console.error, 'An error occured while resetting role');
+		expect(mockLogAction).toHaveBeenCalledTimes(mockCachedGuilds.length);
+	});
+
+	test('should continue', () => {
+		expect(mockRoleGet).toHaveBeenCalledTimes(2);
 	});
 
 });
@@ -104,7 +134,7 @@ describe('when everything is ok', () => {
 	});
 
 	test('should get the role manager of each guild', async () => {
-		expect(mockRoleFind).toHaveBeenCalledTimes(2);
+		expect(mockRoleGet).toHaveBeenCalledTimes(2);
 	});
 
 	test('should remove the role to each member', async () => {

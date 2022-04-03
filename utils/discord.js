@@ -1,3 +1,4 @@
+const { MessageEmbed } = require('discord.js');
 const initApp = require('../app.js');
 const deployCommands = require('../deploy-commands.js');
 const initUsersMap = require('../src/initUsersMap.js');
@@ -27,8 +28,8 @@ async function onGuildCreate(guild) {
 async function onGuildDelete(guild) {
 	try {
 		await Promise.all([
-			supabase.deleteUsersOfGuild(guild.id, guild.applicationId),
-			supabase.deleteGuild(guild.id, guild.applicationId),
+			supabase.deleteUsersOfGuild(guild.id, guild.client.application.id),
+			supabase.deleteGuild(guild.id, guild.client.application.id),
 		]);
 		logAction(console.log, `Left guild ${guild.name}`);
 	} catch (error) {
@@ -48,7 +49,7 @@ async function onGuildMemberAdd(member) {
 
 async function onGuildMemberRemove(member) {
 	try {
-		const user_data = await supabase.deleteUser(member.id, member.guild.id, this.application.id);
+		const user_data = await supabase.deleteUser(member.id, member.guild.id, member.client.application.id);
 		if (user_data.length == 0) return;
 		const user = users.find(user_data[0].ft_login)?.data;
 		if (!user) return;
@@ -59,17 +60,48 @@ async function onGuildMemberRemove(member) {
 	}
 }
 
-async function onInteractionCreate(interaction) {
-	if (!interaction.isCommand()) return;
+async function changeGuildRole(interaction) {
+	const role_id = interaction.values[0];
 
-	const command = this.commands.get(interaction.commandName);
-	if (!command) return;
+	// Get the new role manager
+	const new_role_manager = interaction.guild.roles.cache.get(role_id);
+	if (!new_role_manager) return interaction.update({ content: '🤔 This role does not exist anymore', components: [] });
+
+	// Get the old role manager
+	const guild_data = await supabase.fetchGuild(interaction.guildId, interaction.applicationId);
+	const role_manager = interaction.guild.roles.cache.get(guild_data[0].role);
+
+	// Change the guild role
+	await supabase.setGuildRole(interaction.guildId, interaction.applicationId, role_id);
+	if (role_manager) {
+		const requests = [];
+		role_manager.members.forEach((member) => {
+			requests.push(member.roles.remove(role_manager).then(() => member.roles.add(new_role_manager)));
+		});
+		await Promise.all(requests);
+	}
+	const embed = new MessageEmbed()
+		.setColor(new_role_manager.color)
+		.setTitle('Role update')
+		.setDescription('The role has been successfully updated!')
+		.addField('Name', new_role_manager.name, false);
+	return interaction.update({ components: [], embeds: [embed] });
+}
+
+async function onInteractionCreate(interaction) {
 	try {
-		await command.execute(interaction);
+		if (interaction.isCommand()) {
+			const command = this.commands.get(interaction.commandName);
+			if (!command) return;
+			return await command.execute(interaction);
+		} else if (interaction.isSelectMenu()) {
+			if (interaction.customId === 'role_selector') return await changeGuildRole(interaction);
+		}
 	} catch (error) {
 		logAction(console.error, `An error occured while executing the interaction's command (${interaction.commandName})`);
 		console.error(error);
-		await interaction.editReply('😵 An error occurred... Please try again later!');
+		if (interaction.isCommand()) return interaction.editReply('😵 An error occurred... Please try again later!');
+		else if (interaction.isSelectMenu()) return interaction.update({ content: '😵 An error occurred... Please try again later!', components: [] });
 	}
 }
 

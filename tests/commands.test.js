@@ -1,4 +1,5 @@
 const { faker } = require('@faker-js/faker');
+const { MessageActionRow } = require('discord.js');
 
 jest.mock('../utils/supabase.js');
 const mockSupabase = require('../utils/supabase.js');
@@ -18,15 +19,14 @@ const begin_at = faker.date.recent();
 const client_id = faker.datatype.number().toString();
 const redirect_uri = faker.internet.url();
 const role_name = faker.name.jobType();
-const mockNewRole = faker.datatype.number();
+const role_id = faker.datatype.number().toString();
 const end_at = faker.date.recent();
 let mockInteraction;
 let mockUser;
 let mockUserLocation;
 let mockMemberData;
 let mockUserData;
-let mockRoleManager;
-let mockMember;
+let mockRole;
 
 const check = require('../commands/check.js');
 describe('check', () => {
@@ -395,29 +395,18 @@ describe('role', () => {
 
 	function initMocks() {
 		jest.resetAllMocks();
-		mockMember = {
-			roles: {
-				add: jest.fn().mockResolvedValue(),
-				remove: jest.fn().mockResolvedValue(),
-			},
-		};
-		mockRoleManager = {
-			members: [mockMember],
+		mockRole = {
+			label: role_name,
+			value: role_id,
 		};
 		mockInteraction = {
-			applicationId: client_id,
 			guild: {
 				roles: {
 					cache: {
-						find: jest.fn().mockReturnValue(mockNewRole)
-							.mockReturnValueOnce(mockRoleManager),
+						filter: jest.fn(),
+						map: jest.fn().mockReturnValue([mockRole]),
 					},
-					create: jest.fn().mockResolvedValue(),
 				},
-			},
-			guildId: guild_id,
-			options: {
-				getString: jest.fn().mockReturnValue(role_name),
 			},
 			deferReply: jest.fn().mockResolvedValue(),
 			editReply: jest.fn().mockResolvedValue(),
@@ -427,6 +416,7 @@ describe('role', () => {
 				},
 			},
 		};
+		mockInteraction.guild.roles.cache.filter.mockReturnValue(mockInteraction.guild.roles.cache);
 	}
 
 	describe('when the user does not have enough permissions', () => {
@@ -443,34 +433,16 @@ describe('role', () => {
 
 	});
 
-	describe('when the role does not exist', () => {
+	describe('when there are no roles to give', () => {
 
 		beforeAll(async () => {
 			initMocks();
-			mockInteraction.guild.roles.cache.find.mockReset()
-				.mockReturnValue(null)
-				.mockReturnValueOnce(mockRoleManager);
-			await role.execute(mockInteraction);
-		});
-
-		test('should create the role', () => {
-			expect(mockInteraction.guild.roles.create).toHaveBeenCalledWith({ name: role_name });
-		});
-
-	});
-
-	describe('when the old role does not exist', () => {
-
-		beforeAll(async () => {
-			initMocks();
-			mockInteraction.guild.roles.cache.find.mockReset();
-			mockInteraction.guild.roles.cache.find.mockReturnValue(mockNewRole)
-				.mockReturnValueOnce(undefined);
+			mockInteraction.guild.roles.cache.map.mockReturnValue([]);
 			await role.execute(mockInteraction);
 		});
 
 		test('should reply with a message', () => {
-			expect(mockInteraction.editReply).toHaveBeenCalledWith('Done!');
+			expect(mockInteraction.editReply).toHaveBeenCalledWith('🛑 You have no permission on any role');
 		});
 
 	});
@@ -482,25 +454,16 @@ describe('role', () => {
 			await role.execute(mockInteraction);
 		});
 
-		test('should fetch the guild\'s old data', () => {
-			expect(mockSupabase.fetchGuild).toHaveBeenCalledWith(guild_id, client_id);
+		test('should get the roles', () => {
+			expect(mockInteraction.guild.roles.cache.filter).toHaveBeenCalled();
+			expect(mockInteraction.guild.roles.cache.map).toHaveBeenCalled();
 		});
 
-		test('should set the guild\'s new role', () => {
-			expect(mockSupabase.setGuildRole).toHaveBeenCalledWith(guild_id, client_id, role_name);
-		});
-
-		test('should get the old and new role from the cache', () => {
-			expect(mockInteraction.guild.roles.cache.find).toHaveBeenCalledTimes(2);
-		});
-
-		test('should replace the old role with the new one', () => {
-			expect(mockMember.roles.remove).toHaveBeenCalledWith(mockRoleManager);
-			expect(mockMember.roles.add).toHaveBeenCalledWith(mockNewRole);
-		});
-
-		test('should reply with a message', () => {
-			expect(mockInteraction.editReply).toHaveBeenCalledWith('Done!');
+		test('should reply with a message action row', () => {
+			expect(mockInteraction.editReply).toHaveBeenCalledWith({ components: [expect.any(MessageActionRow)] });
+			for (const guild_role of mockInteraction.editReply.mock.calls[0][0].components[0].components[0].options) {
+				expect(guild_role).toMatchObject({ label: role_name, value: role_id });
+			}
 		});
 
 	});
