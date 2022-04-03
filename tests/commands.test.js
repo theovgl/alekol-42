@@ -412,14 +412,14 @@ describe('register', () => {
 			expect(mockSupabase.insertState.mock.calls[1][0]).not.toBe(mockSupabase.insertState.mock.calls[0][0]);
 		});
 
-		test('should reply with an embedded message', () => {
-			expect(mockInteraction.editReply).toHaveBeenCalledWith({ embeds: expect.any(Array) });
+		test('should reply with a message', () => {
+			expect(mockInteraction.editReply).toHaveBeenCalledWith({ components: expect.any(Array) });
 		});
 
-		describe('the embedded message', () => {
+		describe('the message', () => {
 
-			test('URL should contain the client\'s data', () => {
-				expect(mockInteraction.editReply.mock.calls[0][0].embeds[0].url).toBe(`https://api.intra.42.fr/oauth/authorize?client_id=${client_id}&redirect_uri=${encodeURIComponent(redirect_uri)}&response_type=code&state=${mockSupabase.insertState.mock.calls[0][0]}`);
+			test('should contain a link button', () => {
+				expect(mockInteraction.editReply.mock.calls[0][0].components[0].components[0].url).toBe(`https://api.intra.42.fr/oauth/authorize?client_id=${client_id}&redirect_uri=${encodeURIComponent(redirect_uri)}&response_type=code&state=${mockSupabase.insertState.mock.calls[0][0]}`);
 			});
 
 		});
