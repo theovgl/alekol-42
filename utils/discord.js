@@ -129,8 +129,6 @@ async function onReady(client) {
 			const latest_location = await ft_api.getLatestActiveLocation();
 			if (latest_location.id > ws_healthcheck.latest_ws_id + 20) {
 				disconnected = true;
-				console.log('ws', ws_healthcheck.latest_ws_id);
-				console.log('api', latest_location.id);
 				logAction(console.log, 'Websocket seems broken, going to sleep...');
 				client.user.setStatus('idle');
 				initWebsocket();

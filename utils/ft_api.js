@@ -28,7 +28,6 @@ async function getLatestActiveLocation() {
 		},
 	})
 		.then((response) => {
-			console.log(response.data[0]);
 			return (response.data[0]);
 		});
 }
