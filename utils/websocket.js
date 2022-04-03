@@ -49,7 +49,6 @@ function onOpen() {
 
 function onClose(code, reason) {
 	logAction(console.log, `Closing connection (code ${code}): REASON ${reason}`);
-	initWebsocket();
 }
 
 async function onMessage(data) {

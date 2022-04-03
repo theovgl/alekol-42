@@ -123,7 +123,7 @@ async function onReady(client) {
 		deployCommands(),
 		resetRoles(client),
 	]);
-	initWebsocket();
+	let ws = initWebsocket();
 	setInterval(async () => {
 		try {
 			const latest_location = await ft_api.getLatestActiveLocation();
@@ -131,7 +131,8 @@ async function onReady(client) {
 				disconnected = true;
 				logAction(console.log, 'Websocket seems broken, going to sleep...');
 				client.user.setStatus('idle');
-				initWebsocket();
+				ws.close();
+				ws = initWebsocket();
 			} else if (disconnected) {
 				disconnected = false;
 				logAction(console.log, 'Websocket reconnected!');
