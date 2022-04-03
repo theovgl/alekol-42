@@ -12,6 +12,7 @@ module.exports = {
 				.setRequired(true)),
 	async execute(interaction) {
 		await interaction.deferReply({ ephemeral: true });
+		if (!interaction.inGuild()) return interaction.editReply('🚧 This command must be executed in a guild');
 		const sure = interaction.options.getBoolean('sure');
 
 		// Check if the user really wants to unregister

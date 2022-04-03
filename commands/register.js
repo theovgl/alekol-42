@@ -8,6 +8,7 @@ module.exports = {
 		.setDescription('Register to the bot'),
 	async execute(interaction) {
 		await interaction.deferReply({ ephemeral: true });
+		if (!interaction.inGuild()) return interaction.editReply('🚧 This command must be executed in a guild');
 
 		// Generate an OAuth2 state and insert it in the database
 		const state = (Math.random() + 1).toString(36);

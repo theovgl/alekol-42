@@ -16,6 +16,7 @@ module.exports = {
 		.setDescription('Set the role name to give to members'),
 	async execute(interaction) {
 		await interaction.deferReply({ ephemeral: true });
+		if (!interaction.inGuild()) return interaction.editReply('🚧 This command must be executed in a guild');
 		if (!interaction.member.permissions.has(Permissions.FLAGS.MANAGE_GUILD, true)) {
 			return interaction.editReply('🛑 You need \'Manage Server\' permissions to change the role');
 		}

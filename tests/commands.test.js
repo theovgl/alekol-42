@@ -256,8 +256,23 @@ describe('forget', () => {
 			},
 			deferReply: jest.fn().mockResolvedValue(),
 			editReply: jest.fn().mockResolvedValue(),
+			inGuild: jest.fn().mockReturnValue(true),
 		};
 	}
+
+	describe('when the command was not sent in a guild', () => {
+
+		beforeAll(async () => {
+			initMocks();
+			mockInteraction.inGuild.mockReturnValue(false);
+			await forget.execute(mockInteraction);
+		});
+
+		test('should reply with a message', () => {
+			expect(mockInteraction.editReply).toHaveBeenCalledWith('🚧 This command must be executed in a guild');
+		});
+
+	});
 
 	describe('when the user do not want to unregister', () => {
 
@@ -346,7 +361,7 @@ describe('ping', () => {
 const register = require('../commands/register.js');
 describe('register', () => {
 
-	beforeAll(async () => {
+	function initMocks() {
 		jest.resetAllMocks();
 		mockInteraction = {
 			guild: {
@@ -357,33 +372,56 @@ describe('register', () => {
 			},
 			deferReply: jest.fn().mockResolvedValue(),
 			editReply: jest.fn().mockResolvedValue(),
+			inGuild: jest.fn().mockReturnValue(true),
 		};
 		process.env.UID_42 = client_id;
 		process.env.REDIRECT_URI = redirect_uri;
-		await register.execute(mockInteraction);
+	}
+
+	describe('when the command was not sent in a guild', () => {
+
+		beforeAll(async () => {
+			initMocks();
+			mockInteraction.inGuild.mockReturnValue(false);
+			await forget.execute(mockInteraction);
+		});
+
+		test('should reply with a message', () => {
+			expect(mockInteraction.editReply).toHaveBeenCalledWith('🚧 This command must be executed in a guild');
+		});
+
 	});
 
-	test('should defer the reply', () => {
-		expect(mockInteraction.deferReply).toHaveBeenCalledTimes(1);
-	});
+	describe('when everything is ok', () => {
 
-	test('should insert the state\'s data into the database', () => {
-		expect(mockSupabase.insertState).toHaveBeenCalledWith(expect.any(String), guild_id, discord_id);
-	});
+		beforeAll(async () => {
+			initMocks();
+			await register.execute(mockInteraction);
+		});
 
-	test('the state should be random', async () => {
-		await register.execute(mockInteraction);
-		expect(mockSupabase.insertState.mock.calls[1][0]).not.toBe(mockSupabase.insertState.mock.calls[0][0]);
-	});
+		test('should defer the reply', () => {
+			expect(mockInteraction.deferReply).toHaveBeenCalledTimes(1);
+		});
 
-	test('should reply with an embedded message', () => {
-		expect(mockInteraction.editReply).toHaveBeenCalledWith({ embeds: expect.any(Array) });
-	});
+		test('should insert the state\'s data into the database', () => {
+			expect(mockSupabase.insertState).toHaveBeenCalledWith(expect.any(String), guild_id, discord_id);
+		});
 
-	describe('the embedded message', () => {
+		test('the state should be random', async () => {
+			await register.execute(mockInteraction);
+			expect(mockSupabase.insertState.mock.calls[1][0]).not.toBe(mockSupabase.insertState.mock.calls[0][0]);
+		});
 
-		test('URL should contain the client\'s data', () => {
-			expect(mockInteraction.editReply.mock.calls[0][0].embeds[0].url).toBe(`https://api.intra.42.fr/oauth/authorize?client_id=${client_id}&redirect_uri=${encodeURIComponent(redirect_uri)}&response_type=code&state=${mockSupabase.insertState.mock.calls[0][0]}`);
+		test('should reply with an embedded message', () => {
+			expect(mockInteraction.editReply).toHaveBeenCalledWith({ embeds: expect.any(Array) });
+		});
+
+		describe('the embedded message', () => {
+
+			test('URL should contain the client\'s data', () => {
+				expect(mockInteraction.editReply.mock.calls[0][0].embeds[0].url).toBe(`https://api.intra.42.fr/oauth/authorize?client_id=${client_id}&redirect_uri=${encodeURIComponent(redirect_uri)}&response_type=code&state=${mockSupabase.insertState.mock.calls[0][0]}`);
+			});
+
 		});
 
 	});
@@ -410,6 +448,7 @@ describe('role', () => {
 			},
 			deferReply: jest.fn().mockResolvedValue(),
 			editReply: jest.fn().mockResolvedValue(),
+			inGuild: jest.fn().mockReturnValue(true),
 			member: {
 				permissions: {
 					has: jest.fn().mockReturnValue(true),
@@ -418,6 +457,20 @@ describe('role', () => {
 		};
 		mockInteraction.guild.roles.cache.filter.mockReturnValue(mockInteraction.guild.roles.cache);
 	}
+
+	describe('when the command was not sent in a guild', () => {
+
+		beforeAll(async () => {
+			initMocks();
+			mockInteraction.inGuild.mockReturnValue(false);
+			await forget.execute(mockInteraction);
+		});
+
+		test('should reply with a message', () => {
+			expect(mockInteraction.editReply).toHaveBeenCalledWith('🚧 This command must be executed in a guild');
+		});
+
+	});
 
 	describe('when the user does not have enough permissions', () => {
 
