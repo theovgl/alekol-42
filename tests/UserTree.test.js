@@ -80,7 +80,7 @@ describe('findWithDb', () => {
 		});
 
 		test('should fetch the user from the database', () => {
-			expect(mockSupabase.fetchUser).toHaveBeenCalledWith({ ft_login, client_id });
+			expect(mockSupabase.fetchUser).toHaveBeenCalledWith({ ft_login });
 		});
 
 		test('should insert the new user in the tree', () => {

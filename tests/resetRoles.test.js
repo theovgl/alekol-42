@@ -7,7 +7,6 @@ jest.mock('../src/logs.js');
 const { logAction: mockLogAction } = require('../src/logs.js');
 global.console.error = jest.fn();
 
-const client_id = faker.datatype.number();
 const role_id = faker.datatype.number();
 let mockGuildData;
 let mockRoleRemove;
@@ -57,9 +56,6 @@ function initMocks() {
 		});
 	}
 	mockDiscordClient = {
-		application: {
-			id: client_id,
-		},
 		guilds: {
 			cache: {
 				values: jest.fn().mockReturnValue(mockCachedGuilds),
@@ -125,7 +121,7 @@ describe('when everything is ok', () => {
 
 	test('should fetch the guilds from the database', async () => {
 		for (const guild of mockCachedGuilds) {
-			expect(mockSupabase.fetchGuild).toHaveBeenCalledWith(guild.id, client_id);
+			expect(mockSupabase.fetchGuild).toHaveBeenCalledWith(guild.id);
 		}
 	});
 

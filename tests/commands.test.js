@@ -22,11 +22,169 @@ const role_name = faker.name.jobType();
 const role_id = faker.datatype.number().toString();
 const end_at = faker.date.recent();
 let mockInteraction;
-let mockUser;
 let mockUserLocation;
 let mockMemberData;
 let mockUserData;
 let mockRole;
+
+process.env.REDIRECT_URI = redirect_uri;
+process.env.UID_42 = client_id;
+
+const auth = require('../commands/auth.js');
+describe('auth', () => {
+
+	function initMocks() {
+		jest.resetAllMocks();
+		mockUserData = {
+			guild_id,
+		};
+		mockSupabase.fetchUser.mockResolvedValue([mockUserData]);
+		mockSupabase.insertState.mockResolvedValue();
+		mockInteraction = {
+			guildId: guild_id,
+			user: {
+				id: discord_id,
+			},
+			deferReply: jest.fn().mockResolvedValue(),
+			editReply: jest.fn().mockResolvedValue(),
+			inGuild: jest.fn().mockReturnValue(true),
+		};
+	}
+
+	function not_registered_tests() {
+		test('should insert a state in the database', () => {
+			expect(mockSupabase.insertState).toHaveBeenCalledWith(expect.any(String), guild_id, discord_id);
+		});
+
+		test('the state should be random', async () => {
+			await auth.execute(mockInteraction);
+			expect(mockSupabase.insertState.mock.calls[0][0]).not.toBe(mockSupabase.insertState.mock.calls[1][0]);
+		});
+
+		test('should reply with a message', () => {
+			expect(mockInteraction.editReply).toHaveBeenCalledWith({ embeds: expect.any(Array), components: expect.any(Array) });
+		});
+
+		describe('the message embed', () => {
+
+			test('should contain a description', () => {
+				expect(mockInteraction.editReply.mock.calls[0][0].embeds[0].description).toBe('You are not registered');
+			});
+
+		});
+
+		describe('the component\'s button', () => {
+
+			test('should be a link', () => {
+				expect(mockInteraction.editReply.mock.calls[0][0].components[0].components[0].style).toBe('LINK');
+			});
+
+			test('should link to the intra oauth', () => {
+				expect(mockInteraction.editReply.mock.calls[0][0].components[0].components[0].url).toBe(`https://api.intra.42.fr/oauth/authorize?client_id=${client_id}&redirect_uri=${encodeURIComponent(redirect_uri)}&response_type=code&state=${mockSupabase.insertState.mock.calls[0][0]}`);
+			});
+
+		});
+	}
+
+	describe('when the user is not registered in the guild', () => {
+
+		beforeAll(async () => {
+			initMocks();
+			mockSupabase.fetchUser.mockResolvedValue([{
+				guild_id: guild_id - 1,
+			}]);
+			await auth.execute(mockInteraction);
+		});
+
+		not_registered_tests();
+
+	});
+
+	describe('when the user is not registered anywhere', () => {
+
+		beforeAll(async () => {
+			initMocks();
+			mockSupabase.fetchUser.mockResolvedValue([]);
+			mockInteraction.inGuild.mockReturnValue(false);
+			await auth.execute(mockInteraction);
+		});
+
+		not_registered_tests();
+
+	});
+
+	describe('when the user is registered in private messages', () => {
+
+		beforeAll(async () => {
+			initMocks();
+			mockInteraction.inGuild.mockReturnValue(false);
+			await auth.execute(mockInteraction);
+		});
+
+		describe('the message embed', () => {
+
+			test('should contain a description', () => {
+				expect(mockInteraction.editReply.mock.calls[0][0].embeds[0].description).toBe('You are registered');
+			});
+
+		});
+
+		describe('the component\'s button', () => {
+
+			test('should be a danger', () => {
+				expect(mockInteraction.editReply.mock.calls[0][0].components[0].components[0].style).toBe('DANGER');
+			});
+
+			test('should have a label', () => {
+				expect(mockInteraction.editReply.mock.calls[0][0].components[0].components[0].label).toBe('Unregister from all guilds');
+			});
+
+		});
+
+	});
+
+	describe('when the user is registered in the guild', () => {
+
+		beforeAll(async () => {
+			initMocks();
+			await auth.execute(mockInteraction);
+		});
+
+		describe('the message embed', () => {
+
+			test('should contain a description', () => {
+				expect(mockInteraction.editReply.mock.calls[0][0].embeds[0].description).toBe('You are registered');
+			});
+
+		});
+
+		describe('the component\'s button', () => {
+
+			test('should be a danger', () => {
+				expect(mockInteraction.editReply.mock.calls[0][0].components[0].components[0].style).toBe('DANGER');
+			});
+
+			test('should have a label', () => {
+				expect(mockInteraction.editReply.mock.calls[0][0].components[0].components[0].label).toBe('Unregister');
+			});
+
+		});
+
+	});
+
+	describe('anytime', () => {
+
+		test('should defer the reply', () => {
+			expect(mockInteraction.deferReply).toHaveBeenCalled();
+		});
+
+		test('should fetch the user from the database', () => {
+			expect(mockSupabase.fetchUser).toHaveBeenCalledWith({ discord_id });
+		});
+
+	});
+
+});
 
 const check = require('../commands/check.js');
 describe('check', () => {
@@ -80,7 +238,7 @@ describe('check', () => {
 		});
 
 		test('should fetch the user from the database', () => {
-			expect(mockSupabase.fetchUser).toHaveBeenCalledWith({ discord_id, guild_id });
+			expect(mockSupabase.fetchUser).toHaveBeenCalledWith({ discord_id });
 		});
 
 		test('should find the user in the binary tree', () => {
@@ -219,128 +377,6 @@ describe('check', () => {
 
 });
 
-const forget = require('../commands/forget.js');
-describe('forget', () => {
-
-	function initMocks() {
-		jest.resetAllMocks();
-		mockUser = {
-			guilds_member: [
-				{ guild: { id: guild_id } },
-				{ guild: { id: guild_id + '1' } },
-			],
-		};
-		mockUsers.find.mockReturnValueOnce({ data: mockUser });
-		mockUserData = {
-			ft_login,
-		};
-		mockSupabase.deleteUser.mockResolvedValueOnce([mockUserData]);
-		mockInteraction = {
-			applicationId: client_id,
-			guild: {
-				id: guild_id,
-				roles: {
-					cache: {
-						find: jest.fn().mockReturnValue({}),
-					},
-				},
-			},
-			member: {
-				id: discord_id,
-				roles: {
-					remove: jest.fn().mockResolvedValue(),
-				},
-			},
-			options: {
-				getBoolean: jest.fn().mockReturnValue(true),
-			},
-			deferReply: jest.fn().mockResolvedValue(),
-			editReply: jest.fn().mockResolvedValue(),
-			inGuild: jest.fn().mockReturnValue(true),
-		};
-	}
-
-	describe('when the command was not sent in a guild', () => {
-
-		beforeAll(async () => {
-			initMocks();
-			mockInteraction.inGuild.mockReturnValue(false);
-			await forget.execute(mockInteraction);
-		});
-
-		test('should reply with a message', () => {
-			expect(mockInteraction.editReply).toHaveBeenCalledWith('🚧 This command must be executed in a guild');
-		});
-
-	});
-
-	describe('when the user do not want to unregister', () => {
-
-		beforeAll(async () => {
-			initMocks();
-			mockInteraction.options.getBoolean.mockReturnValue(false);
-			await forget.execute(mockInteraction);
-		});
-
-		test('should reply with a message', () => {
-			expect(mockInteraction.editReply).toHaveBeenCalledWith('🥰 We would miss you so much! Thanksfully you are staying!');
-		});
-
-	});
-
-	describe('when the user is not in the binary tree', () => {
-
-		beforeAll(async () => {
-			initMocks();
-			mockUser = {
-				guilds_member: {
-					filter: jest.fn(),
-				},
-			};
-			await forget.execute(mockInteraction);
-		});
-
-		test('should return before filtering their guilds', () => {
-			expect(mockUser.guilds_member.filter).toHaveBeenCalledTimes(0);
-		});
-
-	});
-
-	describe('when everything is ok', () => {
-
-		beforeAll(async () => {
-			initMocks();
-			await forget.execute(mockInteraction);
-		});
-
-		test('should defer the reply', () => {
-			expect(mockInteraction.deferReply).toHaveBeenCalledTimes(1);
-		});
-
-		test('should delete the user from the database', () => {
-			expect(mockSupabase.deleteUser).toHaveBeenCalledWith(discord_id, guild_id, client_id);
-		});
-
-		test('should get the user from the binary tree', () => {
-			expect(mockUsers.find).toHaveBeenCalledWith(ft_login);
-		});
-
-		test('should remove the guild corresponding to the id', () => {
-			expect(mockUser.guilds_member.length).toBe(1);
-		});
-
-		test('should remove the member\'s role', () => {
-			expect(mockInteraction.member.roles.remove).toHaveBeenCalledTimes(1);
-		});
-
-		test('should reply with a message', () => {
-			expect(mockInteraction.editReply).toHaveBeenCalledWith('You have been unregistered... 💔');
-		});
-
-	});
-
-});
-
 const ping = require('../commands/ping.js');
 describe('ping', () => {
 
@@ -354,76 +390,6 @@ describe('ping', () => {
 
 	test('should reply with pong', () => {
 		expect(mockInteraction.reply).toHaveBeenCalledWith('Pong !');
-	});
-
-});
-
-const register = require('../commands/register.js');
-describe('register', () => {
-
-	function initMocks() {
-		jest.resetAllMocks();
-		mockInteraction = {
-			guild: {
-				id: guild_id,
-			},
-			member: {
-				id: discord_id,
-			},
-			deferReply: jest.fn().mockResolvedValue(),
-			editReply: jest.fn().mockResolvedValue(),
-			inGuild: jest.fn().mockReturnValue(true),
-		};
-		process.env.UID_42 = client_id;
-		process.env.REDIRECT_URI = redirect_uri;
-	}
-
-	describe('when the command was not sent in a guild', () => {
-
-		beforeAll(async () => {
-			initMocks();
-			mockInteraction.inGuild.mockReturnValue(false);
-			await forget.execute(mockInteraction);
-		});
-
-		test('should reply with a message', () => {
-			expect(mockInteraction.editReply).toHaveBeenCalledWith('🚧 This command must be executed in a guild');
-		});
-
-	});
-
-	describe('when everything is ok', () => {
-
-		beforeAll(async () => {
-			initMocks();
-			await register.execute(mockInteraction);
-		});
-
-		test('should defer the reply', () => {
-			expect(mockInteraction.deferReply).toHaveBeenCalledTimes(1);
-		});
-
-		test('should insert the state\'s data into the database', () => {
-			expect(mockSupabase.insertState).toHaveBeenCalledWith(expect.any(String), guild_id, discord_id);
-		});
-
-		test('the state should be random', async () => {
-			await register.execute(mockInteraction);
-			expect(mockSupabase.insertState.mock.calls[1][0]).not.toBe(mockSupabase.insertState.mock.calls[0][0]);
-		});
-
-		test('should reply with a message', () => {
-			expect(mockInteraction.editReply).toHaveBeenCalledWith({ components: expect.any(Array) });
-		});
-
-		describe('the message', () => {
-
-			test('should contain a link button', () => {
-				expect(mockInteraction.editReply.mock.calls[0][0].components[0].components[0].url).toBe(`https://api.intra.42.fr/oauth/authorize?client_id=${client_id}&redirect_uri=${encodeURIComponent(redirect_uri)}&response_type=code&state=${mockSupabase.insertState.mock.calls[0][0]}`);
-			});
-
-		});
-
 	});
 
 });
@@ -463,7 +429,7 @@ describe('role', () => {
 		beforeAll(async () => {
 			initMocks();
 			mockInteraction.inGuild.mockReturnValue(false);
-			await forget.execute(mockInteraction);
+			await role.execute(mockInteraction);
 		});
 
 		test('should reply with a message', () => {

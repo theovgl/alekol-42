@@ -22,7 +22,7 @@ class UserTree extends AVLTree {
 		let user = this.find(ft_login)?.data;
 		if (user) return user;
 		logUserAction(console.log, ft_login, 'Creating the user in the binary tree');
-		const user_in_guilds = await supabase.fetchUser({ ft_login, client_id: this.discord.application.id });
+		const user_in_guilds = await supabase.fetchUser({ ft_login });
 		const guilds_member = await fetchMemberInAllGuilds(this.discord, user_in_guilds);
 		user = new User(ft_login, guilds_member);
 		this.insert(ft_login, user);

@@ -15,7 +15,7 @@ async function resetRoleInGuild(guild, role_id) {
 async function resetRoles(discord) {
 	const requests = [];
 	for (const guild of discord.guilds.cache.values()) {
-		requests.push(supabase.fetchGuild(guild.id, discord.application.id)
+		requests.push(supabase.fetchGuild(guild.id)
 			.then((guild_data) => {
 				if (!guild_data[0].role) throw new Error(`The role has not been set in guild '${guild.name}' (${guild.id})`);
 				return resetRoleInGuild(guild, guild_data[0].role);

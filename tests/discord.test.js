@@ -33,7 +33,6 @@ console.error = jest.fn();
 
 const guild_id = faker.datatype.number().toString();
 const guild_name = faker.company.companyName();
-const client_id = faker.datatype.number().toString();
 const member_id = faker.datatype.number().toString();
 const discord_id = faker.datatype.number().toString();
 const ft_login = faker.internet.userName();
@@ -58,6 +57,7 @@ let mockNewRole;
 let mockGuildData;
 let mockRoleRemove;
 let mockRoleAdd;
+let mockUserGuildData;
 let ret;
 
 describe('onGuildCreate', () => {
@@ -65,11 +65,6 @@ describe('onGuildCreate', () => {
 	function initMocks() {
 		jest.resetAllMocks();
 		mockGuild = {
-			client: {
-				application: {
-					id: client_id,
-				},
-			},
 			id: guild_id,
 			name: guild_name,
 			roles: {
@@ -103,7 +98,7 @@ describe('onGuildCreate', () => {
 		});
 
 		test('should insert the guild into the database', () => {
-			expect(mockSupabase.insertGuild).toHaveBeenCalledWith(guild_id, guild_name, client_id);
+			expect(mockSupabase.insertGuild).toHaveBeenCalledWith(guild_id, guild_name);
 		});
 
 		test('should check if the guild exists', () => {
@@ -125,11 +120,6 @@ describe('onGuildDelete', () => {
 		mockGuild = {
 			id: guild_id,
 			name: guild_name,
-			client: {
-				application: {
-					id: client_id,
-				},
-			},
 		};
 		mockSupabase.deleteGuild.mockResolvedValue();
 		mockSupabase.deleteUsersOfGuild.mockResolvedValue();
@@ -173,11 +163,11 @@ describe('onGuildDelete', () => {
 		});
 
 		test('should delete the guild\'s users from the database', () => {
-			expect(mockSupabase.deleteUsersOfGuild).toHaveBeenCalledWith(guild_id, client_id);
+			expect(mockSupabase.deleteUsersOfGuild).toHaveBeenCalledWith(guild_id);
 		});
 
 		test('should delete the guild from the database', () => {
-			expect(mockSupabase.deleteGuild).toHaveBeenCalledWith(guild_id, client_id);
+			expect(mockSupabase.deleteGuild).toHaveBeenCalledWith(guild_id);
 		});
 
 		test('should log a message', () => {
@@ -246,11 +236,6 @@ describe('onGuildMemberRemove', () => {
 		mockUsers.find.mockReturnValue({ data: mockUser });
 		mockMember = {
 			id: member_id,
-			client: {
-				application: {
-					id: client_id,
-				},
-			},
 			guild: {
 				id: guild_id,
 			},
@@ -312,7 +297,7 @@ describe('onGuildMemberRemove', () => {
 		});
 
 		test('should delete the member from the database', () => {
-			expect(mockSupabase.deleteUser).toHaveBeenCalledWith(member_id, guild_id, client_id);
+			expect(mockSupabase.deleteUser).toHaveBeenCalledWith(member_id, guild_id);
 		});
 
 		test('should find the member in the binary tree', () => {
@@ -329,63 +314,27 @@ describe('onGuildMemberRemove', () => {
 
 describe('onInteractionCreate', () => {
 
-	function initMocks() {
-		jest.resetAllMocks();
-		mockOldRole = {
-			members: [],
-		};
-		mockRoleAdd = jest.fn().mockResolvedValue();
-		mockRoleRemove = jest.fn().mockResolvedValue();
-		for (let i = 0; i < 5; i++) {
-			mockOldRole.members.push({
-				roles: {
-					add: mockRoleAdd,
-					remove: mockRoleRemove,
-				},
-			});
-		}
-		mockNewRole = {
-			color,
-			name: role_name,
-		};
-		mockInteraction = {
-			applicationId: client_id,
-			commandName: command_name,
-			customId: 'role_selector',
-			editReply: jest.fn().mockResolvedValue(),
-			guild: {
-				roles: {
-					cache: {
-						get: jest.fn().mockReturnValue(mockOldRole)
-							.mockReturnValueOnce(mockNewRole),
-					},
-				},
-			},
-			guildId: guild_id,
-			isCommand: jest.fn().mockReturnValue(false),
-			isSelectMenu: jest.fn().mockReturnValue(false),
-			update: jest.fn(),
-			values: [role_id],
-		};
-		mockGuildData = {
-			role: role_id,
-		};
-		mockSupabase.fetchGuild.mockResolvedValue([mockGuildData]);
-		mockCommand = {
-			execute: jest.fn().mockResolvedValue(),
-		};
-		global.commands = {
-			get: jest.fn().mockReturnValue(mockCommand),
-		};
-	}
-
 	describe('when it is a command', () => {
+
+		function initMocks() {
+			jest.resetAllMocks();
+			mockInteraction = {
+				commandName: command_name,
+				editReply: jest.fn().mockResolvedValue(),
+				isCommand: jest.fn().mockReturnValue(true),
+			};
+			mockCommand = {
+				execute: jest.fn().mockResolvedValue(),
+			};
+			global.commands = {
+				get: jest.fn().mockReturnValue(mockCommand),
+			};
+		}
 
 		describe('and the command was not found', () => {
 
 			beforeAll(async () => {
 				initMocks();
-				mockInteraction.isCommand.mockReturnValue(true);
 				global.commands.get.mockReturnValueOnce(null);
 				await onInteractionCreate(mockInteraction);
 			});
@@ -400,13 +349,12 @@ describe('onInteractionCreate', () => {
 
 			beforeAll(async () => {
 				initMocks();
-				mockInteraction.isCommand.mockReturnValue(true);
 				mockCommand.execute.mockRejectedValueOnce(mockError);
 				await onInteractionCreate(mockInteraction);
 			});
 
 			test('should log an error message', () => {
-				expect(logAction).toHaveBeenCalledWith(console.error, `An error occured while executing the interaction's command (${mockInteraction.commandName})`);
+				expect(logAction).toHaveBeenCalledWith(console.error, 'An error occured while executing the interaction');
 				expect(console.error).toHaveBeenCalledWith(mockError);
 			});
 
@@ -438,11 +386,52 @@ describe('onInteractionCreate', () => {
 
 	describe('when it is a select menu answer', () => {
 
+		function initMocks() {
+			jest.resetAllMocks();
+			mockOldRole = {
+				members: [],
+			};
+			mockRoleAdd = jest.fn().mockResolvedValue();
+			mockRoleRemove = jest.fn().mockResolvedValue();
+			for (let i = 0; i < 5; i++) {
+				mockOldRole.members.push({
+					roles: {
+						add: mockRoleAdd,
+						remove: mockRoleRemove,
+					},
+				});
+			}
+			mockNewRole = {
+				color,
+				name: role_name,
+			};
+			mockInteraction = {
+				customId: 'role_selector',
+				editReply: jest.fn().mockResolvedValue(),
+				guild: {
+					roles: {
+						cache: {
+							get: jest.fn().mockReturnValue(mockOldRole)
+								.mockReturnValueOnce(mockNewRole),
+						},
+					},
+				},
+				guildId: guild_id,
+				isCommand: jest.fn().mockReturnValue(false),
+				isSelectMenu: jest.fn().mockReturnValue(true),
+				update: jest.fn(),
+				values: [role_id],
+			};
+			mockGuildData = {
+				role: role_id,
+			};
+			mockSupabase.fetchGuild.mockResolvedValue([mockGuildData]);
+		}
+
 		describe('and the role does not exist', () => {
 
 			beforeAll(async () => {
 				initMocks();
-				mockInteraction.isSelectMenu.mockReturnValue(true);
 				mockInteraction.update.mockResolvedValue(mockReturn);
 				mockInteraction.guild.roles.cache.get.mockReset().mockReturnValue(null);
 				ret = await onInteractionCreate(mockInteraction);
@@ -462,7 +451,6 @@ describe('onInteractionCreate', () => {
 
 			beforeAll(async () => {
 				initMocks();
-				mockInteraction.isSelectMenu.mockReturnValue(true);
 				mockInteraction.update.mockResolvedValue(mockReturn);
 				mockSupabase.fetchGuild.mockRejectedValue(mockError);
 				ret = await onInteractionCreate(mockInteraction);
@@ -486,7 +474,6 @@ describe('onInteractionCreate', () => {
 
 			beforeAll(async () => {
 				initMocks();
-				mockInteraction.isSelectMenu.mockReturnValue(true);
 				mockInteraction.update.mockResolvedValue(mockReturn);
 				mockSupabase.setGuildRole.mockRejectedValue(mockError);
 				await onInteractionCreate(mockInteraction);
@@ -510,7 +497,6 @@ describe('onInteractionCreate', () => {
 
 			beforeAll(async () => {
 				initMocks();
-				mockInteraction.isSelectMenu.mockReturnValue(true);
 				mockInteraction.guild.roles.cache.get.mockReturnValue(null);
 				mockInteraction.update.mockResolvedValue(mockReturn);
 				ret = await onInteractionCreate(mockInteraction);
@@ -526,7 +512,6 @@ describe('onInteractionCreate', () => {
 
 			beforeAll(async () => {
 				initMocks();
-				mockInteraction.isSelectMenu.mockReturnValue(true);
 				mockOldRole.members[0].roles.remove.mockRejectedValueOnce(mockError);
 				ret = await onInteractionCreate(mockInteraction);
 			});
@@ -542,7 +527,6 @@ describe('onInteractionCreate', () => {
 
 			beforeAll(async () => {
 				initMocks();
-				mockInteraction.isSelectMenu.mockReturnValue(true);
 				mockOldRole.members[0].roles.add.mockRejectedValueOnce(mockError);
 				ret = await onInteractionCreate(mockInteraction);
 			});
@@ -558,7 +542,6 @@ describe('onInteractionCreate', () => {
 
 			beforeAll(async () => {
 				initMocks();
-				mockInteraction.isSelectMenu.mockReturnValue(true);
 				mockInteraction.update.mockResolvedValue(mockReturn);
 				ret = await onInteractionCreate(mockInteraction);
 			});
@@ -568,7 +551,7 @@ describe('onInteractionCreate', () => {
 			});
 
 			test('should fetch the guild from the database', () => {
-				expect(mockSupabase.fetchGuild).toHaveBeenCalledWith(guild_id, client_id);
+				expect(mockSupabase.fetchGuild).toHaveBeenCalledWith(guild_id);
 			});
 
 			test('should get the old role', () => {
@@ -576,7 +559,7 @@ describe('onInteractionCreate', () => {
 			});
 
 			test('should set the new role in the database', () => {
-				expect(mockSupabase.setGuildRole).toHaveBeenCalledWith(guild_id, client_id, role_id);
+				expect(mockSupabase.setGuildRole).toHaveBeenCalledWith(guild_id, role_id);
 			});
 
 			test('should replace the members\' role', () => {
@@ -599,6 +582,267 @@ describe('onInteractionCreate', () => {
 						name: 'Name',
 						value: role_name,
 					});
+				});
+
+			});
+
+		});
+
+	});
+
+	describe('when it is a button', () => {
+
+		describe('about unregistering', () => {
+
+			function initMocks() {
+				jest.resetAllMocks();
+				mockUserData = {
+					ft_login,
+				};
+				mockSupabase.deleteUser.mockResolvedValue([mockUserData]);
+				mockGuildData = {
+					role: role_id,
+				};
+				mockSupabase.fetchGuild.mockResolvedValue([mockGuildData]);
+				mockUserGuildData = {
+					id: guild_id,
+					role: role_id,
+				};
+				mockSupabase.fetchUserGuilds.mockResolvedValue([mockUserGuildData, mockUserGuildData, mockUserGuildData]);
+				mockUser = {
+					guilds_member: [
+						{ guild: { id: guild_id }, id: discord_id },
+						{ guild: { id: guild_id - 1 }, id: discord_id - 1 },
+					],
+				};
+				mockMember = {
+					roles: {
+						remove: jest.fn().mockResolvedValue(),
+					},
+				};
+				mockGuild = {
+					members: {
+						cache: {
+							get: jest.fn().mockReturnValue(mockMember),
+						},
+					},
+				};
+				mockUsers.find.mockReturnValue({ data: mockUser });
+				mockInteraction = {
+					customId: 'unregister',
+					client: {
+						guilds: {
+							cache: {
+								get: jest.fn().mockReturnValue(mockGuild),
+							},
+						},
+					},
+					guildId: guild_id,
+					guild: {
+						roles: {
+							cache: {
+								get: jest.fn().mockReturnValue(),
+							},
+						},
+					},
+					member: {
+						roles: {
+							remove: jest.fn().mockResolvedValue(),
+						},
+					},
+					user: {
+						id: discord_id,
+					},
+					inGuild: jest.fn().mockReturnValue(true),
+					isCommand: jest.fn().mockReturnValue(false),
+					isSelectMenu: jest.fn().mockReturnValue(false),
+					isButton: jest.fn().mockReturnValue(true),
+					update: jest.fn().mockResolvedValue(),
+				};
+			}
+
+			describe('when the user deletion fails', () => {
+
+				beforeAll(async () => {
+					initMocks();
+					mockSupabase.deleteUser.mockRejectedValue(mockError);
+					await onInteractionCreate(mockInteraction);
+				});
+
+				test('should write an error message', () => {
+					expect(console.error).toHaveBeenCalledWith(mockError);
+				});
+
+				test('should reply with a message', () => {
+					expect(mockInteraction.update).toHaveBeenCalledWith({ content: '😵 An error occurred... Please try again later!', components: [] });
+				});
+
+			});
+
+			describe('when the button was pressed in private messages', () => {
+
+				describe('and one of the user was not found in the binary tree', () => {
+
+					beforeAll(async () => {
+						initMocks();
+						const mockUserDataCopy = JSON.parse(JSON.stringify(mockUserData));
+						mockUserDataCopy.ft_login += '2';
+						mockSupabase.deleteUser.mockResolvedValue([mockUserData, mockUserDataCopy]);
+						mockUsers.find.mockReturnValueOnce(null);
+						mockInteraction.inGuild.mockReturnValue(false);
+						await onInteractionCreate(mockInteraction);
+					});
+
+					test('should continue', async () => {
+						expect(mockUsers.find).toHaveBeenCalledTimes(2);
+					});
+
+				});
+
+				describe('and one of the guild was not found', () => {
+
+					beforeAll(async () => {
+						initMocks();
+						mockInteraction.client.guilds.cache.get.mockReturnValueOnce(null);
+						mockInteraction.inGuild.mockReturnValue(false);
+						await onInteractionCreate(mockInteraction);
+					});
+
+					test('should continue', () => {
+						expect(mockGuild.members.cache.get).toHaveBeenCalledTimes(2);
+					});
+
+				});
+
+				describe('and one of the member was not found', () => {
+
+					beforeAll(async () => {
+						initMocks();
+						mockGuild.members.cache.get.mockReturnValueOnce(null);
+						mockInteraction.inGuild.mockReturnValue(false);
+						await onInteractionCreate(mockInteraction);
+					});
+
+					test('should continue', () => {
+						expect(mockMember.roles.remove).toHaveBeenCalledTimes(2);
+					});
+
+				});
+
+				describe('and one of the role remove fails', () => {
+
+					beforeAll(async () => {
+						initMocks();
+						mockMember.roles.remove.mockRejectedValueOnce();
+						mockInteraction.inGuild.mockReturnValue(false);
+						await onInteractionCreate(mockInteraction);
+					});
+
+					test('should continue', () => {
+						expect(mockMember.roles.remove).toHaveBeenCalledTimes(3);
+					});
+
+				});
+
+				describe('and everything is ok', () => {
+
+					beforeAll(async () => {
+						initMocks();
+						mockInteraction.inGuild.mockReturnValue(false);
+						await onInteractionCreate(mockInteraction);
+					});
+
+					test('should find an user only once', () => {
+						expect(mockUsers.find).toHaveBeenCalledWith(ft_login);
+					});
+
+					test('should filter the guilds\' member', () => {
+						expect(mockUser.guilds_member.length).toBe(1);
+					});
+
+					test('should update the message', () => {
+						expect(mockInteraction.update).toHaveBeenCalledWith({ content: 'You have been unregistered... 💔', embeds: [], components: [] });
+					});
+
+				});
+
+			});
+
+			describe('when the button was pressed in a guild', () => {
+
+				describe('and the user was not found in the binary tree', () => {
+
+					beforeAll(async () => {
+						initMocks();
+						mockUsers.find.mockReturnValueOnce(null);
+						await onInteractionCreate(mockInteraction);
+					});
+
+					test('should continue', async () => {
+						expect(mockSupabase.fetchGuild).toHaveBeenCalled();
+					});
+
+				});
+
+				describe('and the guild fetch fails', () => {
+
+					beforeAll(async () => {
+						initMocks();
+						mockSupabase.fetchGuild.mockRejectedValue(mockError);
+						await onInteractionCreate(mockInteraction);
+					});
+
+					test('should write an error message', () => {
+						expect(console.error).toHaveBeenCalledWith(mockError);
+					});
+
+					test('should reply with a message', () => {
+						expect(mockInteraction.update).toHaveBeenCalledWith({ content: '😵 An error occurred... Please try again later!', components: [] });
+					});
+
+				});
+
+				describe('and the role removal fails', () => {
+
+					beforeAll(async () => {
+						initMocks();
+						mockSupabase.fetchGuild.mockRejectedValue(mockError);
+						await onInteractionCreate(mockInteraction);
+					});
+
+					test('should write an error message', () => {
+						expect(console.error).toHaveBeenCalledWith(mockError);
+					});
+
+					test('should reply with a message', () => {
+						expect(mockInteraction.update).toHaveBeenCalledWith({ content: '😵 An error occurred... Please try again later!', components: [] });
+					});
+
+				});
+
+				describe('and everything is ok', () => {
+
+					beforeAll(async () => {
+						initMocks();
+						await onInteractionCreate(mockInteraction);
+					});
+
+					test('should find the user in the binary tree', () => {
+						expect(mockUsers.find).toHaveBeenCalledWith(ft_login);
+					});
+
+					test('should filter the guilds\'s member', () => {
+						expect(mockUser.guilds_member.length).toBe(1);
+					});
+
+					test('should fetch the guild', () => {
+						expect(mockSupabase.fetchGuild).toHaveBeenCalledWith(guild_id);
+					});
+
+					test('should remove the role in the guild', () => {
+						expect(mockInteraction.member.roles.remove).toHaveBeenCalled();
+					});
+
 				});
 
 			});

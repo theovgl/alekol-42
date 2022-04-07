@@ -25,7 +25,7 @@ module.exports = (discord) => {
 			if (await supabase.userExists(state_data.discord_id, user_data.login, state_data.guild_id)) throw { message: 'You are already registered', code: '200' };
 
 			// Insert the user in the database
-			await supabase.insertUser(state_data.discord_id, user_data.login, state_data.guild_id, discord.application.id);
+			await supabase.insertUser(state_data.discord_id, user_data.login, state_data.guild_id);
 
 			user = users.find(user_data.login)?.data;
 			if (user) {

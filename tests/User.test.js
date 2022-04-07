@@ -11,7 +11,6 @@ const ft_login = faker.internet.userName();
 const role_id = faker.datatype.number();
 const host = faker.internet.ip();
 const begin_at = faker.date.recent();
-const client_id = faker.datatype.number().toString();
 const mockError = new Error(faker.hacker.phrase());
 let guilds_member;
 let mockCachedRole;
@@ -115,11 +114,6 @@ describe('updateRole', () => {
 		guilds_member = [];
 		for (let i = 0; i < 5; i++) {
 			guilds_member.push({
-				client: {
-					application: {
-						id: client_id,
-					},
-				},
 				guild: {
 					id: faker.datatype.number().toString(),
 				},
@@ -151,7 +145,7 @@ describe('updateRole', () => {
 
 		test('should continue to fetch guilds', () => {
 			for (const member of guilds_member) {
-				expect(mockSupabase.fetchGuild).toHaveBeenCalledWith(member.guild.id, member.client.application.id);
+				expect(mockSupabase.fetchGuild).toHaveBeenCalledWith(member.guild.id);
 			}
 		});
 
@@ -178,7 +172,7 @@ describe('updateRole', () => {
 
 		test('should continue to fetch guilds', () => {
 			for (const member of guilds_member) {
-				expect(mockSupabase.fetchGuild).toHaveBeenCalledWith(member.guild.id, member.client.application.id);
+				expect(mockSupabase.fetchGuild).toHaveBeenCalledWith(member.guild.id);
 			}
 		});
 
@@ -208,7 +202,7 @@ describe('updateRole', () => {
 
 		test('should continue to fetch guilds', () => {
 			for (const member of guilds_member) {
-				expect(mockSupabase.fetchGuild).toHaveBeenCalledWith(member.guild.id, member.client.application.id);
+				expect(mockSupabase.fetchGuild).toHaveBeenCalledWith(member.guild.id);
 			}
 		});
 
@@ -251,7 +245,7 @@ describe('updateRole', () => {
 
 		test('should fetch each guild', () => {
 			for (const member of guilds_member) {
-				expect(mockSupabase.fetchGuild).toHaveBeenCalledWith(member.guild.id, member.client.application.id);
+				expect(mockSupabase.fetchGuild).toHaveBeenCalledWith(member.guild.id);
 			}
 		});
 

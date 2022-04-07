@@ -25,12 +25,12 @@ module.exports = class User {
 	async updateRole() {
 		const requests = [];
 		for (const member of this.guilds_member) {
-			requests.push(supabase.fetchGuild(member.guild.id, member.client.application.id)
+			requests.push(supabase.fetchGuild(member.guild.id)
 				.then(async (guild_data) => {
 					if (!guild_data || guild_data.length == 0) {
-						throw new Error(`The guild (${member.guild.id}) related to the client (${member.client.application.id}) is not registered in the database`);
+						throw new Error(`The guild (${member.guild.id}) is not registered in the database`);
 					} else if (!guild_data[0].role) {
-						throw new Error(`The guild (${member.guild.id}) related to the client (${member.client.application.id}) has not set a role`);
+						throw new Error(`The guild (${member.guild.id}) has not set a role`);
 					}
 					return this.updateMemberRole(member, guild_data[0].role)
 						.catch((error) => {

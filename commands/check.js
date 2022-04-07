@@ -28,7 +28,7 @@ module.exports = {
 		const ft_login = interaction.options.getString('login');
 
 		// Check that the member is registered
-		const member_data = await supabase.fetchUser({ discord_id: interaction.user.id, guild_id: interaction.guildId });
+		const member_data = await supabase.fetchUser({ discord_id: interaction.user.id });
 		if (member_data.length == 0) {
 			await interaction.editReply('🛑 You must be registered to access that information');
 			return;

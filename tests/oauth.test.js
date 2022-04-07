@@ -16,7 +16,6 @@ const state = faker.datatype.number().toString();
 const guild_id = faker.datatype.number().toString();
 const discord_id = faker.datatype.number().toString();
 const ft_login = faker.internet.userName();
-const application_id = faker.datatype.number().toString();
 let mockGuildMember;
 let mockCachedGuild;
 let mockDiscordClient;
@@ -144,9 +143,6 @@ describe('when the user insertion fails', () => {
 		jest.resetAllMocks();
 		console.error = jest.fn();
 		mockDiscordClient = {
-			application: {
-				id: application_id,
-			},
 		};
 		mockStateData = {
 			discord_id,
@@ -189,9 +185,6 @@ describe('when the user is not in the binary tree', () => {
 		jest.resetAllMocks();
 		console.error = jest.fn();
 		mockDiscordClient = {
-			application: {
-				id: application_id,
-			},
 		};
 		mockStateData = {
 			discord_id,
@@ -235,9 +228,6 @@ describe('when the member\'s fetch fails', () => {
 			},
 		};
 		mockDiscordClient = {
-			application: {
-				id: application_id,
-			},
 			guilds: {
 				cache: {
 					get: jest.fn().mockReturnValue(mockCachedGuild),
@@ -296,9 +286,6 @@ describe('when the role update fails', () => {
 			},
 		};
 		mockDiscordClient = {
-			application: {
-				id: application_id,
-			},
 			guilds: {
 				cache: {
 					get: jest.fn().mockReturnValue(mockCachedGuild),
@@ -358,9 +345,6 @@ describe('sending a valid request', () => {
 			},
 		};
 		mockDiscordClient = {
-			application: {
-				id: application_id,
-			},
 			guilds: {
 				cache: {
 					get: jest.fn().mockReturnValue(mockCachedGuild),
@@ -400,7 +384,7 @@ describe('sending a valid request', () => {
 	});
 
 	test('should register the user in the database', () => {
-		expect(mockSupabase.insertUser).toHaveBeenCalledWith(discord_id, ft_login, guild_id, application_id);
+		expect(mockSupabase.insertUser).toHaveBeenCalledWith(discord_id, ft_login, guild_id);
 	});
 
 	test('should fetch an user from the tree', () => {

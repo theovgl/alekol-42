@@ -8,38 +8,47 @@ if (process.env.NODE_ENV == 'production'
 	client = supabase.createClient(supabaseUrl, supabaseAnonKey);
 }
 
-async function fetchGuild(guild_id, client_id) {
+async function fetchGuild(guild_id) {
 	const { data, error } = await client
 		.from('guilds')
-		.select('id, name, client_id, role')
-		.match({ id: guild_id, client_id });
-	if (error) throw (error);
+		.select('id, name, role')
+		.match({ id: guild_id });
+	if (error) throw (new Error(error.message));
 	else return (data);
 }
 
-async function insertGuild(guild_id, guild_name, client_id) {
+async function fetchUserGuilds(discord_id) {
+	const { data, error } = await client
+		.from('guilds')
+		.select('id, name, role, users!inner(ft_login)')
+		.eq('users.discord_id', discord_id);
+	if (error) throw (new Error(error.message));
+	else return (data);
+}
+
+async function insertGuild(guild_id, guild_name) {
 	const { error } = await client
 		.from('guilds')
 		.insert([
-			{ id: guild_id, name: guild_name, client_id },
+			{ id: guild_id, name: guild_name },
 		]);
-	if (error) throw (error);
+	if (error) throw (new Error(error.message));
 }
 
-async function setGuildRole(guild_id, client_id, role) {
+async function setGuildRole(guild_id, role) {
 	const { error } = await client
 		.from('guilds')
 		.update({ role })
-		.match({ id: guild_id, client_id });
-	if (error) throw (error);
+		.match({ id: guild_id });
+	if (error) throw (new Error(error.message));
 }
 
-async function deleteGuild(guild_id, client_id) {
+async function deleteGuild(guild_id) {
 	const { data, error } = await client
 		.from('guilds')
 		.delete()
-		.match({ id: guild_id, client_id });
-	if (error) throw (error);
+		.match({ id: guild_id });
+	if (error) throw (new Error(error.message));
 	return (data);
 }
 
@@ -52,7 +61,7 @@ async function fetchUser(user_ids) {
 		.from('users')
 		.select('discord_id, ft_login, guild_id')
 		.match(user_ids);
-	if (error) throw (error);
+	if (error) throw (new Error(error.message));
 	else return (data);
 }
 
@@ -63,7 +72,7 @@ async function userExists(discord_id, ft_login, guild_id) {
 			.from('users')
 			.select('ft_login')
 			.match({ discord_id, guild_id });
-		if (error) throw (error);
+		if (error) throw (new Error(error.message));
 		if (data.length > 0) return true;
 	}
 	{
@@ -71,36 +80,38 @@ async function userExists(discord_id, ft_login, guild_id) {
 			.from('users')
 			.select('ft_login')
 			.match({ ft_login, guild_id });
-		if (error) throw (error);
+		if (error) throw (new Error(error.message));
 		if (data.length > 0) return true;
 	}
 	return false;
 }
 
-async function insertUser(discord_id, ft_login, guild_id, client_id) {
+async function insertUser(discord_id, ft_login, guild_id) {
 	const { error } = await client
 		.from('users')
 		.insert([
-			{ discord_id, ft_login, guild_id, client_id },
+			{ discord_id, ft_login, guild_id },
 		]);
-	if (error) throw (error);
+	if (error) throw (new Error(error.message));
 }
 
-async function deleteUser(discord_id, guild_id, client_id) {
+async function deleteUser(discord_id, guild_id) {
+	const match = { discord_id };
+	if (guild_id) match.guild_id = guild_id;
 	const { data, error } = await client
 		.from('users')
 		.delete()
-		.match({ discord_id, guild_id, client_id });
-	if (error) throw (error);
+		.match(match);
+	if (error) throw (new Error(error.message));
 	return (data);
 }
 
-async function deleteUsersOfGuild(guild_id, client_id) {
+async function deleteUsersOfGuild(guild_id) {
 	const { data, error } = await client
 		.from('users')
 		.delete()
-		.match({ guild_id, client_id });
-	if (error) throw (error);
+		.match({ guild_id });
+	if (error) throw (new Error(error.message));
 	return (data);
 }
 
@@ -109,7 +120,7 @@ async function fetchState(state) {
 		.from('state')
 		.select('discord_id, guild_id')
 		.match({ state });
-	if (error) throw (error);
+	if (error) throw (new Error(error.message));
 	deleteState(state);
 	return (data.length ? data[0] : null);
 }
@@ -120,7 +131,7 @@ async function insertState(state, guild_id, discord_id) {
 		.insert([
 			{ state, discord_id, guild_id },
 		]);
-	if (error) throw (error);
+	if (error) throw (new Error(error.message));
 }
 
 async function deleteState(state) {
@@ -128,8 +139,8 @@ async function deleteState(state) {
 		.from('state')
 		.delete()
 		.match({ state });
-	if (error) throw (error);
+	if (error) throw (new Error(error.message));
 	return (data);
 }
 
-module.exports = { fetchGuild, insertGuild, setGuildRole, deleteGuild, fetchUser, userExists, insertUser, deleteUser, deleteUsersOfGuild, fetchState, insertState };
+module.exports = { fetchGuild, insertGuild, setGuildRole, deleteGuild, fetchUser, fetchUserGuilds, userExists, insertUser, deleteUser, deleteUsersOfGuild, fetchState, insertState };
