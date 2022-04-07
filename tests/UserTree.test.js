@@ -73,28 +73,48 @@ describe('findWithDb', () => {
 
 	describe('when the user is not in the tree', () => {
 
-		beforeAll(async () => {
-			initMocks();
-			users.find.mockReturnValue(null);
-			ret = await users.findWithDb(ft_login);
-		});
+		describe('and the registration is not in a guild', () => {
 
-		test('should fetch the user from the database', () => {
-			expect(mockSupabase.fetchUser).toHaveBeenCalledWith({ ft_login });
-		});
-
-		test('should insert the new user in the tree', () => {
-			expect(users.insert).toHaveBeenCalledWith(ft_login, expect.objectContaining({
-				ft_login,
-				guilds_member: expect.any(Array),
-			}));
-		});
-
-		test('should return the new user', () => {
-			expect(ret).toMatchObject({
-				ft_login,
-				guilds_member: expect.any(Array),
+			beforeAll(async () => {
+				initMocks();
+				mockSupabase.fetchUser.mockResolvedValue([mockUserData, mockUserData]);
+				mockDiscordClient.guilds.cache.get.mockReturnValueOnce(null);
+				users.find.mockReturnValue(null);
+				ret = await users.findWithDb(ft_login);
 			});
+
+			test('should continue', () => {
+				expect(mockDiscordClient.guilds.cache.get).toHaveBeenCalledTimes(2);
+			});
+
+		});
+
+		describe('and everything is ok', () => {
+
+			beforeAll(async () => {
+				initMocks();
+				users.find.mockReturnValue(null);
+				ret = await users.findWithDb(ft_login);
+			});
+
+			test('should fetch the user from the database', () => {
+				expect(mockSupabase.fetchUser).toHaveBeenCalledWith({ ft_login });
+			});
+
+			test('should insert the new user in the tree', () => {
+				expect(users.insert).toHaveBeenCalledWith(ft_login, expect.objectContaining({
+					ft_login,
+					guilds_member: expect.any(Array),
+				}));
+			});
+
+			test('should return the new user', () => {
+				expect(ret).toMatchObject({
+					ft_login,
+					guilds_member: expect.any(Array),
+				});
+			});
+
 		});
 
 	});

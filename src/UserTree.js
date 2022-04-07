@@ -6,8 +6,9 @@ const { logUserAction } = require('./logs.js');
 function fetchMemberInAllGuilds(discord, user_in_guilds) {
 	const requests = [];
 	for (const user of user_in_guilds) {
-		requests.push(discord.guilds.cache.get(user.guild_id)
-			.members.fetch(user.discord_id));
+		const guild = discord.guilds.cache.get(user.guild_id);
+		if (!guild) continue ;
+		requests.push(guild.members.fetch(user.discord_id));
 	}
 	return Promise.all(requests);
 }
