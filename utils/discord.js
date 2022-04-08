@@ -73,9 +73,17 @@ async function changeGuildRole(interaction) {
 	await supabase.setGuildRole(interaction.guildId, role_id);
 	if (role_manager) {
 		const requests = [];
-		role_manager.members.forEach((member) => {
-			requests.push(member.roles.remove(role_manager).then(() => member.roles.add(new_role_manager)));
-		});
+		const users_data = await supabase.fetchUser({ guild_id: interaction.guildId });
+		for (const user_data of users_data) {
+			const member = interaction.guild.members.cache.get(user_data.discord_id);
+			if (!member) continue ;
+			requests.push(member.roles.remove(role_manager)
+				.then(() => member.roles.add(new_role_manager))
+				.catch((error) => {
+					logAction(console.error, 'An error occured while changing user\'s roles');
+					console.error(error);
+				}));
+		}
 		await Promise.all(requests);
 	}
 	const embed = new MessageEmbed()

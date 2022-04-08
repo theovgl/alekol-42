@@ -55,7 +55,8 @@ async function deleteGuild(guild_id) {
 async function fetchUser(user_ids) {
 	if (!user_ids
 		|| (!user_ids.discord_id
-			&& !user_ids.ft_login)) throw ('The given user id is invalid');
+			&& !user_ids.ft_login
+			&& !user_ids.guild_id)) throw ('The given user id is invalid');
 
 	const { data, error } = await client
 		.from('users')

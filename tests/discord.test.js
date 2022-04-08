@@ -57,6 +57,7 @@ let mockNewRole;
 let mockGuildData;
 let mockRoleRemove;
 let mockRoleAdd;
+let mockUsersData;
 let mockUserGuildData;
 let ret;
 
@@ -388,19 +389,15 @@ describe('onInteractionCreate', () => {
 
 		function initMocks() {
 			jest.resetAllMocks();
-			mockOldRole = {
-				members: [],
-			};
 			mockRoleAdd = jest.fn().mockResolvedValue();
 			mockRoleRemove = jest.fn().mockResolvedValue();
-			for (let i = 0; i < 5; i++) {
-				mockOldRole.members.push({
-					roles: {
-						add: mockRoleAdd,
-						remove: mockRoleRemove,
-					},
-				});
-			}
+			mockMember = {
+				roles: {
+					add: mockRoleAdd,
+					remove: mockRoleRemove,
+				},
+			};
+			mockOldRole = {};
 			mockNewRole = {
 				color,
 				name: role_name,
@@ -409,6 +406,11 @@ describe('onInteractionCreate', () => {
 				customId: 'role_selector',
 				editReply: jest.fn().mockResolvedValue(),
 				guild: {
+					members: {
+						cache: {
+							get: jest.fn().mockReturnValue(mockMember),
+						},
+					},
 					roles: {
 						cache: {
 							get: jest.fn().mockReturnValue(mockOldRole)
@@ -426,6 +428,13 @@ describe('onInteractionCreate', () => {
 				role: role_id,
 			};
 			mockSupabase.fetchGuild.mockResolvedValue([mockGuildData]);
+			mockUsersData = [];
+			for (let i = 0; i < 5; i++) {
+				mockUsersData.push({
+					discord_id,
+				});
+			}
+			mockSupabase.fetchUser.mockResolvedValue(mockUsersData);
 		}
 
 		describe('and the role does not exist', () => {
@@ -508,12 +517,31 @@ describe('onInteractionCreate', () => {
 
 		});
 
+		describe('and one of the member was not found', () => {
+
+			beforeAll(async () => {
+				initMocks();
+				mockInteraction.guild.members.cache.get.mockReturnValue(null);
+				ret = await onInteractionCreate(mockInteraction);
+			});
+
+			test('should continue', () => {
+				expect(mockInteraction.guild.members.cache.get).toHaveBeenCalledTimes(5);
+			});
+
+		});
+
 		describe('and one role remove fails', () => {
 
 			beforeAll(async () => {
 				initMocks();
-				mockOldRole.members[0].roles.remove.mockRejectedValueOnce(mockError);
+				mockRoleRemove.mockRejectedValueOnce(mockError);
 				ret = await onInteractionCreate(mockInteraction);
+			});
+
+			test('should log an error message', () => {
+				expect(logAction).toHaveBeenCalledWith(console.error, 'An error occured while changing user\'s roles');
+				expect(console.error).toHaveBeenCalledWith(mockError);
 			});
 
 			test('should continue to remove other roles', () => {
@@ -527,7 +555,7 @@ describe('onInteractionCreate', () => {
 
 			beforeAll(async () => {
 				initMocks();
-				mockOldRole.members[0].roles.add.mockRejectedValueOnce(mockError);
+				mockRoleAdd.mockRejectedValueOnce(mockError);
 				ret = await onInteractionCreate(mockInteraction);
 			});
 
@@ -560,6 +588,10 @@ describe('onInteractionCreate', () => {
 
 			test('should set the new role in the database', () => {
 				expect(mockSupabase.setGuildRole).toHaveBeenCalledWith(guild_id, role_id);
+			});
+
+			test('should fetch the users in the guild', () => {
+				expect(mockSupabase.fetchUser).toHaveBeenCalledWith({ guild_id });
 			});
 
 			test('should replace the members\' role', () => {
