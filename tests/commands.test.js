@@ -53,7 +53,7 @@ describe('auth', () => {
 
 	function not_registered_tests() {
 		test('should insert a state in the database', () => {
-			expect(mockSupabase.insertState).toHaveBeenCalledWith(expect.any(String), guild_id, discord_id);
+			expect(mockSupabase.insertState).toHaveBeenCalledWith(expect.any(String), guild_id);
 		});
 
 		test('the state should be random', async () => {
@@ -80,7 +80,7 @@ describe('auth', () => {
 			});
 
 			test('should link to the intra oauth', () => {
-				expect(mockInteraction.editReply.mock.calls[0][0].components[0].components[0].url).toBe(`https://api.intra.42.fr/oauth/authorize?client_id=${client_id}&redirect_uri=${encodeURIComponent(redirect_uri)}&response_type=code&state=${mockSupabase.insertState.mock.calls[0][0]}`);
+				expect(mockInteraction.editReply.mock.calls[0][0].components[0].components[0].url).toBe(`https://api.intra.42.fr/oauth/authorize?client_id=${client_id}&redirect_uri=${encodeURIComponent(redirect_uri + '/from_42')}&response_type=code&state=${mockSupabase.insertState.mock.calls[0][0]}`);
 			});
 
 		});

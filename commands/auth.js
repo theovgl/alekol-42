@@ -19,13 +19,13 @@ module.exports = {
 			|| user_data.length == 0) {
 			// Generate an OAuth2 state and insert it in the database
 			const state = (Math.random() + 1).toString(36);
-			await supabase.insertState(state, interaction.guildId, interaction.user.id);
+			await supabase.insertState(state, interaction.guildId);
 			embed.setDescription('You are not registered');
 			row.addComponents(
 				new MessageButton()
 					.setLabel('Register')
 					.setStyle('LINK')
-					.setURL(`https://api.intra.42.fr/oauth/authorize?client_id=${process.env.UID_42}&redirect_uri=${encodeURIComponent(process.env.REDIRECT_URI)}&response_type=code&state=${state}`),
+					.setURL(`https://api.intra.42.fr/oauth/authorize?client_id=${process.env.UID_42}&redirect_uri=${encodeURIComponent(process.env.REDIRECT_URI + '/from_42')}&response_type=code&state=${state}`),
 			);
 		} else {
 			embed.setDescription('You are registered');

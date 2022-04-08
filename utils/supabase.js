@@ -118,20 +118,32 @@ async function deleteUsersOfGuild(guild_id) {
 async function fetchState(state) {
 	const { data, error } = await client
 		.from('state')
-		.select('discord_id, guild_id')
+		.select('guild_id, ft_login')
 		.match({ state });
 	if (error) throw (new Error(error.message));
-	deleteState(state);
 	return (data.length ? data[0] : null);
 }
 
-async function insertState(state, guild_id, discord_id) {
+async function insertState(state, guild_id, ft_login) {
 	const { error } = await client
 		.from('state')
 		.insert([
-			{ state, discord_id, guild_id },
+			{ state, ft_login, guild_id },
 		]);
 	if (error) throw (new Error(error.message));
+}
+
+async function updateState(state, state_data) {
+	if (!state_data
+		|| (!state_data.ft_login
+			&& !state_data.guild_id)) throw ('The given state data is invalid');
+
+	const { data, error } = await client
+		.from('state')
+		.update(state_data)
+		.match({ state });
+	if (error) throw (new Error(error.message));
+	return (data);
 }
 
 async function deleteState(state) {
@@ -143,4 +155,4 @@ async function deleteState(state) {
 	return (data);
 }
 
-module.exports = { fetchGuild, insertGuild, setGuildRole, deleteGuild, fetchUser, fetchUserGuilds, userExists, insertUser, deleteUser, deleteUsersOfGuild, fetchState, insertState };
+module.exports = { fetchGuild, insertGuild, setGuildRole, deleteGuild, fetchUser, fetchUserGuilds, userExists, insertUser, deleteUser, deleteUsersOfGuild, fetchState, insertState, updateState, deleteState };

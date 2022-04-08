@@ -83,7 +83,7 @@ async function fetchUserLocationsByLogin(login) {
 async function fetchMe(authorization_code) {
 	const access_token = await clientAC.getToken({
 		code: authorization_code,
-		redirect_uri: process.env.REDIRECT_URI,
+		redirect_uri: process.env.REDIRECT_URI + '/from_42',
 		scope: 'public',
 	});
 	return axios({
