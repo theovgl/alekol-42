@@ -130,7 +130,7 @@ async function fetchState(state) {
 		.select('guild_id, ft_login')
 		.match({ state });
 	if (error) throw (new Error(error.message));
-	return (data.length ? data[0] : null);
+	return (data.length > 0 ? data[0] : null);
 }
 
 async function insertState(state, guild_id, ft_login) {

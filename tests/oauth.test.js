@@ -1,6 +1,6 @@
 const supertest = require('supertest');
 const { faker } = require('@faker-js/faker');
-const initApp = require('../app.js');
+const initApp = require('../api');
 
 jest.mock('../src/logs.js');
 const { logAction } = require('../src/logs.js');
