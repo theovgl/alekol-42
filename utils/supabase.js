@@ -1,10 +1,11 @@
 const supabase = require('@supabase/supabase-js');
+const config = require('../config.js');
 
 let client;
 if (process.env.NODE_ENV == 'production'
 	|| process.env.NODE_ENV == 'development') {
-	const supabaseUrl = process.env.SUPABASE_URL;
-	const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+	const supabaseUrl = config.supabase.url;
+	const supabaseAnonKey = config.supabase.anon_key;
 	client = supabase.createClient(supabaseUrl, supabaseAnonKey);
 }
 

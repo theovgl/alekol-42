@@ -7,6 +7,8 @@ jest.mock('../src/users.js');
 const mockUsers = require('../src/users.js');
 jest.mock('../utils/ft_api.js');
 const mockFtApi = require('../utils/ft_api.js');
+jest.mock('../config.js');
+const mockConfig = require('../config.js');
 jest.mock('../src/logs.js');
 const { logAction: mockLogAction } = require('../src/logs.js');
 global.console.error = jest.fn();
@@ -27,8 +29,8 @@ let mockMemberData;
 let mockUserData;
 let mockRole;
 
-process.env.REDIRECT_URI = redirect_uri;
-process.env.UID_42 = client_id;
+mockConfig.redirect_uri.ft = redirect_uri;
+mockConfig.ft.client.id = client_id;
 
 const auth = require('../commands/auth.js');
 describe('auth', () => {
@@ -80,7 +82,7 @@ describe('auth', () => {
 			});
 
 			test('should link to the intra oauth', () => {
-				expect(mockInteraction.editReply.mock.calls[0][0].components[0].components[0].url).toBe(`https://api.intra.42.fr/oauth/authorize?client_id=${client_id}&redirect_uri=${encodeURIComponent(redirect_uri + '/from_42')}&response_type=code&state=${mockSupabase.insertState.mock.calls[0][0]}`);
+				expect(mockInteraction.editReply.mock.calls[0][0].components[0].components[0].url).toBe(`https://api.intra.42.fr/oauth/authorize?client_id=${client_id}&redirect_uri=${encodeURIComponent(redirect_uri)}&response_type=code&state=${mockSupabase.insertState.mock.calls[0][0]}`);
 			});
 
 		});

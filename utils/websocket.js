@@ -1,6 +1,7 @@
 const WebSocket = require('ws');
 const { logAction, logUserAction } = require('../src/logs.js');
 const users = require('../src/users.js');
+const config = require('../config.js');
 const ws_healthcheck = require('../src/ws_healthcheck.js');
 
 function initWebsocket() {
@@ -9,7 +10,7 @@ function initWebsocket() {
 		perMessageDeflate: true,
 		headers: {
 			Origin: 'https://meta.intra.42.fr',
-			Cookie: `user.id=${process.env.FT_USER_ID};`,
+			Cookie: `user.id=${config.ft.cookie};`,
 		},
 	};
 	const ws = new WebSocket('wss://profile.intra.42.fr/cable',
@@ -28,21 +29,21 @@ function onOpen() {
 		command: 'subscribe',
 		identifier: JSON.stringify({
 			channel: 'LocationChannel',
-			user_id: parseInt(process.env.FT_CABLE_USER_ID),
+			user_id: parseInt(config.ft.user_id),
 		}),
 	}));
 	this.send(JSON.stringify({
 		command: 'subscribe',
 		identifier: JSON.stringify({
 			channel: 'NotificationChannel',
-			user_id: parseInt(process.env.FT_CABLE_USER_ID),
+			user_id: parseInt(config.ft.user_id),
 		}),
 	}));
 	this.send(JSON.stringify({
 		command: 'subscribe',
 		identifier: JSON.stringify({
 			channel: 'FlashChannel',
-			user_id: parseInt(process.env.FT_CABLE_USER_ID),
+			user_id: parseInt(config.ft.user_id),
 		}),
 	}));
 }

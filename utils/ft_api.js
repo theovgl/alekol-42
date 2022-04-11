@@ -1,10 +1,11 @@
 const { ClientCredentials, AuthorizationCode } = require('simple-oauth2');
 const axios = require('axios');
+const config = require('../config.js');
 
 const apiConfig = {
 	client: {
-		id: process.env.UID_42,
-		secret: process.env.SECRET_42,
+		id: config.ft.client.id,
+		secret: config.ft.client.secret,
 	},
 	auth: {
 		tokenHost: 'https://api.intra.42.fr',
@@ -83,7 +84,7 @@ async function fetchUserLocationsByLogin(login) {
 async function fetchMe(authorization_code) {
 	const access_token = await clientAC.getToken({
 		code: authorization_code,
-		redirect_uri: process.env.REDIRECT_URI + '/from_42',
+		redirect_uri: config.redirect_uri.ft,
 		scope: 'public',
 	});
 	return axios({

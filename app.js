@@ -3,6 +3,7 @@ const supabase = require('./utils/supabase.js');
 const discord_api = require('./utils/discord_api.js');
 const ft_api = require('./utils/ft_api.js');
 const users = require('./src/users.js');
+const config = require('./config.js');
 const { logAction } = require('./src/logs.js');
 
 module.exports = (discord) => {
@@ -26,7 +27,7 @@ module.exports = (discord) => {
 			console.error(error?.reason || error);
 			return res.status(error?.code || 500).render('index', { title: 'Error', message: error?.message || 'An unknown error occured' });
 		}
-		return res.redirect(`https://discord.com/api/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(process.env.REDIRECT_URI + '/from_discord')}&response_type=code&scope=identify&state=${state}`);
+		return res.redirect(`https://discord.com/api/oauth2/authorize?client_id=${config.discord.client.id}&redirect_uri=${encodeURIComponent(config.redirect_uri.discord)}&response_type=code&scope=identify&state=${state}`);
 	});
 
 	app.get('/from_discord', async (req, res) => {

@@ -1,5 +1,6 @@
 const axios = require('axios');
 const qs = require('qs');
+const config = require('../config.js');
 
 const tokenHost = 'https://discord.com/api/v8';
 
@@ -8,9 +9,9 @@ async function getAccessToken(code) {
 		method: 'POST',
 		url: `${tokenHost}/oauth2/token`,
 		data: qs.stringify({
-			client_id: process.env.DISCORD_CLIENT_ID,
-			client_secret: process.env.DISCORD_CLIENT_SECRET,
-			redirect_uri: `${process.env.REDIRECT_URI}/from_discord`,
+			client_id: config.discord.client.id,
+			client_secret: config.discord.client.secret,
+			redirect_uri: config.redirect_uri.discord,
 			code,
 			grant_type: 'authorization_code',
 		}),

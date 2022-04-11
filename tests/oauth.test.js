@@ -10,6 +10,8 @@ jest.mock('../utils/discord_api.js');
 const mockDiscordApi = require('../utils/discord_api.js');
 jest.mock('../utils/ft_api.js');
 const mockFtApi = require('../utils/ft_api.js');
+jest.mock('../config.js');
+const mockConfig = require('../config.js');
 jest.mock('../src/users.js');
 const mockUsers = require('../src/users.js');
 console.error = jest.fn();
@@ -31,8 +33,8 @@ let mockDiscordUser;
 let app;
 let response;
 
-process.env.DISCORD_CLIENT_ID = client_id;
-process.env.REDIRECT_URI = redirect_uri;
+mockConfig.discord.client.id = client_id;
+mockConfig.redirect_uri.discord = redirect_uri;
 
 describe('GET /from_42', () => {
 
@@ -187,7 +189,7 @@ describe('GET /from_42', () => {
 
 		test('should redirect to the Discord api', () => {
 			expect(response.statusCode).toBe(302);
-			expect(response.headers).toHaveProperty('location', `https://discord.com/api/oauth2/authorize?client_id=${client_id}&redirect_uri=${encodeURIComponent(redirect_uri + '/from_discord')}&response_type=code&scope=identify&state=${state}`);
+			expect(response.headers).toHaveProperty('location', `https://discord.com/api/oauth2/authorize?client_id=${client_id}&redirect_uri=${encodeURIComponent(redirect_uri)}&response_type=code&scope=identify&state=${state}`);
 		});
 
 	});
