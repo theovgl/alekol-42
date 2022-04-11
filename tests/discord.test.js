@@ -120,6 +120,7 @@ describe('onGuildDelete', () => {
 		};
 		mockSupabase.deleteGuild.mockResolvedValue();
 		mockSupabase.deleteUsersOfGuild.mockResolvedValue();
+		mockSupabase.deleteStatesOfGuild.mockResolvedValue();
 	}
 
 	describe('when the guild\'s users deletion fails', () => {
@@ -127,6 +128,21 @@ describe('onGuildDelete', () => {
 		beforeAll(async () => {
 			initMocks();
 			mockSupabase.deleteUsersOfGuild.mockRejectedValue(mockError);
+			await onGuildDelete(mockGuild);
+		});
+
+		test('should log an error message', () => {
+			expect(logAction).toHaveBeenCalledWith(console.error, 'An error occured while leaving the guild');
+			expect(console.error).toHaveBeenCalledWith(mockError);
+		});
+
+	});
+
+	describe('when the guild\'s states deletion fails', () => {
+
+		beforeAll(async () => {
+			initMocks();
+			mockSupabase.deleteStatesOfGuild.mockRejectedValue(mockError);
 			await onGuildDelete(mockGuild);
 		});
 
@@ -161,6 +177,10 @@ describe('onGuildDelete', () => {
 
 		test('should delete the guild\'s users from the database', () => {
 			expect(mockSupabase.deleteUsersOfGuild).toHaveBeenCalledWith(guild_id);
+		});
+
+		test('should delete the guild\'s states from the database', () => {
+			expect(mockSupabase.deleteStatesOfGuild).toHaveBeenCalledWith(guild_id);
 		});
 
 		test('should delete the guild from the database', () => {

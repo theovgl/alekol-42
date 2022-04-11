@@ -165,4 +165,13 @@ async function deleteState(state) {
 	return (data);
 }
 
-module.exports = { fetchAllGuilds, fetchGuild, insertGuild, setGuildRole, deleteGuild, fetchUser, fetchUserGuilds, userExists, insertUser, deleteUser, deleteUsersOfGuild, fetchState, insertState, updateState, deleteState };
+async function deleteStatesOfGuild(guild_id) {
+	const { data, error } = await client
+		.from('state')
+		.delete()
+		.match({ guild_id });
+	if (error) throw (new Error(error.message));
+	return (data);
+}
+
+module.exports = { fetchAllGuilds, fetchGuild, insertGuild, setGuildRole, deleteGuild, fetchUser, fetchUserGuilds, userExists, insertUser, deleteUser, deleteUsersOfGuild, fetchState, insertState, updateState, deleteState, deleteStatesOfGuild };

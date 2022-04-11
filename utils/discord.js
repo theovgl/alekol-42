@@ -24,7 +24,10 @@ async function onGuildCreate(guild) {
 
 async function onGuildDelete(guild) {
 	try {
-		await supabase.deleteUsersOfGuild(guild.id);
+		await Promise.all([
+			supabase.deleteUsersOfGuild(guild.id),
+			supabase.deleteStatesOfGuild(guild.id),
+		]);
 		await supabase.deleteGuild(guild.id);
 		logAction(console.log, `Left guild ${guild.name}`);
 	} catch (error) {
