@@ -17,8 +17,8 @@ async function fetchLatestLocationTime(ft_login) {
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('check')
-		.setDescription('Display some informations about an user')
+		.setName('spy')
+		.setDescription('Spy an user\'s location and his logtime')
 		.addStringOption(option =>
 			option.setName('login')
 				.setDescription('Enter the login of the user you want to spy on')
