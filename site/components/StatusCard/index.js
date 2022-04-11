@@ -1,4 +1,5 @@
 import styled from "styled-components"
+import Loader from "../Loader"
 
 const Card = styled.div`
 	border-radius: 9px;
@@ -14,7 +15,7 @@ const Card = styled.div`
 
 	box-shadow: 0px 4px 14px ${
 		props => props.success ?
-		"rgba(0, 108, 235, 0.30)" : "rgba(196, 23, 0, 0.30)"
+		"rgba(0, 108, 235, 0.38)" : "rgba(196, 23, 0, 0.38)"
 	};
 
 	@media only screen and (max-width:820px) {
@@ -35,7 +36,12 @@ const H2 = styled.h2`
 `
 
 export default function StatusCard(props) {
-	if (props.status == "success") {
+	if (props.code == 0) {
+		return (
+			<Loader />
+		)
+	}
+	else if (props.code == 201) {
 		return (
 			<Card success>
 				<H2>Successfully registered</H2>
