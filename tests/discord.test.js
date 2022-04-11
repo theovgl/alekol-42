@@ -854,7 +854,7 @@ describe('onInteractionCreate', () => {
 
 					beforeAll(async () => {
 						initMocks();
-						mockSupabase.fetchGuild.mockRejectedValue(mockError);
+						mockInteraction.member.roles.remove.mockRejectedValue(mockError);
 						await onInteractionCreate(mockInteraction);
 					});
 
@@ -862,8 +862,8 @@ describe('onInteractionCreate', () => {
 						expect(console.error).toHaveBeenCalledWith(mockError);
 					});
 
-					test('should reply with a message', () => {
-						expect(mockInteraction.update).toHaveBeenCalledWith({ content: '😵 An error occurred... Please try again later!', components: [] });
+					test('should update the message', () => {
+						expect(mockInteraction.update).toHaveBeenCalledWith({ content: 'You have been unregistered... 💔', embeds: [], components: [] });
 					});
 
 				});
@@ -889,6 +889,10 @@ describe('onInteractionCreate', () => {
 
 					test('should remove the role in the guild', () => {
 						expect(mockInteraction.member.roles.remove).toHaveBeenCalled();
+					});
+
+					test('should update the message', () => {
+						expect(mockInteraction.update).toHaveBeenCalledWith({ content: 'You have been unregistered... 💔', embeds: [], components: [] });
 					});
 
 				});

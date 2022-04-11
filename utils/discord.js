@@ -103,7 +103,11 @@ async function deleteUser(interaction) {
 			user.guilds_member = user.guilds_member.filter((guild_member) => guild_member.guild.id != interaction.guildId);
 		}
 		const guild_data = await supabase.fetchGuild(interaction.guildId);
-		await interaction.member.roles.remove(interaction.guild.roles.cache.get(guild_data[0].role));
+		await interaction.member.roles.remove(interaction.guild.roles.cache.get(guild_data[0].role))
+			.catch((error) => {
+				logAction(console.error, 'An error occured while removing the member\'s role');
+				console.error(error);
+			});
 	} else {
 		const already_deleted = [];
 		for (const user_data of users_data) {
@@ -121,10 +125,12 @@ async function deleteUser(interaction) {
 			if (!guild) continue ;
 			const member = guild.members.cache.get(interaction.user.id);
 			if (!member) continue ;
-			requests.push(member.roles.remove(guild_data.role).catch((error) => {
-				logAction(console.error, 'An error occured while removing the member\'s role');
-				console.error(error);
-			}));
+			requests.push(member.roles.remove(guild_data.role)
+				.catch((error) => {
+					logAction(console.error, 'An error occured while removing the member\'s role');
+					console.error(error);
+				}),
+			);
 		}
 		await Promise.all(requests);
 	}
