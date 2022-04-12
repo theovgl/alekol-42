@@ -1,5 +1,5 @@
 const { MessageEmbed } = require('discord.js');
-const initApp = require('../app.js');
+const initApp = require('../api');
 const deployCommands = require('../deploy-commands.js');
 const initUsersMap = require('../src/initUsersMap.js');
 const { logAction } = require('../src/logs.js');
@@ -10,14 +10,11 @@ const { initWebsocket } = require('./websocket.js');
 const ws_healthcheck = require('../src/ws_healthcheck.js');
 const ft_api = require('./ft_api.js');
 
-const DEFAULT_ROLE = process.env.DEFAULT_ROLE || 'worker';
 let disconnected = false;
 
 async function onGuildCreate(guild) {
 	try {
 		await supabase.insertGuild(guild.id, guild.name);
-		const new_role_manager = guild.roles.cache.find(role => role.name == DEFAULT_ROLE);
-		if (!new_role_manager) await guild.roles.create({ name: DEFAULT_ROLE });
 		logAction(console.log, `Joined guild ${guild.name}`);
 	} catch (error) {
 		logAction(console.error, 'An error occured while joining the guild');
@@ -150,6 +147,22 @@ async function onInteractionCreate(interaction) {
 	}
 }
 
+async function checkHandledGuilds(client) {
+	const guilds_data = await supabase.fetchAllGuilds();
+	// If the bot joined a guild
+	for (const guild of client.guilds.cache.values()) {
+		if (guilds_data.filter(guild_data => guild_data.id == guild.id).length == 0) {
+			await onGuildCreate(guild);
+		}
+	}
+	// If the bot left a guild
+	for (const guild_data of guilds_data) {
+		if (client.guilds.cache.get(guild_data.id) == null) {
+			await onGuildDelete({ id: guild_data.id, name: guild_data.name });
+		}
+	}
+}
+
 async function onReady(client) {
 	logAction(console.log, 'Discord client ready');
 	users.discord = client;
@@ -158,6 +171,7 @@ async function onReady(client) {
 		client.application.fetch(),
 		client.guilds.fetch(),
 	]);
+	await checkHandledGuilds(client);
 	// Create the HTTP application
 	const app = initApp(client);
 	const PORT = process.env.PORT || 3000;

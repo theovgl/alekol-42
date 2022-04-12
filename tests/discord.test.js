@@ -14,8 +14,8 @@ jest.mock('../utils/supabase.js');
 const mockSupabase = require('../utils/supabase.js');
 jest.mock('../src/users.js');
 const mockUsers = require('../src/users.js');
-jest.mock('../app.js');
-const mockInitApp = require('../app.js');
+jest.mock('../api');
+const mockInitApp = require('../api');
 jest.mock('../utils/ft_api.js');
 jest.mock('../deploy-commands.js');
 const mockDeployCommands = require('../deploy-commands.js');
@@ -100,10 +100,6 @@ describe('onGuildCreate', () => {
 
 		test('should insert the guild into the database', () => {
 			expect(mockSupabase.insertGuild).toHaveBeenCalledWith(guild_id, guild_name);
-		});
-
-		test('should check if the guild exists', () => {
-			expect(mockGuild.roles.cache.find).toHaveBeenCalled();
 		});
 
 		test('should log a message', () => {
@@ -900,6 +896,14 @@ describe('onReady', () => {
 				fetch: jest.fn().mockResolvedValue(),
 			},
 			guilds: {
+				cache: {
+					get: jest.fn().mockReturnValue({})
+						.mockReturnValueOnce(null),
+					values: jest.fn().mockReturnValue([
+						{ id: guild_id },
+						{ id: guild_id + 1 },
+					]),
+				},
 				fetch: jest.fn().mockResolvedValue(),
 			},
 			user: {
@@ -911,8 +915,20 @@ describe('onReady', () => {
 		};
 		mockWsHealthcheck.latest_ws_id = location_id;
 		mockFtApi.getLatestActiveLocation.mockResolvedValue(mockLocation);
+		mockSupabase.fetchAllGuilds.mockResolvedValue([
+			{ id: guild_id - 1 },
+			{ id: guild_id },
+		]);
 		await onReady(mockClient);
 		jest.advanceTimersByTime(60 * 1000);
+	});
+
+	test('should remove left guilds', () => {
+		expect(mockSupabase.deleteGuild).toHaveBeenCalledTimes(1);
+	});
+
+	test('should add joined guilds', () => {
+		expect(mockSupabase.insertGuild).toHaveBeenCalledTimes(1);
 	});
 
 	test('should fetch the application', () => {

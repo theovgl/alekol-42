@@ -8,6 +8,14 @@ if (process.env.NODE_ENV == 'production'
 	client = supabase.createClient(supabaseUrl, supabaseAnonKey);
 }
 
+async function fetchAllGuilds() {
+	const { data, error } = await client
+		.from('guilds')
+		.select('id, name, role');
+	if (error) throw (new Error(error.message));
+	else return (data);
+}
+
 async function fetchGuild(guild_id) {
 	const { data, error } = await client
 		.from('guilds')
@@ -119,10 +127,10 @@ async function deleteUsersOfGuild(guild_id) {
 async function fetchState(state) {
 	const { data, error } = await client
 		.from('state')
-		.select('guild_id, ft_login')
+		.select('state, guild_id, ft_login')
 		.match({ state });
 	if (error) throw (new Error(error.message));
-	return (data.length ? data[0] : null);
+	return (data.length > 0 ? data[0] : null);
 }
 
 async function insertState(state, guild_id, ft_login) {
@@ -156,4 +164,4 @@ async function deleteState(state) {
 	return (data);
 }
 
-module.exports = { fetchGuild, insertGuild, setGuildRole, deleteGuild, fetchUser, fetchUserGuilds, userExists, insertUser, deleteUser, deleteUsersOfGuild, fetchState, insertState, updateState, deleteState };
+module.exports = { fetchAllGuilds, fetchGuild, insertGuild, setGuildRole, deleteGuild, fetchUser, fetchUserGuilds, userExists, insertUser, deleteUser, deleteUsersOfGuild, fetchState, insertState, updateState, deleteState };

@@ -10,7 +10,7 @@ async function getAccessToken(code) {
 		data: qs.stringify({
 			client_id: process.env.DISCORD_CLIENT_ID,
 			client_secret: process.env.DISCORD_CLIENT_SECRET,
-			redirect_uri: `${process.env.REDIRECT_URI}/from_discord`,
+			redirect_uri: `${process.env.REDIRECT_URI}/register`,
 			code,
 			grant_type: 'authorization_code',
 		}),
