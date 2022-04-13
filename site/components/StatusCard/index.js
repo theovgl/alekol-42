@@ -41,7 +41,7 @@ export default function StatusCard(props) {
 			<Loader />
 		)
 	}
-	else if (props.code == 201) {
+	else if (props.code == 200) {
 		return (
 			<Card success>
 				<H2>Successfully registered</H2>
@@ -56,7 +56,8 @@ export default function StatusCard(props) {
 	else {
 		return (
 			<Card>
-				<H2>Oh no ! Something went wrong !</H2>
+				<H2>{props.title}</H2>
+				<p>{props.details}</p>
 			</Card>
 		)
 	}
