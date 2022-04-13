@@ -4,7 +4,7 @@ import styled from 'styled-components';
 
 const Container = styled.div`
 	margin: 40px 0;
-	width: 600px;
+	width: 100%;
 `;
 const Anchor = styled.a`
 	color: #83b2fb;

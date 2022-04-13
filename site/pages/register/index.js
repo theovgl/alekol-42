@@ -8,7 +8,17 @@ const Container = styled.div`
 	display: flex;
 	align-items: center;
 	flex-direction: column;
-	width: 100%;
+	margin: 0 auto;
+	width: 90%;
+	overflow: hidden;
+
+	@media only screen and (min-width: 570px) {
+		width: 80%;
+	}
+
+	@media only screen and (min-width:820px) {
+		width: 656px;
+	}
 `;
 
 export default function index() {
