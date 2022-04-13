@@ -23,48 +23,44 @@ const Container = styled.div`
 	}
 `;
 
-export default function index() {
-	const [status, setStatus] = useState(0);
-	const [title, setTitle] = useState("");
-	const [details, setDetails] = useState("")
-	const [shouldLoad, setShouldLoad] = useState(false);
-	const router = useRouter();
-	const { code } = router.query;
-	const { state } = router.query;
+export async function getServerSideProps(context) {
+	const { code } = context.query;
+	const { state } = context.query;
 
-	useEffect(() => {
-		if (!router.isReady) {
-			return ;
+	const config = {
+		method: 'POST',
+		body: JSON.stringify({
+			state: state,
+			code: code
+		}),
+		headers: {
+			"content-type": "application/json"
 		}
-		console.log(code);
-		const config = {
-			method: 'POST',
-			body: JSON.stringify({
-				state: state,
-				code: code
-			}),
-			headers: {
-				"content-type": "application/json"
+	};
+
+	const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/register`, config);
+	const data = await res.json();
+	if (data.next != null) {
+		return {
+			redirect: {
+				permanent: false,
+				destination: data.next.location
 			}
-		};
-		fetch(`${process.env.NEXT_PUBLIC_API_URL}/register`, config)
-			.then((response) => {
-				setStatus(response.status);
-				return (response.json());
-			})
-			.then((data) => {
-				if (data.next != null) {
-					router.push(data.next.location);
-				}	else {
-					setTitle(data.message);
-					setDetails(data.details);
-					setShouldLoad(true);
-				}
-			})
-	}, [router.isReady]);
-	if (!code || !state || !shouldLoad) {
-		return <></>;
+		}
 	}
+	console.log(res.status);
+	return {
+		props: {
+			data
+		}
+	};
+}
+
+export default function index({ data }) {
+	useEffect(() => {
+		console.log(data);
+	});
+
 	return (
 		<>
 			<Head>
@@ -73,7 +69,7 @@ export default function index() {
 			</Head>
 			<Header title='Alekol Registration'/>
 			<Container>
-				<StatusCard code={status} title={title} details={details}/>
+				<StatusCard code={200} title="Done" details="Done"/>
 				<HowToDocs/>
 			</Container>
 		</>
