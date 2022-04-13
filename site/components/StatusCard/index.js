@@ -3,7 +3,7 @@ import Loader from "../Loader"
 
 const Card = styled.div`
 	border-radius: 9px;
-	width: 600px;
+	width: 656px;
 	padding: 8px 30px;
 	margin: 0px 30px;
 	box-sizing: border-box;
