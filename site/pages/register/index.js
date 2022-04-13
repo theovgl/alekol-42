@@ -23,57 +23,55 @@ const Container = styled.div`
 	}
 `;
 
-export default function index() {
-	const [status, setStatus] = useState(0);
-	const [title, setTitle] = useState("");
-	const [details, setDetails] = useState("")
-	const [shouldLoad, setShouldLoad] = useState(false);
-	const router = useRouter();
-	const { code } = router.query;
-	const { state } = router.query;
+export async function getServerSideProps(context) {
+	const { code } = context.query;
+	const { state } = context.query;
 
-	useEffect(() => {
-		if (!router.isReady) {
-			return ;
+	console.log(code, state);
+	const config = {
+		method: 'POST',
+		body: JSON.stringify({
+			state: state,
+			code: code
+		}),
+		headers: {
+			"content-type": "application/json"
 		}
-		console.log(code);
-		const config = {
-			method: 'POST',
-			body: JSON.stringify({
-				state: state,
-				code: code
-			}),
-			headers: {
-				"content-type": "application/json"
+	};
+
+	const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/register`, config);
+	const data = await res.json();
+	if (data.next != null) {
+		return {
+			redirect: {
+				permanent: false,
+				destination: data.next.location
 			}
-		};
-		fetch(`${process.env.NEXT_PUBLIC_API_URL}/register`, config)
-			.then((response) => {
-				setStatus(response.status);
-				return (response.json());
-			})
-			.then((data) => {
-				if (data.next != null) {
-					router.push(data.next.location);
-				}	else {
-					setTitle(data.message);
-					setDetails(data.details);
-					setShouldLoad(true);
-				}
-			})
-	}, [router.isReady]);
-	if (!code || !state || !shouldLoad) {
-		return <></>;
+		}
 	}
+	console.log(res.status);
+	return {
+		props: {
+			status: res.status,
+			data
+		}
+	};
+}
+
+export default function index({ status, data }) {
+	useEffect(() => {
+		console.log(data);
+	});
+
 	return (
 		<>
 			<Head>
 				<title>Alekol Registration</title>
 				<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👀</text></svg>" />
 			</Head>
-			<Header title='Alekol Registration'/>
 			<Container>
-				<StatusCard code={status} title={title} details={details}/>
+				<Header title='Alekol Registration'/>
+				<StatusCard status={status} message={data.message} details={data.details} />
 				<HowToDocs/>
 			</Container>
 		</>

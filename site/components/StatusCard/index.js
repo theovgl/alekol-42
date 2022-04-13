@@ -32,12 +32,12 @@ const H2 = styled.h2`
 `;
 
 export default function StatusCard(props) {
-	if (props.code == 0) {
+	if (props.status == 0) {
 		return (
 			<Loader />
 		)
 	}
-	else if (props.code == 200) {
+	else if (props.status == 200) {
 		return (
 			<Card success>
 				<H2>Successfully registered</H2>
@@ -47,7 +47,7 @@ export default function StatusCard(props) {
 	else {
 		return (
 			<Card>
-				<H2>{props.title}</H2>
+				<H2>{props.message}</H2>
 				<p>{props.details}</p>
 			</Card>
 		)
