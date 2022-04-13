@@ -19,7 +19,7 @@ const Container = styled.div`
 	}
 
 	@media only screen and (min-width:820px) {
-		width: 656px;
+		max-width: 700px;
 	}
 `;
 
@@ -27,6 +27,7 @@ export default function index() {
 	const [status, setStatus] = useState(0);
 	const [title, setTitle] = useState("");
 	const [details, setDetails] = useState("")
+	const [shouldLoad, setShouldLoad] = useState(false);
 	const router = useRouter();
 	const { code } = router.query;
 	const { state } = router.query;
@@ -54,12 +55,14 @@ export default function index() {
 			.then((data) => {
 				if (data.next != null) {
 					router.push(data.next.location);
+				}	else {
+					setTitle(data.message);
+					setDetails(data.details);
+					setShouldLoad(true);
 				}
-				setTitle(data.message);
-				setDetails(data.details);
 			})
 	}, [router.isReady]);
-	if (!code || !state) {
+	if (!code || !state || !shouldLoad) {
 		return <></>;
 	}
 	return (
@@ -68,10 +71,10 @@ export default function index() {
 				<title>Alekol Registration</title>
 				<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👀</text></svg>" />
 			</Head>
-			<Header title='👀 Alekol Registration'/>
+			<Header title='Alekol Registration'/>
 			<Container>
 				<StatusCard code={status} title={title} details={details}/>
-        <HowToDocs/>
+				<HowToDocs/>
 			</Container>
 		</>
 	)

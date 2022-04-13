@@ -3,10 +3,10 @@ import Loader from "../Loader"
 
 const Card = styled.div`
 	border-radius: 9px;
-	width: 656px;
 	padding: 8px 30px;
 	margin: 0px 30px;
 	box-sizing: border-box;
+	width: 100%;
 
 	background: ${
 		props => props.success ?
@@ -19,21 +19,17 @@ const Card = styled.div`
 	};
 
 	@media only screen and (max-width:820px) {
-		h2: {
-			font-size: 10px;
-		}
 		margin: 0px 25px;
 	}
-
-`
+`;
 
 const H2 = styled.h2`
-	font-size: 24px;
+	font-size: 20px;
 
 	@media only screen and (max-width :570px) {
 		font-size: 18px;
 	}
-`
+`;
 
 export default function StatusCard(props) {
 	if (props.code == 0) {
@@ -45,11 +41,6 @@ export default function StatusCard(props) {
 		return (
 			<Card success>
 				<H2>Successfully registered</H2>
-				<p>Bot's commands</p>
-				<ul>
-					<li>/auth</li>
-					<li>/check</li>
-				</ul>
 			</Card>
 		)
 	}
@@ -61,4 +52,4 @@ export default function StatusCard(props) {
 			</Card>
 		)
 	}
-}
+};
