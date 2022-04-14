@@ -1,6 +1,7 @@
 const express = require('express');
 const { logAction } = require('../../src/logs.js');
 const registerRoute = require('./register');
+const stateRoute = require('./state');
 
 module.exports = (discord) => {
 
@@ -22,6 +23,7 @@ module.exports = (discord) => {
 	});
 	route.use(express.json());
 	route.use('/register', registerRoute(discord));
+	route.use('/state', stateRoute());
 
 	return route;
 
