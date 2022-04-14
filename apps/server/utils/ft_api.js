@@ -84,7 +84,7 @@ async function fetchUserLocationsByLogin(login) {
 async function fetchMe(authorization_code) {
 	const access_token = await clientAC.getToken({
 		code: authorization_code,
-		redirect_uri: config.redirect_uri.ft,
+		redirect_uri: `${config.redirect_uri}/register`,
 		scope: 'public',
 	});
 	return axios({

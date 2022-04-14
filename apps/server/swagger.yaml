@@ -1,0 +1,82 @@
+openapi: 3.0.0
+info:
+  title: Alekol
+  description: Discord bot for tracking who is at 42 school.
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+    description: Local server for testing
+  - url: https://api.alekol.42group.com/v1
+    description: Production server
+paths:
+  /register:
+    post:
+      summary: Register an user.
+      description: Register the user's information and return the next step's instructions.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  example: d591b65b8597ace7a5f2c4f7006aa63bf528c159c9a65686b98cd278e5fe5c00
+                state:
+                  type: string
+                  example: 1.gcaj0pspej
+      responses:
+        '200':
+          description: The user's data and the next step's instructions. If all the user's data has been collected, *next* is `null`.
+          content:
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  user:
+                    type: object
+                    properties:
+                      guild_id:
+                        type: integer
+                        format: int64
+                        example: 7853814616193230000
+                      ft_login:
+                        type: string
+                        example: norminet
+                  next:
+                    type: object
+                    properties:
+                      service:
+                        type: string
+                        example: Discord
+                      location:
+                        type: string
+                        format: url
+                        example: https://discord.com/api/oauth2/authorize
+        '400':
+          description: The given credentials are incorrect.
+          content:
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  message:
+                    format: string
+                    example: The request is incorrect, please try again...
+                  details:
+                    format: string
+                    example: The given code does not allow to retrieve the user's data.
+        '500':
+          description: An unexpected error occured.
+          content:
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  message:
+                    format: string
+                    example: An unexpected error occured...
+                  details:
+                    format: string
+                    example: Please contact an administrator.

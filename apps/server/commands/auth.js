@@ -26,7 +26,7 @@ module.exports = {
 				new MessageButton()
 					.setLabel('Register')
 					.setStyle('LINK')
-					.setURL(`https://api.intra.42.fr/oauth/authorize?client_id=${config.ft.client.id}&redirect_uri=${encodeURIComponent(config.redirect_uri.ft)}&response_type=code&state=${state}`),
+					.setURL(`https://api.intra.42.fr/oauth/authorize?client_id=${config.ft.client.id}&redirect_uri=${encodeURIComponent(config.redirect_uri + '/register')}&response_type=code&state=${state}`),
 			);
 		} else {
 			embed.setDescription('You are registered');

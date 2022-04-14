@@ -1,5 +1,5 @@
 const { MessageEmbed } = require('discord.js');
-const initApp = require('../app.js');
+const initApp = require('../api');
 const deployCommands = require('../deploy-commands.js');
 const initUsersMap = require('../src/initUsersMap.js');
 const { logAction } = require('../src/logs.js');

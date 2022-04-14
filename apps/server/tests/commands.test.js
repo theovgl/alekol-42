@@ -29,7 +29,7 @@ let mockMemberData;
 let mockUserData;
 let mockRole;
 
-mockConfig.redirect_uri.ft = redirect_uri;
+mockConfig.redirect_uri = redirect_uri;
 mockConfig.ft.client.id = client_id;
 
 const auth = require('../commands/auth.js');
@@ -82,7 +82,7 @@ describe('auth', () => {
 			});
 
 			test('should link to the intra oauth', () => {
-				expect(mockInteraction.editReply.mock.calls[0][0].components[0].components[0].url).toBe(`https://api.intra.42.fr/oauth/authorize?client_id=${client_id}&redirect_uri=${encodeURIComponent(redirect_uri)}&response_type=code&state=${mockSupabase.insertState.mock.calls[0][0]}`);
+				expect(mockInteraction.editReply.mock.calls[0][0].components[0].components[0].url).toBe(`https://api.intra.42.fr/oauth/authorize?client_id=${client_id}&redirect_uri=${encodeURIComponent(redirect_uri + '/register')}&response_type=code&state=${mockSupabase.insertState.mock.calls[0][0]}`);
 			});
 
 		});

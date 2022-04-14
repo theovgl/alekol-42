@@ -11,7 +11,7 @@ async function getAccessToken(code) {
 		data: qs.stringify({
 			client_id: config.discord.client.id,
 			client_secret: config.discord.client.secret,
-			redirect_uri: config.redirect_uri.discord,
+			redirect_uri: `${config.redirect_uri}/register`,
 			code,
 			grant_type: 'authorization_code',
 		}),
