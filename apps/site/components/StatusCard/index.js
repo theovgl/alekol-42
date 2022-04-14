@@ -32,23 +32,18 @@ const H2 = styled.h2`
 `;
 
 export default function StatusCard(props) {
-	if (props.status == 0) {
+	if (props.is_error) {
 		return (
-			<Loader />
-		)
-	}
-	else if (props.status == 200) {
-		return (
-			<Card success>
-				<H2>Successfully registered</H2>
+			<Card>
+				<H2>{props.message}</H2>
+				<p>{props.details}</p>
 			</Card>
 		)
 	}
 	else {
 		return (
-			<Card>
-				<H2>{props.message}</H2>
-				<p>{props.details}</p>
+			<Card success>
+				<H2>Successfully registered</H2>
 			</Card>
 		)
 	}
