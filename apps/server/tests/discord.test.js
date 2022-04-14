@@ -556,13 +556,13 @@ describe('onInteractionCreate', () => {
 			});
 
 			test('should log an error message', () => {
-				expect(logAction).toHaveBeenCalledWith(console.error, 'An error occured while changing user\'s roles');
+				expect(logAction).toHaveBeenCalledWith(console.error, 'An error occured while removing the role to the user');
 				expect(console.error).toHaveBeenCalledWith(mockError);
 			});
 
 			test('should continue to remove other roles', () => {
 				expect(mockRoleRemove).toHaveBeenCalledTimes(5);
-				expect(mockRoleAdd).toHaveBeenCalledTimes(4);
+				expect(mockRoleAdd).toHaveBeenCalledTimes(5);
 			});
 
 		});
@@ -573,6 +573,11 @@ describe('onInteractionCreate', () => {
 				initMocks();
 				mockRoleAdd.mockRejectedValueOnce(mockError);
 				ret = await onInteractionCreate(mockInteraction);
+			});
+
+			test('should log an error message', () => {
+				expect(logAction).toHaveBeenCalledWith(console.error, 'An error occured while adding the role to the user');
+				expect(console.error).toHaveBeenCalledWith(mockError);
 			});
 
 			test('should continue to remove other roles', () => {

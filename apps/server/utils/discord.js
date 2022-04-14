@@ -71,21 +71,25 @@ async function changeGuildRole(interaction) {
 
 	// Change the guild role
 	await supabase.setGuildRole(interaction.guildId, role_id);
-	if (role_manager) {
-		const requests = [];
-		const users_data = await supabase.fetchUser({ guild_id: interaction.guildId });
-		for (const user_data of users_data) {
-			const member = interaction.guild.members.cache.get(user_data.discord_id);
-			if (!member) continue ;
+	const requests = [];
+	const users_data = await supabase.fetchUser({ guild_id: interaction.guildId });
+	for (const user_data of users_data) {
+		const member = interaction.guild.members.cache.get(user_data.discord_id);
+		if (!member) continue ;
+		if (role_manager) {
 			requests.push(member.roles.remove(role_manager)
-				.then(() => member.roles.add(new_role_manager))
 				.catch((error) => {
-					logAction(console.error, 'An error occured while changing user\'s roles');
+					logAction(console.error, 'An error occured while removing the role to the user');
 					console.error(error);
 				}));
 		}
-		await Promise.all(requests);
+		requests.push(member.roles.add(new_role_manager)
+			.catch((error) => {
+				logAction(console.error, 'An error occured while adding the role to the user');
+				console.error(error);
+			}));
 	}
+	await Promise.all(requests);
 	const embed = new MessageEmbed()
 		.setColor(new_role_manager.color)
 		.setTitle('Role update')
