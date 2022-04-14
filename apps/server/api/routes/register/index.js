@@ -3,6 +3,7 @@ const discord_api = require('../../../utils/discord_api.js');
 const ft_api = require('../../../utils/ft_api.js');
 const supabase = require('../../../utils/supabase.js');
 const users = require('../../../src/users.js');
+const config = require('../../../config.js');
 const validation = require('./validation');
 
 async function ft_registration(state_data, code) {
@@ -15,7 +16,7 @@ async function ft_registration(state_data, code) {
 	state_data.ft_login = ft_user.login;
 	return {
 		service: 'Discord',
-		location: `https://discord.com/api/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(process.env.REDIRECT_URI + '/register')}&response_type=code&scope=identify&state=${state_data.state}`,
+		location: `https://discord.com/api/oauth2/authorize?client_id=${config.discord.client.id}&redirect_uri=${encodeURIComponent(config.redirect_uri + '/register')}&response_type=code&scope=identify&state=${state_data.state}`,
 	};
 }
 
