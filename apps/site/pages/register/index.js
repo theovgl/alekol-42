@@ -27,7 +27,6 @@ export async function getServerSideProps(context) {
 	const { code } = context.query;
 	const { state } = context.query;
 
-	console.log(code, state);
 	const config = {
 		method: 'POST',
 		body: JSON.stringify({
@@ -49,7 +48,6 @@ export async function getServerSideProps(context) {
 			}
 		}
 	}
-	console.log(res.status);
 	return {
 		props: {
 			status: res.status,
