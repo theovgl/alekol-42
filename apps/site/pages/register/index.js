@@ -41,7 +41,7 @@ export async function getServerSideProps(context) {
 	const { code, state, error } = context.query;
 
 	if (error) {
-		// TODO delete the state
+		await fetch(`${process.env.NEXT_PUBLIC_API_URL}/state/${state}`, { method: 'DELETE' });
 		return {
 			props: {
 				is_error: true,
