@@ -6,6 +6,16 @@ const users = require('../../../src/users.js');
 const config = require('../../../config.js');
 const validation = require('./validation');
 
+function mustBeApplicationJSON(req, res, next) {
+	if (req.headers['content-type'] != 'application/json') {
+		return res.status(400).json({
+			message: 'The request is incorrect...',
+			details: 'The \'content-type\' header must be \'application/json\'',
+		});
+	}
+	next();
+}
+
 async function ft_registration(state_data, code) {
 	const ft_user = await ft_api.fetchMe(code)
 		.catch(async (error) => {
@@ -45,6 +55,8 @@ async function discord_registration(discord, state_data, code) {
 module.exports = (discord) => {
 
 	const route = express.Router();
+
+	route.use(mustBeApplicationJSON);
 
 	route.post('/', async (req, res) => {
 		const { code, state } = req.body;
