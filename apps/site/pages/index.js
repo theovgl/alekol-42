@@ -1,4 +1,6 @@
-import styled from 'styled-components'
+import styled from 'styled-components';
+import Header from '../components/Header';
+import Head from 'next/head';
 
 const Title = styled.h1`
   font-size: 50px;
@@ -6,5 +8,13 @@ const Title = styled.h1`
 `
 
 export default function Home() {
-  return <Title>My page</Title>
+	return (
+		<>
+			<Head>
+				<title>Alekol</title>
+				<meta name='description' content=''/>
+			</Head>
+			<Header title="Alekol" />
+		</>
+	)
 }
