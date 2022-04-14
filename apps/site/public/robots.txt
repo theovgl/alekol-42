@@ -1,0 +1,3 @@
+# Block crawling for /register
+User-agent: *
+Disallow: /register
