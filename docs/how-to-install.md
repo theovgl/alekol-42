@@ -1,15 +1,10 @@
-# Alekol Server
+# How do I host my own instance?
 
-A Discord bot to add a role on your guild's members whenever they are at 42 school.
+If you don't want to invite the official bot in your server, you can host your own instance.
 
-## What I've used
+You will need NodeJS v16 minimum, a Supabase database, a 42 client and a Discord client.
 
-- [Supabase](https://github.com/supabase/supabase)
-- [DiscordJS](https://github.com/discordjs/discord.js)
-- [Axios](https://github.com/axios/axios)
-- [NodeJS](https://github.com/nodejs/node)
-
-## Installation
+## The server
 
 ### Setup Supabase
 
@@ -59,6 +54,7 @@ Finally, you need to enable the `Server Members Intent` in `Bot`.
 
 Here are the variables required in the `.env` file.
 
+(In `apps/server`)
 ```
 DISCORD_TOKEN=			< The Discord bot token >
 DISCORD_CLIENT_ID=		< The Discord client ID >
@@ -86,3 +82,37 @@ Go to `https://meta.intra.42.fr/clusters` with your web browser and go into Netw
 ### Start the server
 
 To start the server, just run `npm start`. You can set the `PORT` environment variable to change the HTTP app's port.
+
+The you can build and run the site.
+
+```sh
+npm run build
+npm run start
+```
+
+## The website
+
+### Installation
+
+First you have to install the node modules.
+
+```sh
+npm ci
+```
+
+### .env
+
+Here are the variables required in the `.env` file.
+
+```
+NEXT_PUBLIC_API_URL=	< The URL of the API server instance >
+```
+
+### Start the website
+
+The you can build and run the website.
+
+```sh
+npm run build
+npm run start
+```
