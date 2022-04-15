@@ -26,6 +26,7 @@ COPY --from=builder /usr/src/next.config.js ./
 COPY --from=builder /usr/src/package.json ./package.json
 COPY --from=deps /usr/src/node_modules ./node_modules
 COPY --from=builder --chown=nextjs:nodejs /usr/src/.next ./.next
+COPY --from=builder --chown=nextjs:nodejs /usr/src/public ./public
 
 USER nextjs
 EXPOSE 3000
