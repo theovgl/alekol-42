@@ -1,0 +1,22 @@
+version: "3.2"
+services:
+    server:
+        build: apps/server
+        restart: on-failure
+        ports:
+            - 8080:8080
+        networks:
+            - backend
+    site:
+        build: apps/site
+        restart: on-failure
+        environment:
+            NEXT_PUBLIC_API_URL: http://server:8080
+        ports:
+            - 3000:3000
+        depends_on:
+            - server
+        networks:
+            - backend
+networks:
+    backend:
