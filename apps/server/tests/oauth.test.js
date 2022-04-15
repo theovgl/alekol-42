@@ -10,6 +10,8 @@ jest.mock('../utils/ft_api.js');
 const mockFtApi = require('../utils/ft_api.js');
 jest.mock('../src/users.js');
 const mockUsers = require('../src/users.js');
+jest.mock('../config.js');
+const mockConfig = require('../config.js');
 console.error = jest.fn();
 
 const code = faker.datatype.number().toString();
@@ -30,8 +32,8 @@ let mockRequest;
 let app;
 let response;
 
-process.env.DISCORD_CLIENT_ID = client_id;
-process.env.REDIRECT_URI = redirect_uri;
+mockConfig.discord.client.id = client_id;
+mockConfig.redirect_uri = redirect_uri;
 
 describe('GET /register', () => {
 
@@ -843,6 +845,75 @@ describe('GET /register', () => {
 			});
 
 		});
+
+	});
+
+});
+
+describe('DELETE /state/:id', () => {
+
+	function initMocks() {
+		jest.resetAllMocks();
+		mockSupabase.deleteState.mockResolvedValue();
+	}
+
+	describe('when the state delete fails', () => {
+
+		beforeAll(async () => {
+			initMocks();
+			mockSupabase.deleteState.mockRejectedValue(mockError);
+			response = await supertest(app).delete(`/state/${state}`);
+		});
+
+		test('should log an error message', () => {
+			expect(console.error).toHaveBeenCalledWith(mockError);
+		});
+
+		test('should send status code 500', () => {
+			expect(response.statusCode).toBe(500);
+		});
+
+		test('should allow cors', () => {
+			expect(response.headers['access-control-allow-origin']).toBe('*');
+		});
+
+		test('should respond with a JSON object', () => {
+			expect(response.headers['content-type']).toEqual(expect.stringContaining('json'));
+		});
+
+		describe('the JSON object', () => {
+
+			test('should contain a message', () => {
+				expect(response.body).toHaveProperty('message', 'An unexpected error occured...');
+			});
+
+			test('should contain details', () => {
+				expect(response.body).toHaveProperty('details', 'Please contact an administrator.');
+			});
+
+		});
+
+	});
+
+	describe('when everything is ok', () => {
+
+		beforeAll(async () => {
+			initMocks();
+			response = await supertest(app).delete(`/state/${state}`);
+		});
+
+		test('should delete the state from the database', () => {
+			expect(mockSupabase.deleteState).toHaveBeenCalledWith(state);
+		});
+
+		test('should send status code 204', () => {
+			expect(response.statusCode).toBe(204);
+		});
+
+		test('should allow cors', () => {
+			expect(response.headers['access-control-allow-origin']).toBe('*');
+		});
+
 
 	});
 

@@ -3,7 +3,18 @@ const discord_api = require('../../../utils/discord_api.js');
 const ft_api = require('../../../utils/ft_api.js');
 const supabase = require('../../../utils/supabase.js');
 const users = require('../../../src/users.js');
+const config = require('../../../config.js');
 const validation = require('./validation');
+
+function mustBeApplicationJSON(req, res, next) {
+	if (req.headers['content-type'] != 'application/json') {
+		return res.status(400).json({
+			message: 'The request is incorrect...',
+			details: 'The \'content-type\' header must be \'application/json\'',
+		});
+	}
+	next();
+}
 
 async function ft_registration(state_data, code) {
 	const ft_user = await ft_api.fetchMe(code)
@@ -15,7 +26,7 @@ async function ft_registration(state_data, code) {
 	state_data.ft_login = ft_user.login;
 	return {
 		service: 'Discord',
-		location: `https://discord.com/api/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(process.env.REDIRECT_URI + '/register')}&response_type=code&scope=identify&state=${state_data.state}`,
+		location: `https://discord.com/api/oauth2/authorize?client_id=${config.discord.client.id}&redirect_uri=${encodeURIComponent(config.redirect_uri + '/register')}&response_type=code&scope=identify&state=${state_data.state}`,
 	};
 }
 
@@ -44,6 +55,8 @@ async function discord_registration(discord, state_data, code) {
 module.exports = (discord) => {
 
 	const route = express.Router();
+
+	route.use(mustBeApplicationJSON);
 
 	route.post('/', async (req, res) => {
 		const { code, state } = req.body;

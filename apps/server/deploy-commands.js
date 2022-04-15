@@ -1,11 +1,10 @@
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 const fs = require('fs');
+const config = require('./config.js');
 const { logAction } = require('./src/logs.js');
 
 const environment = process.env.NODE_ENV ?? 'development';
-const client_id = process.env.DISCORD_CLIENT_ID;
-const guild_id = process.env.DISCORD_GUILD_ID;
 
 async function deployCommands() {
 	logAction(console.log, 'Registering commands');
@@ -19,13 +18,13 @@ async function deployCommands() {
 	}
 
 	// Put the commands to the Discord API
-	const rest = new REST({ version: '9' }).setToken(process.env.DISCORD_TOKEN);
+	const rest = new REST({ version: '9' }).setToken(config.discord.bot_token);
 	if (environment == 'production') {
-		await rest.put(Routes.applicationCommands(client_id), { body: commands })
+		await rest.put(Routes.applicationCommands(config.discord.client.id), { body: commands })
 			.then(() => logAction(console.log, 'Registered application commands'))
 			.catch(console.error);
-	} else if (environment == 'development') {
-		await rest.put(Routes.applicationGuildCommands(client_id, guild_id), { body: commands })
+	} else if (environment == 'development' && config.discord.guild_id) {
+		await rest.put(Routes.applicationGuildCommands(config.discord.client.id, config.discord.guild_id), { body: commands })
 			.then(() => logAction(console.log, 'Registered guild application commands'))
 			.catch(console.error);
 	}

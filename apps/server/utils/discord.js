@@ -24,7 +24,10 @@ async function onGuildCreate(guild) {
 
 async function onGuildDelete(guild) {
 	try {
-		await supabase.deleteUsersOfGuild(guild.id);
+		await Promise.all([
+			supabase.deleteUsersOfGuild(guild.id),
+			supabase.deleteStatesOfGuild(guild.id),
+		]);
 		await supabase.deleteGuild(guild.id);
 		logAction(console.log, `Left guild ${guild.name}`);
 	} catch (error) {
@@ -68,21 +71,25 @@ async function changeGuildRole(interaction) {
 
 	// Change the guild role
 	await supabase.setGuildRole(interaction.guildId, role_id);
-	if (role_manager) {
-		const requests = [];
-		const users_data = await supabase.fetchUser({ guild_id: interaction.guildId });
-		for (const user_data of users_data) {
-			const member = interaction.guild.members.cache.get(user_data.discord_id);
-			if (!member) continue ;
+	const requests = [];
+	const users_data = await supabase.fetchUser({ guild_id: interaction.guildId });
+	for (const user_data of users_data) {
+		const member = interaction.guild.members.cache.get(user_data.discord_id);
+		if (!member) continue ;
+		if (role_manager) {
 			requests.push(member.roles.remove(role_manager)
-				.then(() => member.roles.add(new_role_manager))
 				.catch((error) => {
-					logAction(console.error, 'An error occured while changing user\'s roles');
+					logAction(console.error, 'An error occured while removing the role to the user');
 					console.error(error);
 				}));
 		}
-		await Promise.all(requests);
+		requests.push(member.roles.add(new_role_manager)
+			.catch((error) => {
+				logAction(console.error, 'An error occured while adding the role to the user');
+				console.error(error);
+			}));
 	}
+	await Promise.all(requests);
 	const embed = new MessageEmbed()
 		.setColor(new_role_manager.color)
 		.setTitle('Role update')
@@ -100,7 +107,11 @@ async function deleteUser(interaction) {
 			user.guilds_member = user.guilds_member.filter((guild_member) => guild_member.guild.id != interaction.guildId);
 		}
 		const guild_data = await supabase.fetchGuild(interaction.guildId);
-		await interaction.member.roles.remove(interaction.guild.roles.cache.get(guild_data[0].role));
+		await interaction.member.roles.remove(interaction.guild.roles.cache.get(guild_data[0].role))
+			.catch((error) => {
+				logAction(console.error, 'An error occured while removing the member\'s role');
+				console.error(error);
+			});
 	} else {
 		const already_deleted = [];
 		for (const user_data of users_data) {
@@ -118,10 +129,12 @@ async function deleteUser(interaction) {
 			if (!guild) continue ;
 			const member = guild.members.cache.get(interaction.user.id);
 			if (!member) continue ;
-			requests.push(member.roles.remove(guild_data.role).catch((error) => {
-				logAction(console.error, 'An error occured while removing the member\'s role');
-				console.error(error);
-			}));
+			requests.push(member.roles.remove(guild_data.role)
+				.catch((error) => {
+					logAction(console.error, 'An error occured while removing the member\'s role');
+					console.error(error);
+				}),
+			);
 		}
 		await Promise.all(requests);
 	}

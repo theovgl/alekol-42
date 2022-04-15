@@ -1,7 +1,6 @@
 const { Client, Collection, Intents } = require('discord.js');
-const dotenv = require('dotenv');
 const fs = require('fs');
-dotenv.config();
+const config = require('./config.js');
 const { logAction } = require('./src/logs.js');
 const discord = require('./utils/discord.js');
 
@@ -26,4 +25,4 @@ client.on('guildDelete', discord.onGuildDelete);
 client.on('guildMemberAdd', discord.onGuildMemberAdd);
 client.on('guildMemberRemove', discord.onGuildMemberRemove);
 
-client.login(process.env.DISCORD_TOKEN);
+client.login(config.discord.bot_token);

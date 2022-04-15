@@ -7,6 +7,8 @@ jest.mock('../src/users.js');
 const mockUsers = require('../src/users.js');
 jest.mock('../utils/ft_api.js');
 const mockFtApi = require('../utils/ft_api.js');
+jest.mock('../config.js');
+const mockConfig = require('../config.js');
 jest.mock('../src/logs.js');
 const { logAction: mockLogAction } = require('../src/logs.js');
 global.console.error = jest.fn();
@@ -27,8 +29,8 @@ let mockMemberData;
 let mockUserData;
 let mockRole;
 
-process.env.REDIRECT_URI = redirect_uri;
-process.env.UID_42 = client_id;
+mockConfig.redirect_uri = redirect_uri;
+mockConfig.ft.client.id = client_id;
 
 const auth = require('../commands/auth.js');
 describe('auth', () => {
@@ -186,197 +188,6 @@ describe('auth', () => {
 
 });
 
-const check = require('../commands/check.js');
-describe('check', () => {
-
-	function initMocks() {
-		jest.resetAllMocks();
-		mockInteraction = {
-			guildId: guild_id,
-			options: {
-				getString: jest.fn().mockReturnValue(ft_login),
-			},
-			user: {
-				id: discord_id,
-			},
-			deferReply: jest.fn().mockResolvedValue(),
-			editReply: jest.fn().mockResolvedValue(),
-		};
-		mockMemberData = {
-		};
-		mockSupabase.fetchUser.mockResolvedValue([mockMemberData]);
-		mockUsers.findWithDb.mockReturnValue({
-			host,
-			begin_at,
-			end_at,
-		});
-	}
-
-	describe('when the member is not registered', () => {
-
-		beforeAll(async () => {
-			initMocks();
-			mockSupabase.fetchUser.mockResolvedValueOnce([]);
-			await check.execute(mockInteraction);
-		});
-
-		test('should reply with an error message', () => {
-			expect(mockInteraction.editReply).toHaveBeenCalledWith('🛑 You must be registered to access that information');
-		});
-
-	});
-
-	describe('when everything is ok', () => {
-
-		beforeAll(async () => {
-			initMocks();
-			await check.execute(mockInteraction);
-		});
-
-		test('should defer the reply', () => {
-			expect(mockInteraction.deferReply).toHaveBeenCalledTimes(1);
-		});
-
-		test('should fetch the user from the database', () => {
-			expect(mockSupabase.fetchUser).toHaveBeenCalledWith({ discord_id });
-		});
-
-		test('should find the user in the binary tree', () => {
-			expect(mockUsers.findWithDb).toHaveBeenCalledWith(ft_login);
-		});
-
-		test('should reply with an embedded message', () => {
-			expect(mockInteraction.editReply).toHaveBeenCalledWith({ embeds: expect.any(Array) });
-		});
-
-	});
-
-	describe('when at school', () => {
-
-		beforeAll(async () => {
-			initMocks();
-			await check.execute(mockInteraction);
-		});
-
-		test('title should be the login', () => {
-			expect(mockInteraction.editReply.mock.calls[0][0].embeds[0].title).toBe(ft_login);
-		});
-
-		test('description should tell that the user is at school', () => {
-			expect(mockInteraction.editReply.mock.calls[0][0].embeds[0].description).toBe('Is at school');
-		});
-
-		test('URL should point to the user\'s intra profile', () => {
-			expect(mockInteraction.editReply.mock.calls[0][0].embeds[0].url).toBe(`https://profile.intra.42.fr/users/${ft_login}`);
-		});
-
-		test('there should be a host field', () => {
-			expect(mockInteraction.editReply.mock.calls[0][0].embeds[0].fields).toContainEqual({ name: 'Host', value: host, inline: expect.any(Boolean) });
-		});
-
-		test('there should be a logged field', () => {
-			expect(mockInteraction.editReply.mock.calls[0][0].embeds[0].fields).toContainEqual({ name: 'Logged', value: expect.any(String), inline: expect.any(Boolean) });
-		});
-
-	});
-
-	describe('when not at school', () => {
-
-		beforeAll(async () => {
-			initMocks();
-			mockUsers.findWithDb.mockReturnValueOnce({
-				host: null,
-				begin_at: null,
-				end_at,
-			});
-			await check.execute(mockInteraction);
-		});
-
-		test('title should be the login', () => {
-			expect(mockInteraction.editReply.mock.calls[0][0].embeds[0].title).toBe(ft_login);
-		});
-
-		test('description should tell that the user is not at school', () => {
-			expect(mockInteraction.editReply.mock.calls[0][0].embeds[0].description).toBe('Is not at school');
-		});
-
-		test('URL should point to the user\'s intra profile', () => {
-			expect(mockInteraction.editReply.mock.calls[0][0].embeds[0].url).toBe(`https://profile.intra.42.fr/users/${ft_login}`);
-		});
-
-		test('there should be a last seen field', () => {
-			expect(mockInteraction.editReply.mock.calls[0][0].embeds[0].fields).toContainEqual({ name: 'Last seen', value: expect.any(String), inline: expect.any(Boolean) });
-		});
-
-		describe('and the bot has never seen user logged in', () => {
-
-			describe('and the user does not exist', () => {
-
-				beforeAll(async () => {
-					initMocks();
-					mockUsers.findWithDb.mockReturnValueOnce({
-						host: null,
-						begin_at: null,
-						end_at: null,
-					});
-					mockFtApi.fetchUserLocationsByLogin.mockRejectedValueOnce();
-					await check.execute(mockInteraction);
-				});
-
-				test('should log an error message', () => {
-					expect(mockLogAction).toHaveBeenCalledWith(console.error, `The user ${ft_login} does not exist.`);
-				});
-
-				test('should reply with an error message', () => {
-					expect(mockInteraction.editReply).toHaveBeenCalledWith(`🙅 The user ${ft_login} does not exist`);
-				});
-
-			});
-
-			describe('and the user has never logged in', () => {
-
-				beforeAll(async () => {
-					initMocks();
-					mockUsers.findWithDb.mockReturnValueOnce({
-						host: null,
-						begin_at: null,
-						end_at: null,
-					});
-					mockFtApi.fetchUserLocationsByLogin.mockResolvedValueOnce([]);
-					await check.execute(mockInteraction);
-				});
-
-				test('should reply with an error message', () => {
-					expect(mockInteraction.editReply).toHaveBeenCalledWith(`💤 The user ${ft_login} has never logged in`);
-				});
-
-			});
-
-			describe('and everything is ok', () => {
-
-				beforeAll(async () => {
-					initMocks();
-					mockUsers.findWithDb.mockReturnValueOnce({
-						host: null,
-						begin_at: null,
-						end_at: null,
-					});
-					mockFtApi.fetchUserLocationsByLogin.mockResolvedValueOnce([mockUserLocation]);
-					await check.execute(mockInteraction);
-				});
-
-				test('should fetch the user\'s locations', () => {
-					expect(mockFtApi.fetchUserLocationsByLogin).toHaveBeenCalledWith(ft_login);
-				});
-
-			});
-
-		});
-
-	});
-
-});
-
 const ping = require('../commands/ping.js');
 describe('ping', () => {
 
@@ -483,6 +294,197 @@ describe('role', () => {
 			for (const guild_role of mockInteraction.editReply.mock.calls[0][0].components[0].components[0].options) {
 				expect(guild_role).toMatchObject({ label: role_name, value: role_id });
 			}
+		});
+
+	});
+
+});
+
+const spy = require('../commands/spy.js');
+describe('spy', () => {
+
+	function initMocks() {
+		jest.resetAllMocks();
+		mockInteraction = {
+			guildId: guild_id,
+			options: {
+				getString: jest.fn().mockReturnValue(ft_login),
+			},
+			user: {
+				id: discord_id,
+			},
+			deferReply: jest.fn().mockResolvedValue(),
+			editReply: jest.fn().mockResolvedValue(),
+		};
+		mockMemberData = {
+		};
+		mockSupabase.fetchUser.mockResolvedValue([mockMemberData]);
+		mockUsers.findWithDb.mockReturnValue({
+			host,
+			begin_at,
+			end_at,
+		});
+	}
+
+	describe('when the member is not registered', () => {
+
+		beforeAll(async () => {
+			initMocks();
+			mockSupabase.fetchUser.mockResolvedValueOnce([]);
+			await spy.execute(mockInteraction);
+		});
+
+		test('should reply with an error message', () => {
+			expect(mockInteraction.editReply).toHaveBeenCalledWith('🛑 You must be registered to access that information');
+		});
+
+	});
+
+	describe('when everything is ok', () => {
+
+		beforeAll(async () => {
+			initMocks();
+			await spy.execute(mockInteraction);
+		});
+
+		test('should defer the reply', () => {
+			expect(mockInteraction.deferReply).toHaveBeenCalledTimes(1);
+		});
+
+		test('should fetch the user from the database', () => {
+			expect(mockSupabase.fetchUser).toHaveBeenCalledWith({ discord_id });
+		});
+
+		test('should find the user in the binary tree', () => {
+			expect(mockUsers.findWithDb).toHaveBeenCalledWith(ft_login);
+		});
+
+		test('should reply with an embedded message', () => {
+			expect(mockInteraction.editReply).toHaveBeenCalledWith({ embeds: expect.any(Array) });
+		});
+
+	});
+
+	describe('when at school', () => {
+
+		beforeAll(async () => {
+			initMocks();
+			await spy.execute(mockInteraction);
+		});
+
+		test('title should be the login', () => {
+			expect(mockInteraction.editReply.mock.calls[0][0].embeds[0].title).toBe(ft_login);
+		});
+
+		test('description should tell that the user is at school', () => {
+			expect(mockInteraction.editReply.mock.calls[0][0].embeds[0].description).toBe('Is at school');
+		});
+
+		test('URL should point to the user\'s intra profile', () => {
+			expect(mockInteraction.editReply.mock.calls[0][0].embeds[0].url).toBe(`https://profile.intra.42.fr/users/${ft_login}`);
+		});
+
+		test('there should be a host field', () => {
+			expect(mockInteraction.editReply.mock.calls[0][0].embeds[0].fields).toContainEqual({ name: 'Host', value: host, inline: expect.any(Boolean) });
+		});
+
+		test('there should be a logged field', () => {
+			expect(mockInteraction.editReply.mock.calls[0][0].embeds[0].fields).toContainEqual({ name: 'Logged', value: expect.any(String), inline: expect.any(Boolean) });
+		});
+
+	});
+
+	describe('when not at school', () => {
+
+		beforeAll(async () => {
+			initMocks();
+			mockUsers.findWithDb.mockReturnValueOnce({
+				host: null,
+				begin_at: null,
+				end_at,
+			});
+			await spy.execute(mockInteraction);
+		});
+
+		test('title should be the login', () => {
+			expect(mockInteraction.editReply.mock.calls[0][0].embeds[0].title).toBe(ft_login);
+		});
+
+		test('description should tell that the user is not at school', () => {
+			expect(mockInteraction.editReply.mock.calls[0][0].embeds[0].description).toBe('Is not at school');
+		});
+
+		test('URL should point to the user\'s intra profile', () => {
+			expect(mockInteraction.editReply.mock.calls[0][0].embeds[0].url).toBe(`https://profile.intra.42.fr/users/${ft_login}`);
+		});
+
+		test('there should be a last seen field', () => {
+			expect(mockInteraction.editReply.mock.calls[0][0].embeds[0].fields).toContainEqual({ name: 'Last seen', value: expect.any(String), inline: expect.any(Boolean) });
+		});
+
+		describe('and the bot has never seen user logged in', () => {
+
+			describe('and the user does not exist', () => {
+
+				beforeAll(async () => {
+					initMocks();
+					mockUsers.findWithDb.mockReturnValueOnce({
+						host: null,
+						begin_at: null,
+						end_at: null,
+					});
+					mockFtApi.fetchUserLocationsByLogin.mockRejectedValueOnce();
+					await spy.execute(mockInteraction);
+				});
+
+				test('should log an error message', () => {
+					expect(mockLogAction).toHaveBeenCalledWith(console.error, `The user ${ft_login} does not exist.`);
+				});
+
+				test('should reply with an error message', () => {
+					expect(mockInteraction.editReply).toHaveBeenCalledWith(`🙅 The user ${ft_login} does not exist`);
+				});
+
+			});
+
+			describe('and the user has never logged in', () => {
+
+				beforeAll(async () => {
+					initMocks();
+					mockUsers.findWithDb.mockReturnValueOnce({
+						host: null,
+						begin_at: null,
+						end_at: null,
+					});
+					mockFtApi.fetchUserLocationsByLogin.mockResolvedValueOnce([]);
+					await spy.execute(mockInteraction);
+				});
+
+				test('should reply with an error message', () => {
+					expect(mockInteraction.editReply).toHaveBeenCalledWith(`💤 The user ${ft_login} has never logged in`);
+				});
+
+			});
+
+			describe('and everything is ok', () => {
+
+				beforeAll(async () => {
+					initMocks();
+					mockUsers.findWithDb.mockReturnValueOnce({
+						host: null,
+						begin_at: null,
+						end_at: null,
+					});
+					mockFtApi.fetchUserLocationsByLogin.mockResolvedValueOnce([mockUserLocation]);
+					await spy.execute(mockInteraction);
+				});
+
+				test('should fetch the user\'s locations', () => {
+					expect(mockFtApi.fetchUserLocationsByLogin).toHaveBeenCalledWith(ft_login);
+				});
+
+			});
+
 		});
 
 	});

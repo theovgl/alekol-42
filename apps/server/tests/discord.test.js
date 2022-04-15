@@ -120,6 +120,7 @@ describe('onGuildDelete', () => {
 		};
 		mockSupabase.deleteGuild.mockResolvedValue();
 		mockSupabase.deleteUsersOfGuild.mockResolvedValue();
+		mockSupabase.deleteStatesOfGuild.mockResolvedValue();
 	}
 
 	describe('when the guild\'s users deletion fails', () => {
@@ -127,6 +128,21 @@ describe('onGuildDelete', () => {
 		beforeAll(async () => {
 			initMocks();
 			mockSupabase.deleteUsersOfGuild.mockRejectedValue(mockError);
+			await onGuildDelete(mockGuild);
+		});
+
+		test('should log an error message', () => {
+			expect(logAction).toHaveBeenCalledWith(console.error, 'An error occured while leaving the guild');
+			expect(console.error).toHaveBeenCalledWith(mockError);
+		});
+
+	});
+
+	describe('when the guild\'s states deletion fails', () => {
+
+		beforeAll(async () => {
+			initMocks();
+			mockSupabase.deleteStatesOfGuild.mockRejectedValue(mockError);
 			await onGuildDelete(mockGuild);
 		});
 
@@ -161,6 +177,10 @@ describe('onGuildDelete', () => {
 
 		test('should delete the guild\'s users from the database', () => {
 			expect(mockSupabase.deleteUsersOfGuild).toHaveBeenCalledWith(guild_id);
+		});
+
+		test('should delete the guild\'s states from the database', () => {
+			expect(mockSupabase.deleteStatesOfGuild).toHaveBeenCalledWith(guild_id);
 		});
 
 		test('should delete the guild from the database', () => {
@@ -536,13 +556,13 @@ describe('onInteractionCreate', () => {
 			});
 
 			test('should log an error message', () => {
-				expect(logAction).toHaveBeenCalledWith(console.error, 'An error occured while changing user\'s roles');
+				expect(logAction).toHaveBeenCalledWith(console.error, 'An error occured while removing the role to the user');
 				expect(console.error).toHaveBeenCalledWith(mockError);
 			});
 
 			test('should continue to remove other roles', () => {
 				expect(mockRoleRemove).toHaveBeenCalledTimes(5);
-				expect(mockRoleAdd).toHaveBeenCalledTimes(4);
+				expect(mockRoleAdd).toHaveBeenCalledTimes(5);
 			});
 
 		});
@@ -553,6 +573,11 @@ describe('onInteractionCreate', () => {
 				initMocks();
 				mockRoleAdd.mockRejectedValueOnce(mockError);
 				ret = await onInteractionCreate(mockInteraction);
+			});
+
+			test('should log an error message', () => {
+				expect(logAction).toHaveBeenCalledWith(console.error, 'An error occured while adding the role to the user');
+				expect(console.error).toHaveBeenCalledWith(mockError);
 			});
 
 			test('should continue to remove other roles', () => {
@@ -834,7 +859,7 @@ describe('onInteractionCreate', () => {
 
 					beforeAll(async () => {
 						initMocks();
-						mockSupabase.fetchGuild.mockRejectedValue(mockError);
+						mockInteraction.member.roles.remove.mockRejectedValue(mockError);
 						await onInteractionCreate(mockInteraction);
 					});
 
@@ -842,8 +867,8 @@ describe('onInteractionCreate', () => {
 						expect(console.error).toHaveBeenCalledWith(mockError);
 					});
 
-					test('should reply with a message', () => {
-						expect(mockInteraction.update).toHaveBeenCalledWith({ content: '😵 An error occurred... Please try again later!', components: [] });
+					test('should update the message', () => {
+						expect(mockInteraction.update).toHaveBeenCalledWith({ content: 'You have been unregistered... 💔', embeds: [], components: [] });
 					});
 
 				});
@@ -869,6 +894,10 @@ describe('onInteractionCreate', () => {
 
 					test('should remove the role in the guild', () => {
 						expect(mockInteraction.member.roles.remove).toHaveBeenCalled();
+					});
+
+					test('should update the message', () => {
+						expect(mockInteraction.update).toHaveBeenCalledWith({ content: 'You have been unregistered... 💔', embeds: [], components: [] });
 					});
 
 				});

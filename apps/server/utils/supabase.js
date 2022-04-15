@@ -1,10 +1,11 @@
 const supabase = require('@supabase/supabase-js');
+const config = require('../config.js');
 
 let client;
 if (process.env.NODE_ENV == 'production'
 	|| process.env.NODE_ENV == 'development') {
-	const supabaseUrl = process.env.SUPABASE_URL;
-	const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+	const supabaseUrl = config.supabase.url;
+	const supabaseAnonKey = config.supabase.anon_key;
 	client = supabase.createClient(supabaseUrl, supabaseAnonKey);
 }
 
@@ -164,4 +165,13 @@ async function deleteState(state) {
 	return (data);
 }
 
-module.exports = { fetchAllGuilds, fetchGuild, insertGuild, setGuildRole, deleteGuild, fetchUser, fetchUserGuilds, userExists, insertUser, deleteUser, deleteUsersOfGuild, fetchState, insertState, updateState, deleteState };
+async function deleteStatesOfGuild(guild_id) {
+	const { data, error } = await client
+		.from('state')
+		.delete()
+		.match({ guild_id });
+	if (error) throw (new Error(error.message));
+	return (data);
+}
+
+module.exports = { fetchAllGuilds, fetchGuild, insertGuild, setGuildRole, deleteGuild, fetchUser, fetchUserGuilds, userExists, insertUser, deleteUser, deleteUsersOfGuild, fetchState, insertState, updateState, deleteState, deleteStatesOfGuild };
