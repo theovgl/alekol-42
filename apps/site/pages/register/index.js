@@ -41,7 +41,10 @@ export async function getServerSideProps(context) {
 	const { code, state, error } = context.query;
 
 	if (error) {
-		await fetch(`${process.env.NEXT_PUBLIC_API_URL}/state/${state}`, { method: 'DELETE' });
+		await fetch(`${process.env.NEXT_PUBLIC_API_URL}/state/${state}`, { method: 'DELETE' })
+			.catch((error) => {
+				console.error(error);
+			});
 		return {
 			props: {
 				is_error: true,
@@ -60,7 +63,17 @@ export async function getServerSideProps(context) {
 		}
 	};
 
-	const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/register`, config);
+	try {
+		const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/register`, config);
+	} catch (error) {
+		console.error(error);
+		return {
+			props: {
+				is_error: true,
+				data: generate_error_details(),
+			}
+		};
+	}
 	const data = await res.json();
 	if (data.next != null) {
 		return {
