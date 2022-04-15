@@ -14,6 +14,27 @@ const GlobalStyle = createGlobalStyle`
 	h1 {
 		font-weight: 900;
 	}
+
+	@font-face {
+		font-family: "Inter";
+		src: url("/fonts/Inter/static/Inter-Black.ttf");
+		font-weight: 900;
+		font-style: black;
+	}
+
+	@font-face {
+		font-family: "Inter";
+		src: url("/fonts/Inter/static/Inter-Regular.ttf");
+		font-weight: 400;
+		font-style: regular;
+	}
+
+	@font-face {
+		font-family: "Inter";
+		src: url("/fonts/Inter/static/Inter-Bold.ttf");
+		font-weight: 700;
+		font-style: bold;
+	}
 `
 
 const theme = {

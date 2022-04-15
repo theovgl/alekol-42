@@ -4,7 +4,10 @@ export default function Document() {
 	return (
 		<Html lang="en">
 			<Head>
-				<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet" />
+				<link rel='icon' href='/favicon.svg'/>
+				<link rel='preload' href='/fonts/Inter/static/Inter-Black.ttf' as='font' crossOrigin='' type='font/ttf'/>
+				<link rel='preload' href='/fonts/Inter/static/Inter-Regular.ttf' as='font' crossOrigin='' type='font/ttf'/>
+				<link rel='preload' href='/fonts/Inter/static/Inter-Bold.ttf' as='font' crossOrigin='' type='font/ttf'/>
 			</Head>
 			<body>
 				<Main />

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg width="588.58" height="588.58" version="1.1" viewBox="0 0 588.58 588.58" xmlns="http://www.w3.org/2000/svg">
+ <rect width="588.58" height="588.58" fill-opacity="0" stroke-linecap="round" stroke-linejoin="round" stroke-width="20"/>
+ <g transform="translate(-1010.8 -173.44)">
+  <g transform="translate(685.28,563.99)" fill="#aeaeae">
+   <rect x="325.57" y="-333.76" width="330" height="475" ry="163.01"/>
+   <rect x="584.15" y="-333.76" width="330" height="475" ry="163.01"/>
+  </g>
+  <g transform="translate(32.867,-40.858)">
+   <rect x="997.98" y="291.09" width="290" height="435" ry="149.28" fill="#ddd"/>
+   <path d="m1143 291.09c80.33 0 100.32 66.579 100.32 149.28v136.44c0 82.701-19.986 149.28-100.32 149.28s-145-66.579-145-149.28v-136.44c0-82.701 64.67-149.28 145-149.28z" fill="#fefefe" stroke-linecap="round" stroke-linejoin="round" stroke-width="18.914"/>
+   <rect x="1256.6" y="291.09" width="290" height="435" ry="149.28" fill="#ddd"/>
+   <path d="m1401.6 291.09c80.33 0 100.32 66.579 100.32 149.28v136.44c0 82.701-19.986 149.28-100.32 149.28s-145-66.579-145-149.28v-136.44c0-82.701 64.67-149.28 145-149.28z" fill="#fefefe" stroke-linecap="round" stroke-linejoin="round" stroke-width="18.914"/>
+  </g>
+  <g transform="translate(-76.706,-3.1937)">
+   <rect x="1125.6" y="366.93" width="145" height="235" ry="72.5" fill="#311c40"/>
+   <ellipse transform="rotate(135)" cx="-570.37" cy="-1173.5" rx="18.179" ry="22.709" fill="#fff"/>
+  </g>
+  <g transform="translate(181.88,-3.1937)">
+   <rect x="1125.6" y="366.93" width="145" height="235" ry="72.5" fill="#311c40"/>
+   <ellipse transform="rotate(135)" cx="-570.37" cy="-1173.5" rx="18.179" ry="22.709" fill="#fff"/>
+  </g>
+ </g>
+</svg>
