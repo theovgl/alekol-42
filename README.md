@@ -1,10 +1,10 @@
 # Alekol - Discord bot
 
+[![Invite](https://img.shields.io/badge/Alekol-Invite-red?style=social&logo=discord)](https://example.org)
+
 Alekol is a Discord bot to automatically add or remove a role whether you are logged at 42 school.
 
 ![image](https://user-images.githubusercontent.com/76964081/163008574-42fdb83b-082a-4c3f-9572-27dbb4ad9842.png)
-
-[Invite in your server](https://example.org)
 
 ## Usage
 
