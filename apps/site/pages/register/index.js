@@ -63,8 +63,9 @@ export async function getServerSideProps(context) {
 		}
 	};
 
+	let res;
 	try {
-		const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/register`, config);
+		res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/register`, config);
 	} catch (error) {
 		console.error(error);
 		return {
