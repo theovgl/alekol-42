@@ -80,3 +80,18 @@ Go to `https://meta.intra.42.fr/clusters` with your web browser and go into Netw
 ## Start the server
 
 To start the server, just run `npm start`. You can set the `PORT` environment variable to change the HTTP app's port.
+
+## Start the website
+
+First you have to install the node modules.
+
+```sh
+npm ci
+```
+
+The you can build and run the site.
+
+```sh
+npm run build
+npm run start
+```
