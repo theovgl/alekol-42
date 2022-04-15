@@ -2,7 +2,7 @@
 
 [![ESLint](https://github.com/theovgl/bot_alekol/actions/workflows/lint.yml/badge.svg)](https://github.com/theovgl/bot_alekol/actions/workflows/lint.yml)
 [![Node.js CI](https://github.com/theovgl/bot_alekol/actions/workflows/node.yml/badge.svg?branch=main)](https://github.com/theovgl/bot_alekol/actions/workflows/node.yml)
-[![Invite](https://img.shields.io/badge/Alekol-Invite-red?style=social&logo=discord)](https://example.org)
+[![Invite](https://img.shields.io/badge/Alekol-Invite-red?style=social&logo=discord)](https://discord.com/api/oauth2/authorize?client_id=935192175908651058&permissions=268437504&scope=applications.commands%20bot)
 
 Alekol is a Discord bot to automatically add or remove a role whether you are logged at 42 school.
 

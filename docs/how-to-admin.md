@@ -1,6 +1,6 @@
 # How do I add the bot to my server?
 
-[![Invite](https://img.shields.io/badge/Alekol-Invite-red?style=social&logo=discord)](https://example.org)
+[![Invite](https://img.shields.io/badge/Alekol-Invite-red?style=social&logo=discord)](https://discord.com/api/oauth2/authorize?client_id=935192175908651058&permissions=268437504&scope=applications.commands%20bot)
 
 ## Register to the bot
 
