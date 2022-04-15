@@ -27,5 +27,5 @@ module.exports = (discord) => {
 	route.use('/state', stateRoute());
 
 	return route;
-  
+
 };
