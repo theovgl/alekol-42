@@ -4,7 +4,9 @@ If you don't want to invite the official bot in your server, you can host your o
 
 You will need NodeJS v16 minimum, a Supabase database, a 42 client and a Discord client.
 
-## Setup Supabase
+## The server
+
+### Setup Supabase
 
 The database needs three tables:
 
@@ -32,13 +34,13 @@ The database needs three tables:
 |	ft_login	|	text				|	-					|	no		|	no			|	no			|
 |	guild_id	|	link to guilds.id	|	-					|	no		|	no			|	no			|
 
-## Setup 42 client
+### Setup 42 client
 
 The only setting that is important, is the redirect URI field. You need to write the actual URL of your host.
 
 For example, let's say you own `myapp.com`, you would have to write `https://myapp.com/register` (the `/register` is important too).
 
-## Setup Discord client
+### Setup Discord client
 
 Like the 42 client setup, you have to add a redirect URI (`OAuth2 -> General -> Redirect`).
 
@@ -48,7 +50,7 @@ In `OAuth2 -> URL Generator`, you can generate an invite link for your bot. The 
 
 Finally, you need to enable the `Server Members Intent` in `Bot`.
 
-## .env
+### .env
 
 Here are the variables required in the `.env` file.
 
@@ -70,18 +72,27 @@ FT_USER_ID=				< The 42 user_id >
 REDIRECT_URI=			< The redirect URI that you have set in 42 API and Discord >
 ```
 
-### How do I find the 42 `user.id` cookie and `user_id`?
+#### How do I find the 42 `user.id` cookie and `user_id`?
 
 Go to `https://meta.intra.42.fr/clusters` with your web browser and go into Network tab. Select the websocket `/cable` request.
 
 - `FT_CABLE_USER_ID`: `Response tab -> [select any sent message] -> user_id`. It should look like 12345.
 - `FT_USER_ID`: `Cookies tab -> user.id`.
 
-## Start the server
+### Start the server
 
 To start the server, just run `npm start`. You can set the `PORT` environment variable to change the HTTP app's port.
 
-## Start the website
+The you can build and run the site.
+
+```sh
+npm run build
+npm run start
+```
+
+## The website
+
+### Installation
 
 First you have to install the node modules.
 
@@ -89,7 +100,17 @@ First you have to install the node modules.
 npm ci
 ```
 
-The you can build and run the site.
+### .env
+
+Here are the variables required in the `.env` file.
+
+```
+NEXT_PUBLIC_API_URL=	< The URL of the API server instance >
+```
+
+### Start the website
+
+The you can build and run the website.
 
 ```sh
 npm run build

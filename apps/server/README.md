@@ -1,4 +1,4 @@
-# 42 Alekol
+# Alekol Server
 
 A Discord bot to add a role on your guild's members whenever they are at 42 school.
 
@@ -59,7 +59,6 @@ Finally, you need to enable the `Server Members Intent` in `Bot`.
 
 Here are the variables required in the `.env` file.
 
-(In `apps/server`)
 ```
 DISCORD_TOKEN=			< The Discord bot token >
 DISCORD_CLIENT_ID=		< The Discord client ID >
