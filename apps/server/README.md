@@ -1,8 +1,5 @@
 # 42 Alekol
 
-[![ESLint](https://github.com/theovgl/bot_alekol/actions/workflows/lint.yml/badge.svg)](https://github.com/theovgl/bot_alekol/actions/workflows/lint.yml)
-[![Node.js CI](https://github.com/theovgl/bot_alekol/actions/workflows/node.yml/badge.svg?branch=main)](https://github.com/theovgl/bot_alekol/actions/workflows/node.yml)
-
 A Discord bot to add a role on your guild's members whenever they are at 42 school.
 
 ## What I've used
