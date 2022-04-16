@@ -9,6 +9,9 @@ export default function Document() {
 				<meta property="og:description" content="Alekol is a Discord bot to automatically add or remove a role whether you are logged at 42 school." />
 				<meta property="og:url" content="https://alekol.42group.fr/" />
 				<meta property="og:image" content="https://raw.githubusercontent.com/theovgl/alekol-42/opengraph/apps/site/public/og_image.png?token=GHSAT0AAAAAABTDX5Z76F35BW4PBZXV5EGWYS25ESA" />
+				<meta property="og:image:type" content="image/png" />
+				<meta property="og:image:width" content="1200" />
+				<meta property="og:image:height" content="630" />
 				<link rel='icon' href='/favicon.svg'/>
 				<link rel='preload' href='/fonts/Inter/static/Inter-Black.ttf' as='font' crossOrigin='' type='font/ttf'/>
 				<link rel='preload' href='/fonts/Inter/static/Inter-Regular.ttf' as='font' crossOrigin='' type='font/ttf'/>
