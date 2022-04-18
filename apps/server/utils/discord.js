@@ -212,6 +212,9 @@ async function onReady(client) {
 			}
 		} catch (error) {
 			console.error(error);
+			disconnected = true;
+			logAction(console.log, 'Intra seems broken, going to sleep...');
+			client.user.setStatus('idle');
 		}
 	}, 60 * 1000);
 	await Promise.all([
