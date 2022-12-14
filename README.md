@@ -44,3 +44,8 @@ If you don't want to invite the official bot in your server, you can host your o
 You will need NodeJS v16 minimum, a Supabase database, a 42 client and a Discord client.
 
 Checkout the server's and site's README for installation procedures.
+
+## Contributors
+
+- [@tvogel](https://github.com/tvogel)
+- [@vfurmane](https://github.com/vfurmane)
